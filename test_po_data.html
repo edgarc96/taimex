@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test PO Data</title>
+</head>
+<body>
+    <h2>Testing PO Data Extraction</h2>
+    <div id="results"></div>
+    
+    <script>
+    function testPOData() {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'GET_PO.XML?PO_NUMBER=1001', true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                const resultsDiv = document.getElementById('results');
+                if (xhr.status === 200) {
+                    resultsDiv.innerHTML = '<h3>XML Response:</h3><pre>' + xhr.responseText + '</pre>';
+                    
+                    // Parse and test extraction
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xhr.responseText, 'text/xml');
+                    const poElements = xmlDoc.getElementsByTagName('po');
+                    
+                    if (poElements.length > 0) {
+                        const poElement = poElements[0];
+                        
+                        // Test buyer extraction
+                        const buyerCode = poElement.getElementsByTagName('buyer')[0]?.textContent || '';
+                        const buyerInfo = poElement.getElementsByTagName('buyer_info')[0];
+                        
+                        // Test ship to extraction
+                        const shiptoCode = poElement.getElementsByTagName('ship_to')[0]?.textContent || '';
+                        const shiptoInfo = poElement.getElementsByTagName('shipto_info')[0];
+                        
+                        resultsDiv.innerHTML += '<h3>Extracted Data:</h3>';
+                        resultsDiv.innerHTML += '<p><strong>Buyer Code:</strong> "' + buyerCode + '" (length: ' + buyerCode.length + ')</p>';
+                        resultsDiv.innerHTML += '<p><strong>Buyer Info Available:</strong> ' + (buyerInfo ? 'Yes' : 'No') + '</p>';
+                        resultsDiv.innerHTML += '<p><strong>Ship To Code:</strong> "' + shiptoCode + '" (length: ' + shiptoCode.length + ')</p>';
+                        resultsDiv.innerHTML += '<p><strong>Ship To Info Available:</strong> ' + (shiptoInfo ? 'Yes' : 'No') + '</p>';
+                        
+                        // Test line items and unit prices
+                        const lineItemElements = poElement.getElementsByTagName('line_item');
+                        resultsDiv.innerHTML += '<h3>Line Items Test:</h3>';
+                        resultsDiv.innerHTML += '<p><strong>Line Items Count:</strong> ' + lineItemElements.length + '</p>';
+                        
+                        for (let i = 0; i < Math.min(lineItemElements.length, 3); i++) {
+                            const lineItem = lineItemElements[i];
+                            const partNumber = lineItem.getElementsByTagName('part_number')[0]?.textContent || '';
+                            const unitPrice = lineItem.getElementsByTagName('unit_price')[0]?.textContent || '';
+                            const debugField26 = lineItem.getElementsByTagName('debug_field26')[0]?.textContent || '';
+                            
+                            resultsDiv.innerHTML += '<p><strong>Line ' + (i+1) + ':</strong> Part="' + partNumber + '", Unit Price="' + unitPrice + '", Debug Field26="' + debugField26 + '"</p>';
+                        }
+                        
+                        if (buyerInfo) {
+                            const buyerName = buyerInfo.getElementsByTagName('buyer_name')[0]?.textContent || '';
+                            const buyerEmail = buyerInfo.getElementsByTagName('buyer_email')[0]?.textContent || '';
+                            const buyerInitials = buyerInfo.getElementsByTagName('buyer_initials')[0]?.textContent || '';
+                            resultsDiv.innerHTML += '<p><strong>Buyer Details:</strong> Name="' + buyerName + '", Email="' + buyerEmail + '", Initials="' + buyerInitials + '"</p>';
+                        }
+                        
+                        if (shiptoInfo) {
+                            const shiptoName = shiptoInfo.getElementsByTagName('shipto_name')[0]?.textContent || '';
+                            const shiptoAddress1 = shiptoInfo.getElementsByTagName('shipto_address1')[0]?.textContent || '';
+                            const shiptoCity = shiptoInfo.getElementsByTagName('shipto_city')[0]?.textContent || '';
+                            resultsDiv.innerHTML += '<p><strong>Ship To Details:</strong> Name="' + shiptoName + '", Address="' + shiptoAddress1 + '", City="' + shiptoCity + '"</p>';
+                        }
+                    }
+                } else {
+                    resultsDiv.innerHTML = '<p>Error: ' + xhr.status + ' - ' + xhr.statusText + '</p>';
+                }
+            }
+        };
+        xhr.send();
+    }
+    
+    // Auto-run test
+    window.onload = testPOData;
+    </script>
+</body>
+</html>

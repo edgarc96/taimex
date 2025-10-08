@@ -1,0 +1,185 @@
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO' TO POF ELSE STOP 201,'PO'
+OPEN 'PARTS' TO PARTSF ELSE STOP 201,'PARTS'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Get PO Number parameter
+PL_GETVAR PONO FROM 'PONO' ELSE PONO = ''
+
+* Initialize response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<po_lines>'
+
+IF PONO = '' THEN
+    XML.RESPONSE = XML.RESPONSE : XAM : '<error>PO Number is required</error>'
+    GOTO FINISH
+END
+
+* Read PO record
+READ PO.RECORD FROM POF, PONO ELSE
+    XML.RESPONSE = XML.RESPONSE : XAM : '<error>PO not found</error>'
+    GOTO FINISH
+END
+
+* Process each line item
+LINE_COUNT = DCOUNT(PO.RECORD<31>, @VM)
+FOR LINE_IDX = 1 TO LINE_COUNT
+    LINE_NUMBER = PO.RECORD<31, LINE_IDX>
+    IF LINE_NUMBER NE '' THEN
+        XML.RESPONSE = XML.RESPONSE : XAM : '<line_item>'
+        
+        * Basic line info
+        XML.RESPONSE = XML.RESPONSE : XAM : '<line_number>' : LINE_NUMBER : '</line_number>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '<part_number>' : PO.RECORD<32, LINE_IDX> : '</part_number>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '<description>' : PO.RECORD<33, LINE_IDX> : '</description>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '<quantity>' : PO.RECORD<35, LINE_IDX> : '</quantity>'
+        
+        * Price (convert from internal format)
+        UNIT_PRICE = PO.RECORD<36, LINE_IDX> / 10000
+        XML.RESPONSE = XML.RESPONSE : XAM : '<unit_price>' : UNIT_PRICE : '</unit_price>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '<total_price>' : (PO.RECORD<35, LINE_IDX> * UNIT_PRICE) : '</total_price>'
+        
+        * Additional fields
+        XML.RESPONSE = XML.RESPONSE : XAM : '<doc_rev>' : PO.RECORD<61, LINE_IDX> : '</doc_rev>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '<vendor_part>' : PO.RECORD<56, LINE_IDX> : '</vendor_part>'
+        
+        * Notes (convert from internal format)
+        LINE_NOTES = PO.RECORD<40, LINE_IDX>
+        CONVERT @SVM TO @AM IN LINE_NOTES
+        XML.RESPONSE = XML.RESPONSE : XAM : '<line_notes>' : LINE_NOTES : '</line_notes>'
+        
+        PROD_NOTES = PO.RECORD<73, LINE_IDX>
+        CONVERT @SVM TO @AM IN PROD_NOTES
+        XML.RESPONSE = XML.RESPONSE : XAM : '<prod_notes>' : PROD_NOTES : '</prod_notes>'
+        
+        * Government fields
+        XML.RESPONSE = XML.RESPONSE : XAM : '<first_article>' : PO.RECORD<150, LINE_IDX> : '</first_article>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '<govt_rating>' : PO.RECORD<123, LINE_IDX> : '</govt_rating>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '<govt_contract>' : PO.RECORD<124, LINE_IDX> : '</govt_contract>'
+        
+        * Need Info (field 38)
+        XML.RESPONSE = XML.RESPONSE : XAM : '<need_info>'
+        NEED_DATA = PO.RECORD<38, LINE_IDX>
+        IF NEED_DATA NE '' THEN
+            FOR N = 1 TO DCOUNT(NEED_DATA, @SVM)
+                NEED_ENTRY = FIELD(NEED_DATA, @SVM, N)
+                IF NEED_ENTRY NE '' THEN
+                    NEED_DATE = FIELD(NEED_ENTRY, '*', 1)
+                    NEED_QTY = FIELD(NEED_ENTRY, '*', 2)
+                    XML.RESPONSE = XML.RESPONSE : XAM : '<need_entry>'
+                    XML.RESPONSE = XML.RESPONSE : XAM : '<date>' : OCONV(NEED_DATE, 'D-') : '</date>'
+                    XML.RESPONSE = XML.RESPONSE : XAM : '<quantity>' : NEED_QTY : '</quantity>'
+                    XML.RESPONSE = XML.RESPONSE : XAM : '</need_entry>'
+                END
+            NEXT N
+        END
+        XML.RESPONSE = XML.RESPONSE : XAM : '</need_info>'
+        
+        * Acknowledgments (field 49)
+        XML.RESPONSE = XML.RESPONSE : XAM : '<acknowledgments>'
+        ACK_DATA = PO.RECORD<49, LINE_IDX>
+        IF ACK_DATA NE '' THEN
+            FOR A = 1 TO DCOUNT(ACK_DATA, @SVM)
+                ACK_ENTRY = FIELD(ACK_DATA, @SVM, A)
+                IF ACK_ENTRY NE '' THEN
+                    ACK_DATE = FIELD(ACK_ENTRY, '*', 1)
+                    ACK_QTY = FIELD(ACK_ENTRY, '*', 2)
+                    XML.RESPONSE = XML.RESPONSE : XAM : '<ack_entry>'
+                    XML.RESPONSE = XML.RESPONSE : XAM : '<date>' : OCONV(ACK_DATE, 'D-') : '</date>'
+                    XML.RESPONSE = XML.RESPONSE : XAM : '<quantity>' : ACK_QTY : '</quantity>'
+                    XML.RESPONSE = XML.RESPONSE : XAM : '</ack_entry>'
+                END
+            NEXT A
+        END
+        XML.RESPONSE = XML.RESPONSE : XAM : '</acknowledgments>'
+        
+        * Schedules (field 34)
+        XML.RESPONSE = XML.RESPONSE : XAM : '<schedules>'
+        SCHED_DATA = PO.RECORD<34, LINE_IDX>
+        IF SCHED_DATA NE '' THEN
+            FOR S = 1 TO DCOUNT(SCHED_DATA, @SVM)
+                SCHED_ENTRY = FIELD(SCHED_DATA, @SVM, S)
+                IF SCHED_ENTRY NE '' THEN
+                    SCHED_DATE = FIELD(SCHED_ENTRY, '*', 1)
+                    SCHED_QTY = FIELD(SCHED_ENTRY, '*', 2)
+                    SCHED_RS = FIELD(SCHED_ENTRY, '*', 3)
+                    XML.RESPONSE = XML.RESPONSE : XAM : '<sched_entry>'
+                    XML.RESPONSE = XML.RESPONSE : XAM : '<date>' : OCONV(SCHED_DATE, 'D-') : '</date>'
+                    XML.RESPONSE = XML.RESPONSE : XAM : '<quantity>' : SCHED_QTY : '</quantity>'
+                    XML.RESPONSE = XML.RESPONSE : XAM : '<rs_flag>' : SCHED_RS : '</rs_flag>'
+                    XML.RESPONSE = XML.RESPONSE : XAM : '</sched_entry>'
+                END
+            NEXT S
+        END
+        XML.RESPONSE = XML.RESPONSE : XAM : '</schedules>'
+        
+        * Receiving (field 39)
+        XML.RESPONSE = XML.RESPONSE : XAM : '<receiving>'
+        RECV_DATA = PO.RECORD<39, LINE_IDX>
+        IF RECV_DATA NE '' THEN
+            FOR R = 1 TO DCOUNT(RECV_DATA, @SVM)
+                RECV_ENTRY = FIELD(RECV_DATA, @SVM, R)
+                IF RECV_ENTRY NE '' THEN
+                    RECV_DATE = FIELD(RECV_ENTRY, '*', 1)
+                    RECV_QTY = FIELD(RECV_ENTRY, '*', 2)
+                    XML.RESPONSE = XML.RESPONSE : XAM : '<recv_entry>'
+                    XML.RESPONSE = XML.RESPONSE : XAM : '<date>' : OCONV(RECV_DATE, 'D-') : '</date>'
+                    XML.RESPONSE = XML.RESPONSE : XAM : '<quantity>' : RECV_QTY : '</quantity>'
+                    XML.RESPONSE = XML.RESPONSE : XAM : '</recv_entry>'
+                END
+            NEXT R
+        END
+        XML.RESPONSE = XML.RESPONSE : XAM : '</receiving>'
+        
+        * VWHSE Transfers (field 92)
+        XML.RESPONSE = XML.RESPONSE : XAM : '<vwhse_transfers>'
+        VWHSE_DATA = PO.RECORD<92, LINE_IDX>
+        IF VWHSE_DATA NE '' THEN
+            FOR V = 1 TO DCOUNT(VWHSE_DATA, @SVM)
+                VWHSE_ENTRY = FIELD(VWHSE_DATA, @SVM, V)
+                IF VWHSE_ENTRY NE '' THEN
+                    VWHSE_ID = FIELD(VWHSE_ENTRY, '*', 1)
+                    VWHSE_QTY = FIELD(VWHSE_ENTRY, '*', 2)
+                    XML.RESPONSE = XML.RESPONSE : XAM : '<vwhse_entry>'
+                    XML.RESPONSE = XML.RESPONSE : XAM : '<vwhse_id>' : VWHSE_ID : '</vwhse_id>'
+                    XML.RESPONSE = XML.RESPONSE : XAM : '<quantity>' : VWHSE_QTY : '</quantity>'
+                    XML.RESPONSE = XML.RESPONSE : XAM : '</vwhse_entry>'
+                END
+            NEXT V
+        END
+        XML.RESPONSE = XML.RESPONSE : XAM : '</vwhse_transfers>'
+        
+        * Timestamp info
+        TIMESTAMP_INFO = PO.RECORD<83, LINE_IDX>
+        IF TIMESTAMP_INFO NE '' THEN
+            LAST_DATE = FIELD(TIMESTAMP_INFO, '*', 1)
+            LAST_USER = FIELD(TIMESTAMP_INFO, '*', 2)
+            LAST_TIME = FIELD(TIMESTAMP_INFO, '*', 3)
+            XML.RESPONSE = XML.RESPONSE : XAM : '<last_updated>'
+            XML.RESPONSE = XML.RESPONSE : XAM : '<date>' : OCONV(LAST_DATE, 'D-') : '</date>'
+            XML.RESPONSE = XML.RESPONSE : XAM : '<user>' : LAST_USER : '</user>'
+            XML.RESPONSE = XML.RESPONSE : XAM : '<time>' : LAST_TIME : '</time>'
+            XML.RESPONSE = XML.RESPONSE : XAM : '</last_updated>'
+        END
+        
+        XML.RESPONSE = XML.RESPONSE : XAM : '</line_item>'
+    END
+NEXT LINE_IDX
+
+FINISH:
+XML.RESPONSE = XML.RESPONSE : XAM : '</po_lines>'
+
+* Output the XML
+WRITE XML.RESPONSE ON XMLDATAF, 'GET_PO_LINES.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/GET_PO_LINES.XML', '', ERR)
+RETURN

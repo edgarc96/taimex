@@ -1,0 +1,77 @@
+PicLan-IP/BASIC ^ ^
+
+* Open XMLDATA
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+
+* Get parameters from URL
+PL_GETVAR INITIALS FROM 'INITIALS' ELSE INITIALS = ''
+PL_GETVAR BUYER FROM 'BUYER' ELSE BUYER = INITIALS
+PL_GETVAR ID FROM 'ID' ELSE ID = BUYER
+
+BUYER_KEY = OCONV(TRIM(ID), "MCU")
+
+* Add XML header
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : AM : '<buyers>'
+
+* Validate parameter
+IF BUYER_KEY = "" THEN
+    XML.RESPONSE = XML.RESPONSE : AM:'<error>Missing parameter: INITIALS/BUYER/ID</error>'
+    XML.RESPONSE = XML.RESPONSE : AM:'</buyers>'
+    WRITE XML.RESPONSE ON XMLDATAF,'BUYERS.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/BUYERS.XML','',ERR)
+    RETURN
+END
+
+* Open BUYERS file
+OPEN "BUYERS" TO BUYERS.FILE ELSE
+    XML.RESPONSE = XML.RESPONSE : AM:'<error>Cannot open BUYERS file</error>'
+    XML.RESPONSE = XML.RESPONSE : AM:'</buyers>'
+    WRITE XML.RESPONSE ON XMLDATAF,'BUYERS.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/BUYERS.XML','',ERR)
+    RETURN
+END
+
+* Try to read record
+READ BUYER.REC FROM BUYERS.FILE, BUYER_KEY ELSE
+    * Not found → return empty buyer
+    XML.RESPONSE = XML.RESPONSE : AM:'<buyer>'
+    XML.RESPONSE = XML.RESPONSE : AM:'<buyer_code></buyer_code>'
+    XML.RESPONSE = XML.RESPONSE : AM:'<buyer_name></buyer_name>'
+    XML.RESPONSE = XML.RESPONSE : AM:'<buyer_initials></buyer_initials>'
+    XML.RESPONSE = XML.RESPONSE : AM:'<buyer_email></buyer_email>'
+    XML.RESPONSE = XML.RESPONSE : AM:'</buyer>'
+    XML.RESPONSE = XML.RESPONSE : AM:'</buyers>'
+    WRITE XML.RESPONSE ON XMLDATAF,'BUYERS.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/BUYERS.XML','',ERR)
+    RETURN
+END
+
+* Extract fields from BUYER record
+BUYER_CODE     = BUYER.REC<1>
+BUYER_NAME     = BUYER.REC<2>
+BUYER_INITIALS = BUYER.REC<3>
+BUYER_EMAIL    = BUYER.REC<4>
+
+* Build XML response
+XML.RESPONSE = XML.RESPONSE : AM:'<buyer>'
+XML.RESPONSE = XML.RESPONSE : AM:'<buyer_code>' : BUYER_CODE : '</buyer_code>'
+XML.RESPONSE = XML.RESPONSE : AM:'<buyer_name>' : BUYER_NAME : '</buyer_name>'
+XML.RESPONSE = XML.RESPONSE : AM:'<buyer_initials>' : BUYER_INITIALS : '</buyer_initials>'
+XML.RESPONSE = XML.RESPONSE : AM:'<buyer_email>' : BUYER_EMAIL : '</buyer_email>'
+XML.RESPONSE = XML.RESPONSE : AM:'</buyer>'
+XML.RESPONSE = XML.RESPONSE : AM:'</buyers>'
+
+* Output with unique filename
+TIMESTAMP = OCONV(DATE():'*':TIME(),'MCL')
+FILENAME = 'BUYERS_' : TIMESTAMP : '.XML'
+WRITE XML.RESPONSE ON XMLDATAF,FILENAME
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/':FILENAME,'',ERR)
+RETURN

@@ -1,0 +1,69 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO' TO POF ELSE STOP 201,'PO'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+* Get parameters from URL
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = ''
+
+PO_NUMBER = TRIM(PO_NUMBER)
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM:'<debug_po_buyer>' 
+
+*REM Read PO records
+PRINT "PO_NUMBER=": PO_NUMBER
+SL = \SSELECT PO\
+EXECUTE SL
+PRINT
+
+10 READNEXT PO_ID THEN
+    READ PO.RECORD FROM POF, PO_ID ELSE
+        GOTO 10
+    END
+
+    * Filter by PO_NUMBER if specified
+    IF PO_NUMBER <> "" AND PO_ID <> PO_NUMBER THEN GOTO 10
+
+    XML.RESPONSE = XML.RESPONSE :XAM: '<po_record>' 
+    XML.RESPONSE = XML.RESPONSE :XAM: '<po_id>' : PO_ID : '</po_id>'
+    
+    * Output all fields 1-20 to see what's in the PO record
+    FOR I = 1 TO 20
+        FIELD_VALUE = PO.RECORD<I>
+        XML.RESPONSE = XML.RESPONSE :XAM: '<field' : I : '>' : FIELD_VALUE : '</field' : I : '>'
+    NEXT I
+    
+    * Specifically check buyer field <8>
+    BUYER_CODE = PO.RECORD<8>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_field8>' : BUYER_CODE : '</buyer_field8>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_field8_length>' : LEN(BUYER_CODE) : '</buyer_field8_length>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_field8_empty>' : (BUYER_CODE = '') : '</buyer_field8_empty>'
+    
+    XML.RESPONSE = XML.RESPONSE :XAM: '</po_record>'
+    
+    * If searching for specific PO, exit after finding it
+    IF PO_NUMBER <> "" THEN GOTO DONE
+    GOTO 10
+END
+DONE:
+*REM Complete XML response
+XML.RESPONSE = XML.RESPONSE :XAM: '</debug_po_buyer>'
+ 
+*REM Output the XML
+    WRITE XML.RESPONSE ON XMLDATAF,'DEBUG_PO_BUYER.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/DEBUG_PO_BUYER.XML','',ERR)
+    RETURN
+</pre>

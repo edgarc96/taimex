@@ -1,0 +1,97 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+* DEBUG_PART.XML - Debug PARTS record structure
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PARTS' TO PARTSF ELSE GOTO NO_PARTS_FILE
+
+* Get parameter
+PL_GETVAR PART_NUMBER FROM 'PART_NUMBER' ELSE PART_NUMBER = ''
+PART = TRIM(PART_NUMBER)
+PART = OCONV(PART, "MCU")
+
+* Add XML header
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE := '<debug_info>'
+
+IF PART = "" THEN
+  XML.RESPONSE := '<error>Missing PART_NUMBER parameter</error>'
+  GOTO OUTPUT
+END
+
+* Read record
+READ PARTS.RECORD FROM PARTSF, PART ELSE GOTO PART_NOT_FOUND
+
+* Output ALL positions (1-40) with their raw content
+XML.RESPONSE := '<part_number>':PART:'</part_number>'
+XML.RESPONSE := '<positions>'
+
+FOR I = 1 TO 40
+  FIELD_VALUE = PARTS.RECORD<I>
+  FIELD_LEN = LEN(FIELD_VALUE)
+  
+  * Build hex dump of first 50 bytes
+  HEX_DUMP = ''
+  ASCII_DUMP = ''
+  MAX_BYTES = 50
+  IF FIELD_LEN < MAX_BYTES THEN MAX_BYTES = FIELD_LEN
+  
+  FOR B = 1 TO MAX_BYTES
+    BYTE_CHAR = FIELD_VALUE[B,1]
+    BYTE_CODE = SEQ(BYTE_CHAR)
+    * Format as 2-digit hex
+    HEX_VAL = OCONV(BYTE_CODE, 'MX')
+    * Pad to 2 digits if needed
+    IF LEN(HEX_VAL) < 2 THEN HEX_VAL = '0':HEX_VAL
+    HEX_DUMP := ' ':HEX_VAL
+    
+    * Make ASCII printable
+    IF BYTE_CODE >= 32 AND BYTE_CODE <= 126 THEN
+      ASCII_DUMP := BYTE_CHAR
+    END ELSE
+      ASCII_DUMP := '.'
+    END
+  NEXT B
+  
+  * Also show cleaned version
+  FIELD_CLEAN = FIELD_VALUE[1,100]
+  FOR J = 0 TO 31
+    FIELD_CLEAN = CONVERT(CHAR(J), '', FIELD_CLEAN)
+  NEXT J
+  FIELD_CLEAN = CONVERT(CHAR(127), '', FIELD_CLEAN)
+  FIELD_CLEAN = CHANGE(FIELD_CLEAN, '&', '&amp;')
+  FIELD_CLEAN = CHANGE(FIELD_CLEAN, '<', '&lt;')
+  FIELD_CLEAN = CHANGE(FIELD_CLEAN, '>', '&gt;')
+  
+  XML.RESPONSE := '<position>'
+  XML.RESPONSE := '<number>':I:'</number>'
+  XML.RESPONSE := '<length>':FIELD_LEN:'</length>'
+  XML.RESPONSE := '<hex>':HEX_DUMP:'</hex>'
+  XML.RESPONSE := '<ascii>':ASCII_DUMP:'</ascii>'
+  XML.RESPONSE := '<cleaned><![CDATA[':FIELD_CLEAN:']]></cleaned>'
+  XML.RESPONSE := '</position>'
+NEXT I
+
+XML.RESPONSE := '</positions>'
+GOTO OUTPUT
+
+PART_NOT_FOUND:
+XML.RESPONSE := '<error>Part ':PART:' not found</error>'
+GOTO OUTPUT
+
+NO_PARTS_FILE:
+XML.RESPONSE := '<error>Cannot open PARTS file</error>'
+
+OUTPUT:
+XML.RESPONSE := '</debug_info>'
+WRITE XML.RESPONSE ON XMLDATAF,'DEBUG_PART.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/DEBUG_PART.XML','',ERR)
+RETURN
+
+</pre>

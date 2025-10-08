@@ -1,0 +1,216 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+  OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+*
+* REM Get parameters from URL
+PL_GETVAR ID FROM 'ID' ELSE ID = ''
+PL_GETVAR PART_NUMBER FROM 'PART_NUMBER' ELSE PART_NUMBER = ''
+ID = TRIM(ID)
+PART_NUMBER = TRIM(PART_NUMBER)
+*
+*PL_ADD_HDR 'Set-Cookie: INIT=':INITIALS:'; domain=cde.com;'
+*        R.ERR = '302 MOVED TEMPORARILY'
+*        PL_ADD_HDR 'Location: /':MENU
+  
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : AM:'<customers>' 
+
+*REM Validate parameters
+IF ID = "" THEN
+    XML.RESPONSE = XML.RESPONSE :AM: '<error>Missing required parameter: ID</error>'
+    XML.RESPONSE = XML.RESPONSE :AM: '</customers>'
+    WRITE XML.RESPONSE ON XMLDATAF,ID:PART_NUMBER:'.XML'
+    ERR = ''
+    CALL PLW.PAGE(ID:PART_NUMBER:'.XML','',ERR)
+    RETURN
+END
+IF ID # 'ALL' AND PART_NUMBER = "" THEN
+    XML.RESPONSE = XML.RESPONSE :AM: '<error>Missing required parameter: PART_NUMBER</error>'
+    XML.RESPONSE = XML.RESPONSE :AM: '</customers>'
+    WRITE XML.RESPONSE ON XMLDATAF,ID:PART_NUMBER:'.XML'
+    ERR = ''
+    CALL PLW.PAGE(ID:PART_NUMBER:'.XML','',ERR)
+    RETURN
+END
+
+*REM Open database files
+OPEN "CUSTOMER" TO CUSTOMER.FILE ELSE
+    XML.RESPONSE = XML.RESPONSE : AM:'<error>Cannot open CUSTOMER file</error>'
+    XML.RESPONSE = XML.RESPONSE : AM:'</customers>'
+    WRITE XML.RESPONSE ON XMLDATAF,ID:PART_NUMBER:'.XML'
+    ERR = ''
+    CALL PLW.PAGE(ID:PART_NUMBER:'.XML','',ERR)
+    RETURN
+END
+    
+
+OPEN "PARTS" TO PARTS.FILE ELSE
+    XML.RESPONSE = XML.RESPONSE :AM: '<error>Cannot open PARTS file</error>'
+    XML.RESPONSE = XML.RESPONSE :AM: '</customers>'
+    WRITE XML.RESPONSE ON XMLDATAF,ID:PART_NUMBER:'.XML'
+    ERR = ''
+    CALL PLW.PAGE(ID:PART_NUMBER:'.XML','',ERR)
+    RETURN
+END
+
+OPEN "PRICE" TO PRICE.FILE ELSE
+    XML.RESPONSE = XML.RESPONSE :AM: '<error>Cannot open PRICE file</error>'
+    XML.RESPONSE = XML.RESPONSE :AM: '</customers>'
+    WRITE XML.RESPONSE ON XMLDATAF,ID:PART_NUMBER:'.XML'
+    ERR = ''
+    CALL PLW.PAGE(ID:PART_NUMBER:'.XML','',ERR)
+    RETURN
+END
+
+  
+
+* REM Read customer record
+PRINT "ID=": ID
+PRINT
+IF ID # 'ALL' THEN
+  * Single ID/PART branch: always emit a record even if no PRICE exists
+  CUST.RECORD = ""
+  READ CUST.RECORD FROM CUSTOMER.FILE, ID ELSE
+    XML.RESPONSE = XML.RESPONSE :AM: '<error>Customer not found: ' : ID : '</error>'
+    XML.RESPONSE = XML.RESPONSE :AM:'</customers>'
+    WRITE XML.RESPONSE ON XMLDATAF,ID:PART_NUMBER:'.XML'
+    ERR  = ''
+    CALL PLW.PAGE(ID:PART_NUMBER:'.XML','',ERR)
+    RETURN
+  END
+
+  PART.RECORD = ""
+  PRINT "PART_NUMBER=": PART_NUMBER
+  READ PART.RECORD FROM PARTS.FILE, PART_NUMBER ELSE
+      XML.RESPONSE = XML.RESPONSE :AM: '<error>Part not found: ' : PART_NUMBER : '</error>'
+      XML.RESPONSE = XML.RESPONSE :AM: '</customers>'
+      WRITE XML.RESPONSE ON XMLDATAF,ID:PART_NUMBER:'.XML'
+      ERR = ''
+      CALL PLW.PAGE(ID:PART_NUMBER:'.XML','',ERR)
+      RETURN
+  END
+
+  * Emit record header
+  XML.RESPONSE = XML.RESPONSE :AM: '<record>'
+  XML.RESPONSE = XML.RESPONSE :AM: '<partNumber>' : PART_NUMBER : '</partNumber>'
+  XML.RESPONSE = XML.RESPONSE :AM: '<customerNumber>' : ID : '</customerNumber>'
+  XML.RESPONSE = XML.RESPONSE :AM: '<customerName><![CDATA[' : CUST.RECORD<1> : ']]></customerName>'
+  XML.RESPONSE = XML.RESPONSE :AM: '<partDescription><![CDATA[' : PART.RECORD<1> : ']]></partDescription>'
+  * Per-record (PRICE) notes only; no fallback to customer-level
+  NOTES.OUT = ""
+  PRICE.KEY = PART_NUMBER:'*':ID
+  PRICE.NOTES.RECORD = ""
+  READ PRICE.NOTES.RECORD FROM PRICE.FILE, PRICE.KEY ELSE PRICE.NOTES.RECORD = ""
+  IF PRICE.NOTES.RECORD # "" AND PRICE.NOTES.RECORD<26> # "" THEN
+      NOTES.OUT = PRICE.NOTES.RECORD<26>
+  END
+  XML.RESPONSE = XML.RESPONSE :AM: '<notes><![CDATA[' : NOTES.OUT : ']]></notes>'
+  UDATE = FIELD(CUST.RECORD<16>,'*',1)
+  UDATE = OCONV(UDATE,'D2-')
+  XML.RESPONSE = XML.RESPONSE : '<date>' : UDATE : '</date>'
+
+  * Price ranges (positions 6,7,8; divide price by 1000)
+  XML.RESPONSE = XML.RESPONSE : '<priceRanges>'
+  PRICE.KEY = PART_NUMBER:'*':ID
+  PRICE.RECORD = ""
+  READ PRICE.RECORD FROM PRICE.FILE, PRICE.KEY THEN
+      LINES = DCOUNT(PRICE.RECORD<6>,VM)
+      FOR I = 1 TO LINES
+        XML.RESPONSE = XML.RESPONSE :AM: '<range>'
+        XML.RESPONSE = XML.RESPONSE :AM: '<fromQty>' : PRICE.RECORD<6,I> : '</fromQty>'
+        XML.RESPONSE = XML.RESPONSE :AM: '<toQty>' : PRICE.RECORD<7,I> : '</toQty>'
+        PRICE = PRICE.RECORD<8,I> / 1000
+        XML.RESPONSE = XML.RESPONSE :AM: '<price>' : PRICE : '</price>'
+        XML.RESPONSE = XML.RESPONSE :AM: '</range>'
+      NEXT I
+  END
+  XML.RESPONSE = XML.RESPONSE :AM: '</priceRanges>'
+  XML.RESPONSE = XML.RESPONSE :AM: '</record>'
+  GOTO DONE
+END
+
+ * ID='ALL' branch: iterate existing PRICE keys
+ SL = 'SSELECT PRICE'
+ EXECUTE SL
+   10 READNEXT PRICE.KEY THEN
+        CURRENT.PART = FIELD(PRICE.KEY,'*',1)
+        CURRENT.ID = FIELD(PRICE.KEY,'*',2)
+        CUST.RECORD = ""
+        READ CUST.RECORD FROM CUSTOMER.FILE, CURRENT.ID ELSE
+          * Skip if customer not found
+          GOTO 10
+        END
+
+
+ * REM Read part record (filter by provided PART_NUMBER if present)
+ PART.RECORD = ""
+ IF PART_NUMBER # '' AND CURRENT.PART # PART_NUMBER THEN
+     GOTO 10
+ END
+ READ PART.RECORD FROM PARTS.FILE, CURRENT.PART ELSE
+     * Skip if part not found
+     GOTO 10
+ END
+
+ * REM Start customer record in XML
+ XML.RESPONSE = XML.RESPONSE :AM: '<record>'
+ XML.RESPONSE = XML.RESPONSE :AM: '<partNumber>' : CURRENT.PART : '</partNumber>'
+ XML.RESPONSE = XML.RESPONSE :AM: '<customerNumber>' : CURRENT.ID : '</customerNumber>'
+ XML.RESPONSE = XML.RESPONSE :AM: '<customerName><![CDATA[' : CUST.RECORD<1> : ']]></customerName>'
+ XML.RESPONSE = XML.RESPONSE :AM: '<partDescription><![CDATA[' : PART.RECORD<1> : ']]></partDescription>'
+ * Per-record (PRICE) notes only; no fallback to customer-level
+ NOTES.OUT = ""
+ PRICE.KEY = CURRENT.PART:'*':CURRENT.ID
+ PRICE.NOTES.RECORD = ""
+ READ PRICE.NOTES.RECORD FROM PRICE.FILE, PRICE.KEY ELSE PRICE.NOTES.RECORD = ""
+ IF PRICE.NOTES.RECORD # "" AND PRICE.NOTES.RECORD<26> # "" THEN
+     NOTES.OUT = PRICE.NOTES.RECORD<26>
+ END
+ XML.RESPONSE = XML.RESPONSE :AM: '<notes>' : NOTES.OUT : '</notes>'
+ UDATE = FIELD(CUST.RECORD<16>,'*',1)
+ UDATE = OCONV(UDATE,'D2-')
+ XML.RESPONSE = XML.RESPONSE : '<date>' : UDATE : '</date>'
+
+* REM Read price ranges
+XML.RESPONSE = XML.RESPONSE : '<priceRanges>'
+
+
+ * REM Search for price records (simplified approach)
+     PRICE.KEY = CURRENT.PART:'*':CURRENT.ID
+     PRICE.RECORD = ""
+     READ PRICE.RECORD FROM PRICE.FILE, PRICE.KEY ELSE
+         GOTO PRICE.DONE
+     END
+
+LINES = DCOUNT(PRICE.RECORD<6>,VM)
+    FOR I = 1 TO LINES
+      REM Add price range to XML
+      XML.RESPONSE = XML.RESPONSE :AM: '<range>'
+      XML.RESPONSE = XML.RESPONSE :AM: '<fromQty>' : PRICE.RECORD<6,I> : '</fromQty>'
+      XML.RESPONSE = XML.RESPONSE :AM: '<toQty>' : PRICE.RECORD<7,I> : '</toQty>'
+      PRICE = PRICE.RECORD<8,I> / 1000
+      XML.RESPONSE = XML.RESPONSE :AM: '<price>' : PRICE : '</price>'
+      XML.RESPONSE = XML.RESPONSE :AM: '</range>'
+    NEXT I
+
+PRICE.DONE:
+XML.RESPONSE = XML.RESPONSE :AM: '</priceRanges>'
+XML.RESPONSE = XML.RESPONSE :AM: '</record>'
+  GOTO 10
+ END
+DONE:
+*REM Complete XML response
+XML.RESPONSE = XML.RESPONSE :AM: '</customers>'
+ 
+*REM Output the XML
+    WRITE XML.RESPONSE ON XMLDATAF,ID:PART_NUMBER:'.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/':ID:PART_NUMBER:'.XML','',ERR)
+    RETURN
+</pre>
+                                                                                                                        

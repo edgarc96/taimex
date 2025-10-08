@@ -1,0 +1,79 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO2' TO PO2F ELSE STOP 201,'PO2'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = ''
+PO_NUMBER = TRIM(PO_NUMBER)
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<purchaseorders>' 
+
+*REM Read PO record if PO_NUMBER provided
+IF PO_NUMBER <> "" THEN
+    READ PO.RECORD FROM PO2F, PO_NUMBER THEN
+        XML.RESPONSE = XML.RESPONSE : XAM : '<po>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '<po_number>' : PO_NUMBER : '</po_number>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '<part_number>' : PO.RECORD<32> : '</part_number>'
+        
+        * Line items with descriptions from field 33
+        XML.RESPONSE = XML.RESPONSE : XAM : '<line_items>'
+        PART_NUMBERS_DATA = PO.RECORD<32>
+        DESCRIPTIONS_DATA = PO.RECORD<33>
+        IF PART_NUMBERS_DATA <> '' THEN
+            PART_LINES = DCOUNT(PART_NUMBERS_DATA, XVM)
+            FOR I = 1 TO PART_LINES
+                PART_NUMBERS_MV = PART_NUMBERS_DATA<1,I>
+                IF PART_NUMBERS_MV <> '' THEN
+                    PARTS_COUNT = DCOUNT(PART_NUMBERS_MV, XSM)
+                    FOR J = 1 TO PARTS_COUNT
+                        PART_NUMBER = PART_NUMBERS_MV<1,1,J>
+                        IF PART_NUMBER <> '' THEN
+                            XML.RESPONSE = XML.RESPONSE : XAM : '<line_item>'
+                            XML.RESPONSE = XML.RESPONSE : XAM : '<line_number>' : ((I-1)*PARTS_COUNT + J) : '</line_number>'
+                            XML.RESPONSE = XML.RESPONSE : XAM : '<part_number>' : PART_NUMBER : '</part_number>'
+                            
+                            * Description from field 33
+                            LINE_DESC = 'No description available'
+                            IF DESCRIPTIONS_DATA <> '' THEN
+                                LINE_DESC = DESCRIPTIONS_DATA<1,I>
+                                IF LINE_DESC = '' THEN
+                                    LINE_DESC = DESCRIPTIONS_DATA<1,1>
+                                END
+                                IF LINE_DESC = '' THEN
+                                    LINE_DESC = 'Field 33 debug: ' : DESCRIPTIONS_DATA
+                                END
+                            END
+                            XML.RESPONSE = XML.RESPONSE : XAM : '<description>' : LINE_DESC : '</description>'
+                            
+                            XML.RESPONSE = XML.RESPONSE : XAM : '</line_item>'
+                        END
+                    NEXT J
+                END
+            NEXT I
+        END
+        XML.RESPONSE = XML.RESPONSE : XAM : '</line_items>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '</po>'
+    END
+END
+
+*REM Complete XML response
+XML.RESPONSE = XML.RESPONSE :XAM: '</purchaseorders>'
+ 
+*REM Output the XML
+    WRITE XML.RESPONSE ON XMLDATAF,'GET_PO2_PART_TEST.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/GET_PO2_PART_TEST.XML','',ERR)
+    RETURN
+</pre>

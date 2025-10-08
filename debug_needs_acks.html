@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Needs & Acks Data</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { background: #f5f5f5; padding: 15px; margin: 10px 0; border-left: 4px solid #007acc; }
+        .xml-output { background: #fff; padding: 10px; border: 1px solid #ddd; font-family: monospace; white-space: pre-wrap; }
+        button { background: #007acc; color: white; padding: 10px 15px; border: none; cursor: pointer; margin: 5px; }
+        button:hover { background: #005c99; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <h1>Debug Needs & Acknowledgments Data</h1>
+    
+    <div class="debug-section">
+        <h3>Test PO Data Extraction</h3>
+        <input type="text" id="poNumber" placeholder="Enter PO Number" value="96540">
+        <button onclick="loadPODebug()">Load PO & Check XML</button>
+    </div>
+    
+    <div class="debug-section">
+        <h3>XML Response</h3>
+        <div id="xmlOutput" class="xml-output">Click "Load PO & Check XML" to see the XML response...</div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>Parsed Needs & Acks Data</h3>
+        <div id="parsedOutput" class="xml-output">Parsed data will appear here...</div>
+    </div>
+
+    <script>
+        function loadPODebug() {
+            const poNumber = document.getElementById('poNumber').value;
+            if (!poNumber) {
+                alert('Please enter a PO number');
+                return;
+            }
+            
+            console.log('Loading PO:', poNumber);
+            
+            // Make request to GET_PO2.XML
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'GET_PO2.XML?po_number=' + encodeURIComponent(poNumber), true);
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    console.log('XHR Response Status:', xhr.status);
+                    console.log('XHR Response Text:', xhr.responseText);
+                    
+                    document.getElementById('xmlOutput').textContent = xhr.responseText;
+                    
+                    if (xhr.status === 200) {
+                        try {
+                            parseXMLDebug(xhr.responseText);
+                        } catch (e) {
+                            document.getElementById('parsedOutput').textContent = 'Error parsing XML: ' + e.message;
+                        }
+                    } else {
+                        document.getElementById('parsedOutput').textContent = 'Error loading PO data. Status: ' + xhr.status;
+                    }
+                }
+            };
+            
+            xhr.send();
+        }
+        
+        function parseXMLDebug(xmlText) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+            
+            let debugInfo = 'PARSED NEEDS & ACKNOWLEDGMENTS DATA:\n\n';
+            
+            // Check for parse errors
+            const parseError = xmlDoc.querySelector('parsererror');
+            if (parseError) {
+                debugInfo += 'XML PARSE ERROR:\n' + parseError.textContent + '\n\n';
+            }
+            
+            // Extract line items
+            const lineItems = xmlDoc.querySelectorAll('line_item');
+            debugInfo += `Found ${lineItems.length} line items:\n\n`;
+            
+            lineItems.forEach((item, index) => {
+                const lineCode = item.querySelector('line_item_code')?.textContent || 'N/A';
+                const partNumber = item.querySelector('part_number')?.textContent || 'N/A';
+                
+                // Extract needs and acks data
+                const needDate = item.querySelector('need_date')?.textContent || '';
+                const needQty = item.querySelector('need_qty')?.textContent || '';
+                const ackDate = item.querySelector('ack_date')?.textContent || '';
+                const ackQty = item.querySelector('ack_qty')?.textContent || '';
+                
+                debugInfo += `Line ${index + 1} (${lineCode}):\n`;
+                debugInfo += `  Part Number: ${partNumber}\n`;
+                debugInfo += `  Need Date: "${needDate}" (length: ${needDate.length})\n`;
+                debugInfo += `  Need Qty: "${needQty}" (length: ${needQty.length})\n`;
+                debugInfo += `  Ack Date: "${ackDate}" (length: ${ackDate.length})\n`;
+                debugInfo += `  Ack Qty: "${ackQty}" (length: ${ackQty.length})\n`;
+                debugInfo += '\n';
+            });
+            
+            // Look for debug comments
+            const xmlString = xmlText;
+            const debugMatches = xmlString.match(/<!-- DEBUG:.*? -->/g);
+            if (debugMatches) {
+                debugInfo += 'DEBUG COMMENTS FROM XML:\n';
+                debugMatches.forEach(comment => {
+                    debugInfo += comment + '\n';
+                });
+            } else {
+                debugInfo += 'No debug comments found in XML\n';
+            }
+            
+            document.getElementById('parsedOutput').textContent = debugInfo;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+FUNCTION
+* Find PO numbers that have acknowledgment data in field <49>
+* This will help identify test POs for acknowledgment functionality
+
+OPEN "PO" TO F.PO ELSE STOP 201, "PO"
+
+PRINT "Searching for POs with acknowledgment data..."
+PRINT ""
+
+COUNT = 0
+SELECT F.PO
+LOOP
+    READNEXT PO.ID ELSE EXIT
+    READ PO.RECORD FROM F.PO, PO.ID ELSE CONTINUE
+    
+    * Check field <49> for acknowledgment data
+    ACK.DATA = PO.RECORD<49>
+    
+    IF ACK.DATA NE "" THEN
+        COUNT += 1
+        PRINT "PO: ":PO.ID:" has acknowledgment data"
+        PRINT "Field <49>: ":ACK.DATA[1,100]:"..."
+        PRINT ""
+        
+        * Stop after finding 5 examples
+        IF COUNT GE 5 THEN EXIT
+    END
+REPEAT
+
+IF COUNT EQ 0 THEN
+    PRINT "No POs found with acknowledgment data in field <49>"
+END ELSE
+    PRINT "Found ":COUNT:" POs with acknowledgment data"
+END
+
+RETURN

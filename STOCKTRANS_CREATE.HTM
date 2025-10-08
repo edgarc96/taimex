@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <title>TAIMEX - Create STK Transaction</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --blue-800: #1e3a8a;
+      --blue-700: #1d4ed8;
+      --blue-600: #2563eb;
+      --blue-500: #3b82f6;
+      --slate-900: #0f172a;
+      --slate-800: #1e293b;
+      --slate-700: #334155;
+      --slate-600: #475569;
+      --slate-200: #e5e7eb;
+      --slate-100: #f1f5f9;
+      --bg: #f8fafc;
+      --white: #fff;
+      --green-500: #22c55e;
+      --green-600: #16a34a;
+      --amber-500: #f59e0b;
+    }
+
+    *{box-sizing:border-box}
+    html, body { min-height:100vh; width:100%; overflow:auto }
+    body { margin:0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); color:#334155; width:100% }
+
+    /* Header (match STOCKTRANS_EDIT) */
+    .header { background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%); color:#ffffff; padding:12px 24px; display:flex; justify-content:space-between; align-items:center; position:relative; box-shadow:0 2px 8px rgba(30,41,59,0.25); z-index:100; width:100% }
+    .header-inner { display:flex; align-items:center; justify-content: space-between; width:100% }
+    .header-left { display:flex; align-items:center; gap: 20px; }
+    .hamburger-menu { background:none; border:none; color:#fff; font-size:1.2em; cursor:pointer; padding:8px; border-radius:6px; transition:background-color .2s ease }
+    .hamburger-menu:hover{ background-color:rgba(255,255,255,0.12) }
+    .logo-section img { height: 40px; width:auto; object-fit:contain; filter:brightness(1.05) }
+    .title-section{ text-align:right; position:relative; z-index:1 }
+    .title-row{ display:flex; align-items:center; justify-content:flex-end; gap:15px }
+    .welcome-user{ white-space:nowrap }
+    .welcome-user span{ color:#cbd5e1; font-size:.8em; font-weight:400 }
+    .welcome-user strong{ color:#3b82f6; margin-left:4px; font-weight:600 }
+    .title-section h2{ font-size:.95em; margin:0; font-weight:500; color:#cbd5e1; letter-spacing:.3px }
+    .title-section p{ font-size:.75em; margin:2px 0 0 0; color:#a2a8ba; font-weight:400 }
+
+    /* Sidebar (match STOCKTRANS_EDIT) */
+    .sidebar-overlay { position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,.55); opacity:0; visibility:hidden; transition:all .25s ease; z-index:1500; pointer-events:none }
+    .sidebar-overlay.active { opacity:1; visibility:visible; pointer-events:auto }
+    .sidebar { position:fixed; top:0; left:-300px; width:300px; height:100vh; background:rgba(255,255,255,.08); backdrop-filter:blur(1px); -webkit-backdrop-filter:blur(1px); color:#fff; transition:left .2s ease; z-index:2000; box-shadow:2px 0 12px rgba(0,0,0,.35); display:flex; flex-direction:column }
+    .sidebar.open, .sidebar.active { left:0 }
+    .sidebar-header { padding: 16px; border-bottom: 1px solid rgba(255,255,255,.2); font-weight: 700; color: #fff; }
+    .sidebar-content { padding: 8px 0; overflow:auto; }
+    .sidebar-menu { list-style:none; margin:0; padding:0; }
+    .sidebar-menu li a { display:block; padding: 12px 16px; color: #fff; text-decoration:none; transition: background-color .15s ease, color .15s ease }
+    .sidebar-menu li a:hover, .sidebar-menu li a.active { background: rgba(255,255,255,.12); color: #fff; }
+
+    /* Layout */
+    .container{ width:100%; min-height:100vh; background:#fff; display:flex; flex-direction:column; overflow:visible }
+    .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; width: 100%; }
+
+    /* Form (horizontal grid layout like other tables) */
+    .form-container { max-width:none; width:100%; margin:0; padding:20px 40px; }
+    .form-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px 24px; max-width:900px; margin:0 auto; }
+    .form-group { display:flex; flex-direction:column; gap:6px; }
+    .form-group label { font-weight:600; color:#374151; font-size:13px; }
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group select,
+    .form-group textarea { border:1px solid #d1d5db; border-radius:6px; padding:8px 12px; font-size:13px; background:#ffffff; }
+    .form-group textarea { min-height: 60px; resize: vertical; background:#ffffff }
+    .form-group.full-width { grid-column: 1 / -1; }
+    .form-group.half-width { grid-column: span 1; }
+
+    /* Actions */
+    .actions { display:flex; gap: 10px; align-items:center; justify-content:center; margin-top: 20px; grid-column: 1 / -1; }
+    .btn { border:none; border-radius: 6px; padding: 8px 16px; font-weight:500; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow: 0 1px 2px rgba(2,6,23,.05); }
+    .btn-primary { background: #1d4ed8; color: white; }
+    .btn-primary:hover { background:#1e40af; }
+    .btn-secondary { background: #6b7280; color: white; }
+    .btn-secondary:hover { background:#4b5563; }
+    .btn i { opacity:.9 }
+
+    /* Notifications */
+    .notification-container { position: fixed; right: 16px; top: 16px; z-index: 50; display:flex; flex-direction: column; gap:10px; }
+    .notification { display:flex; align-items:center; gap:10px; background:white; border:1px solid var(--slate-200); border-radius:10px; padding:10px 12px; box-shadow:0 10px 30px rgba(2,6,23,.12); }
+    .notification .icon { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; background: #ecfeff; color: #0891b2; }
+
+    /* Info alert (as in STOCKTRANS_EDIT) */
+    .info-alert { display:flex; gap:10px; align-items:flex-start; background:#eff6ff; border-left:4px solid #3b82f6; padding:12px 16px; border-radius:8px; color:#1e3a8a; margin-bottom:16px }
+    .info-alert i { color:#3b82f6; margin-top:2px }
+
+    /* Notification animations */
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOutRight {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+    /* Tabs (exact match from STOCKTRANS_EDIT) */
+    .tab-navigation { background:#fff; border-bottom:1px solid #e2e8f0; width:100%; }
+    .tab-buttons { display:flex; flex-wrap:wrap; width:100%; }
+    .tab-button { background:none; border:none; padding:12px 20px; color:#64748b; font-weight:500; cursor:pointer; transition:all .3s ease; border-bottom:3px solid transparent; display:flex; align-items:center; gap:8px; }
+    .tab-button:hover { color:#1e40af; background:rgba(30,64,175,.05); }
+    .tab-button.active { color:#1e40af; background:rgba(30,64,175,.1); border-bottom-color:#1e40af; font-weight:600; }
+    .tab-content { flex:1; overflow:hidden; width:100%; }
+    .tab-pane { display:none; height:100%; overflow-y:auto; padding:16px 20px; background:#f8fafc; width:100%; }
+    .tab-pane.active { display:block; }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar-overlay" onclick="toggleSidebar(false)"></div>
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">Menu</div>
+    <div class="sidebar-content">
+      <ul class="sidebar-menu">
+        <li><a href="MAIN_MENU.HTM" class="active"><i class="fas fa-home"></i> Main Menu</a></li>
+        <li><a href="STOCKTRANS_EDIT.HTM"><i class="fas fa-users-cog"></i> Stock Transactions</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="container">
+    <div class="header">
+      <div class="header-left">
+        <button class="hamburger-menu" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX" onerror="this.onerror=null;this.src='http://54.189.226.145/uploads/assets/images/taimex_logo.png';">
+        </div>
+      </div>
+      <div class="title-section">
+        <div class="title-row">
+          <div class="welcome-user"><span>Welcome</span><strong>Admin User</strong></div>
+          <div>
+            <h2>TAIMEX</h2>
+            <p>Create STK Transaction</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="tab-navigation">
+        <div class="tab-buttons">
+          <button type="button" class="tab-button active" data-tab-index="0" onclick="return switchTab(0)">
+            <i class="fas fa-user-plus"></i>Data Capture
+          </button>
+          <button type="button" class="tab-button" data-tab-index="1" onclick="return switchTab(1)">
+            <i class="fas fa-users-cog"></i>Search & View
+          </button>
+        </div>
+      </div>
+      <div class="tab-content">
+        <div class="tab-pane active" id="tab-0">
+          <div class="form-container">
+            <h3 style="margin-bottom:24px; color:#1e293b;">Data Capture</h3>
+            <div class="info-alert"><i class="fas fa-info-circle"></i><div><strong>Important:</strong> Fields marked with <span style="color:#ef4444;">*</span> are required. If applicable, both parts of the part number are required for exact searches.</div></div>
+            <form id="stkForm" onsubmit="return handleSubmit(event)">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="partNumber">Part Number <span style="color:#ef4444;">*</span></label>
+                  <input id="partNumber" name="part" type="text" placeholder="Enter part number" required onblur="lookupPartDescription()" onkeydown="handlePartKeyDown(event)" />
+                  <div id="partDescription" style="margin-top: 4px; font-size: 12px; color: #6b7280; min-height: 16px;"></div>
+                </div>
+                <div class="form-group">
+                  <label for="qty">Enter QTY <span style="color:#ef4444;">*</span></label>
+                  <input id="qty" name="qty" type="number" min="0" step="1" placeholder="0" required />
+                </div>
+                <div class="form-group">
+                  <label for="type">Transaction Type <span style="color:#ef4444;">*</span></label>
+                  <select id="type" name="type" required onchange="loadTransactionDescription()">
+                    <option value="">[Loading types...]</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="typeDescription">Type Description</label>
+                  <input id="typeDescription" name="typeDescription" type="text" placeholder="Description will appear here" readonly style="background: #f9fafb;" />
+                </div>
+                <div class="form-group">
+                  <label for="reference">Enter Reference</label>
+                  <input id="reference" name="reference" type="text" placeholder="Reference" />
+                </div>
+                <div class="form-group">
+                  <label for="whBinLoc">WH Bin Loc</label>
+                  <input id="whBinLoc" name="whBinLoc" type="text" placeholder="Warehouse Bin Location" />
+                </div>
+                <div class="form-group">
+                  <label for="dateCode">DateCode YYMM</label>
+                  <input id="dateCode" name="dateCode" type="text" placeholder="YYMM" pattern="^[0-9]{4}$" inputmode="numeric" maxlength="4" title="YYMM format, e.g. 2508" />
+                </div>
+                <div class="form-group full-width">
+                  <label for="notes">Enter Notes</label>
+                  <textarea id="notes" name="notes" placeholder="Notes"></textarea>
+                </div>
+                <div class="actions">
+                  <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit</button>
+                  <a href="MAIN_MENU.HTM" class="btn btn-secondary"><i class="fas fa-list"></i> Main Menu</a>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="tab-pane" id="tab-1">
+          <div class="form-container">
+            <h3 style="margin-bottom:24px; color:#1e293b;">Search & View</h3>
+            <div class="info-alert"><i class="fas fa-info-circle"></i><div><strong>Tip:</strong> Soon you will be able to search and filter transactions here.</div></div>
+            <p style="font-size:13px; color:#6b7280;">Feature placeholder.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notification-container" id="notificationContainer"></div>
+
+  <script>
+    (function(){
+      var here = location.pathname.split('/').pop().toUpperCase();
+      try {
+        document.querySelectorAll('.sidebar-menu a').forEach(function(a){
+          var href = (a.getAttribute('href')||'').split('/').pop().toUpperCase();
+          a.classList.toggle('active', href === here);
+        });
+      } catch(e){}
+    })();
+
+    // Sidebar controls (aligned with STOCKTRANS_EDIT active-class approach)
+    function toggleSidebar(force) {
+      try {
+        var sidebar = document.getElementById('sidebar');
+        var overlay = document.querySelector('.sidebar-overlay');
+        if (!sidebar || !overlay) return false;
+        var isOpen = sidebar.classList.contains('active');
+        var open = (typeof force === 'boolean') ? force : !isOpen;
+        sidebar.classList.toggle('active', open);
+        overlay.classList.toggle('active', open);
+        return open;
+      } catch (e) { console.warn('toggleSidebar error:', e); return false; }
+    }
+
+    // ESC closes sidebar
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape') toggleSidebar(false);
+    });
+
+    // Tabs - make globally accessible for inline onclick handlers
+    window.switchTab = function(index) {
+      try {
+        var buttons = document.querySelectorAll('.tab-button');
+        var panes = document.querySelectorAll('.tab-pane');
+        buttons.forEach(function(btn, i){ btn.classList.toggle('active', i === index); });
+        panes.forEach(function(pane, i){ pane.classList.toggle('active', i === index); });
+        return false;
+      } catch (err) {
+        console.error('switchTab error:', err);
+        return false;
+      }
+    };
+
+    // Global variable to store transaction types
+    var transactionTypes = [];
+
+    // Initialize form on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      loadTransactionTypes();
+      loadEditData();
+      document.getElementById('partNumber').focus();
+    });
+
+    // Load transaction types on page load
+    function loadTransactionTypes() {
+      var typeSelect = document.getElementById('type');
+
+      // Try multiple endpoints to avoid 404 due to casing or legacy filename
+      var endpoints = ['/GET_STKS_TRNS.XML', '/XMLDATA/PREVIEW', '/GET_STK_TRNS.XML', '/get_stk_trns.xml'];
+
+      console.log('Loading transaction types from endpoints:', endpoints);
+
+      function fetchFirst(urls, i){
+        i = i || 0;
+        if (i >= urls.length) return Promise.reject(new Error('All endpoints failed'));
+        var url = urls[i];
+        console.log('Trying endpoint:', url);
+        return fetch(url)
+          .then(function(resp){ 
+            console.log('Response from', url, ':', resp.status);
+            if (!resp.ok) throw new Error('HTTP ' + resp.status + ' for ' + url); 
+            return resp.text(); 
+          })
+          .catch(function(err){ 
+            console.warn('Endpoint failed:', err.message); 
+            return fetchFirst(urls, i+1); 
+          });
+      }
+
+      fetchFirst(endpoints)
+        .then(function(xmlText) {
+          try {
+            console.log('Received XML:', xmlText.substring(0, 500) + '...');
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(xmlText, 'application/xml');
+            
+            // Check for errors
+            var errorEl = doc.querySelector('error');
+            if (errorEl) {
+              console.error('XML contains error:', errorEl.textContent);
+              typeSelect.innerHTML = '<option value="">Error loading types</option>';
+              return;
+            }
+            
+            // Clear loading option
+            typeSelect.innerHTML = '<option value="">[SELECT TYPE]</option>';
+            
+            // Extract transaction types from TransactionTypes structure
+            var typeElements = doc.querySelectorAll('TransactionType');
+            console.log('Found', typeElements.length, 'transaction types');
+            transactionTypes = []; // Reset array
+            
+            for (var i = 0; i < typeElements.length; i++) {
+              var typeEl = typeElements[i];
+              var code = typeEl.querySelector('Code');
+              var desc = typeEl.querySelector('Description');
+              var type = typeEl.querySelector('Type');
+              
+              if (code && code.textContent.trim()) {
+                var transType = {
+                  code: code.textContent.trim(),
+                  description: desc ? desc.textContent.trim() : '',
+                  type: type ? type.textContent.trim() : ''
+                };
+                
+                console.log('Adding transaction type:', transType);
+                transactionTypes.push(transType);
+                
+                // Add option to select
+                var option = document.createElement('option');
+                option.value = transType.code;
+                option.textContent = transType.code + (transType.description ? ' - ' + transType.description : '');
+                typeSelect.appendChild(option);
+              }
+            }
+            console.log('Total transaction types loaded:', transactionTypes.length);
+          } catch (e) {
+            console.error('XML parsing error:', e);
+            typeSelect.innerHTML = '<option value="">Error parsing types</option>';
+          }
+        })
+        .catch(function(error) {
+          console.error('Transaction types loading error:', error);
+          typeSelect.innerHTML = '<option value="">Error loading types</option>';
+        });
+    }
+
+    function loadTransactionDescription() {
+      var typeSelect = document.getElementById('type');
+      var descInput = document.getElementById('typeDescription');
+      var selectedCode = typeSelect.value;
+      
+      if (!selectedCode) {
+        descInput.value = '';
+        return;
+      }
+      
+      // Find the selected transaction type
+      var selectedType = transactionTypes.find(function(t) {
+        return t.code === selectedCode;
+      });
+      
+      if (selectedType) {
+        descInput.value = selectedType.description || 'No description available';
+      } else {
+        descInput.value = '';
+      }
+    }
+
+    // Part number lookup functions
+    function handlePartKeyDown(event) {
+      if (event.key === 'Enter' || event.key === 'Tab') {
+        lookupPartDescription();
+      }
+    }
+
+    function lookupPartDescription() {
+      var partInput = document.getElementById('partNumber');
+      var descDiv = document.getElementById('partDescription');
+      var partNumber = partInput.value.trim();
+      
+      if (!partNumber) {
+        descDiv.textContent = '';
+        return;
+      }
+      
+      descDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Looking up part...';
+      
+      fetch('/get_parts.xml?PART=' + encodeURIComponent(partNumber))
+        .then(function(response) {
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          return response.text();
+        })
+        .then(function(xmlText) {
+          try {
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(xmlText, 'application/xml');
+            
+            // Check for errors
+            var errorEl = doc.querySelector('error');
+            if (errorEl) {
+              descDiv.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> ' + errorEl.textContent;
+              return;
+            }
+            
+            // Extract description
+            var descEl = doc.querySelector('Part Description');
+            if (descEl && descEl.textContent.trim()) {
+              descDiv.innerHTML = '<i class="fas fa-check" style="color: #22c55e;"></i> ' + descEl.textContent.trim();
+            } else {
+              descDiv.innerHTML = '<i class="fas fa-question-circle" style="color: #f59e0b;"></i> Part found but no description available';
+            }
+          } catch (e) {
+            console.error('XML parsing error:', e);
+            descDiv.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> Error parsing response';
+          }
+        })
+        .catch(function(error) {
+          console.error('Part lookup error:', error);
+          descDiv.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> Error looking up part';
+        });
+    }
+
+    // Modern notification system (matching PRICE_EDIT style)
+    var loadingNotification = null;
+
+    function showSuccessNotification(title, message) {
+      var container = document.getElementById('notificationContainer');
+      var notification = document.createElement('div');
+      notification.className = 'notification success-notification';
+      notification.style.cssText = 'display:flex;align-items:center;gap:12px;background:#ffffff;border:1px solid #d1fae5;border-radius:12px;padding:12px 16px;box-shadow:0 10px 30px rgba(2,6,23,0.12);animation:slideInRight 0.3s ease;';
+      
+      notification.innerHTML = 
+        '<div style="width:32px;height:32px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;color:#16a34a;"><i class="fas fa-check"></i></div>' +
+        '<div><div style="font-weight:600;color:#1f2937;font-size:14px;">' + (title || 'Success') + '</div>' +
+        (message ? '<div style="font-size:12px;color:#6b7280;margin-top:2px;">' + message + '</div>' : '') + '</div>';
+      
+      container.appendChild(notification);
+      setTimeout(function() {
+        if (notification.parentNode) {
+          notification.style.animation = 'slideOutRight 0.3s ease';
+          setTimeout(function() { notification.remove(); }, 300);
+        }
+      }, 4000);
+    }
+
+    function showErrorNotification(title, message) {
+      var container = document.getElementById('notificationContainer');
+      var notification = document.createElement('div');
+      notification.className = 'notification error-notification';
+      notification.style.cssText = 'display:flex;align-items:center;gap:12px;background:#ffffff;border:1px solid #fecaca;border-radius:12px;padding:12px 16px;box-shadow:0 10px 30px rgba(2,6,23,0.12);animation:slideInRight 0.3s ease;';
+      
+      notification.innerHTML = 
+        '<div style="width:32px;height:32px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;color:#dc2626;"><i class="fas fa-exclamation-triangle"></i></div>' +
+        '<div><div style="font-weight:600;color:#1f2937;font-size:14px;">' + (title || 'Error') + '</div>' +
+        (message ? '<div style="font-size:12px;color:#6b7280;margin-top:2px;">' + message + '</div>' : '') + '</div>';
+      
+      container.appendChild(notification);
+      setTimeout(function() {
+        if (notification.parentNode) {
+          notification.style.animation = 'slideOutRight 0.3s ease';
+          setTimeout(function() { notification.remove(); }, 300);
+        }
+      }, 5000);
+    }
+
+    function showLoadingNotification(message) {
+      hideLoadingNotification(); // Clear any existing loading notification
+      
+      var container = document.getElementById('notificationContainer');
+      loadingNotification = document.createElement('div');
+      loadingNotification.className = 'notification loading-notification';
+      loadingNotification.style.cssText = 'display:flex;align-items:center;gap:12px;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;padding:12px 16px;box-shadow:0 10px 30px rgba(2,6,23,0.12);animation:slideInRight 0.3s ease;';
+      
+      loadingNotification.innerHTML = 
+        '<div style="width:32px;height:32px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;color:#6b7280;"><i class="fas fa-spinner fa-spin"></i></div>' +
+        '<div><div style="font-weight:600;color:#1f2937;font-size:14px;">Processing</div>' +
+        (message ? '<div style="font-size:12px;color:#6b7280;margin-top:2px;">' + message + '</div>' : '') + '</div>';
+      
+      container.appendChild(loadingNotification);
+    }
+
+    function hideLoadingNotification() {
+      if (loadingNotification && loadingNotification.parentNode) {
+        loadingNotification.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(function() { 
+          if (loadingNotification && loadingNotification.parentNode) {
+            loadingNotification.remove(); 
+          }
+          loadingNotification = null;
+        }, 300);
+      }
+    }
+
+    // Aliases for backward compatibility
+    function notifySuccess(title, msg) { showSuccessNotification(title, msg); }
+    function notifyError(title, msg) { showErrorNotification(title, msg); }
+    function notifyOk(title, msg) { showSuccessNotification(title, msg); }
+
+    function handleSubmit(ev){
+      ev.preventDefault();
+      var form = ev.target;
+      var data = {
+        part: form.part.value.trim(),
+        qty: Number(form.qty.value||0),
+        type: form.type.value,
+        reference: form.reference.value.trim(),
+        whBinLoc: form.whBinLoc.value.trim(),
+        dateCode: form.dateCode.value.trim(),
+        notes: form.notes.value.trim()
+      };
+      
+      // Basic client-side validation
+      if (!data.part || !data.qty || !data.type) {
+        notifyError('Missing Fields', 'Part Number, Quantity and Transaction Type are required.');
+        return false;
+      }
+
+      // Show loading notification
+      showLoadingNotification('Validating transaction...');
+
+      // Step 1: Validate the transaction
+      var validateParams = new URLSearchParams({
+        PARTNUM: data.part,
+        QTY: data.qty,
+        MTLTYPE: data.type,
+        REFERENCE: data.reference,
+        WHBIN: data.whBinLoc,
+        YYMM: data.dateCode,
+        NOTES: data.notes
+      });
+
+      var validateUrl = '/VALIDATE_STK_CREATE.XML?' + validateParams.toString();
+      
+      fetch(validateUrl)
+        .then(function(response) {
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          return response.text();
+        })
+        .then(function(xmlText) {
+          try {
+            console.log('Validation response:', xmlText);
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(xmlText, 'application/xml');
+            
+            var statusEl = doc.querySelector('status');
+            if (statusEl && statusEl.textContent === 'success') {
+              // Validation passed, collect validated descriptions and redirect to preview page
+              var getText = function(tag){ var el = doc.querySelector(tag); return el ? el.textContent : ''; };
+              var enriched = Object.assign({}, data, {
+                partDescription: getText('partDescription'),
+                typeDescription: getText('transactionDescription'),
+                transactionDirection: getText('transactionDirection'),
+                initials: getText('initials'),
+                availableQty: getText('availableQty'),
+                projectedBalance: getText('projectedBalance')
+              });
+              redirectToPreview(enriched);
+            } else {
+              hideLoadingNotification();
+              var messageEl = doc.querySelector('message');
+              var errorMsg = messageEl ? messageEl.textContent : 'Validation failed';
+              notifyError('Validation Error', errorMsg);
+            }
+          } catch (e) {
+            hideLoadingNotification();
+            console.error('Validation XML parsing error:', e);
+            notifyError('Error', 'Invalid validation response from server');
+          }
+        })
+        .catch(function(error) {
+          hideLoadingNotification();
+          console.error('Validation error:', error);
+          notifyError('Validation Error', 'Failed to validate transaction: ' + error.message);
+        });
+
+      return false;
+    }
+
+    function redirectToPreview(data) {
+      hideLoadingNotification();
+      
+      // Store transaction data for preview page
+      localStorage.setItem('stockTransactionPreview', JSON.stringify(data));
+      
+      // Build URL parameters for preview page
+      var params = new URLSearchParams({
+        part: data.part,
+        qty: data.qty,
+        type: data.type,
+        partDescription: data.partDescription || '',
+        typeDescription: data.typeDescription || '',
+        transactionDirection: data.transactionDirection || '',
+        initials: data.initials || '',
+        availableQty: data.availableQty || '',
+        projectedBalance: data.projectedBalance || '',
+        reference: data.reference,
+        whBinLoc: data.whBinLoc,
+        dateCode: data.dateCode,
+        notes: data.notes
+      });
+      
+      // Redirect to preview page
+      window.location.href = 'STOCKTRANS_PREVIEW.HTM?' + params.toString();
+    }
+
+    // Load edit data when returning from preview page
+    function loadEditData() {
+      var editData = localStorage.getItem('stockTransactionEdit');
+      if (editData) {
+        try {
+          var data = JSON.parse(editData);
+          
+          // Populate form fields
+          document.getElementById('partNumber').value = data.part || '';
+          document.getElementById('quantity').value = data.qty || '';
+          document.getElementById('type').value = data.type || '';
+          document.getElementById('reference').value = data.reference || '';
+          document.getElementById('whBinLoc').value = data.whBinLoc || '';
+          document.getElementById('dateCode').value = data.dateCode || '';
+          document.getElementById('notes').value = data.notes || '';
+          
+          // Clear the edit data from localStorage
+          localStorage.removeItem('stockTransactionEdit');
+          
+          // Trigger part lookup if part number is present
+          if (data.part) {
+            lookupPart();
+          }
+          
+        } catch (e) {
+          console.warn('Failed to load edit data:', e);
+        }
+      }
+    }
+  </script>
+</body>
+</html>

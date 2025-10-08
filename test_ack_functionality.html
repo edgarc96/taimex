@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Acknowledgment Functionality</title>
+</head>
+<body>
+    <h2>Test Acknowledgment Field Population</h2>
+    
+    <!-- Simulate the acknowledgment input fields like in PO_EDIT.HTM -->
+    <div>
+        <h3>Acknowledgment Fields</h3>
+        <div>
+            <label>ACK Date 1:</label> <input type="date" id="ackDate1">
+            <label>Qty 1:</label> <input type="text" id="ackQty1">
+        </div>
+        <div>
+            <label>ACK Date 2:</label> <input type="date" id="ackDate2">
+            <label>Qty 2:</label> <input type="text" id="ackQty2">
+        </div>
+    </div>
+    
+    <button onclick="testWithSampleData()">Test with Sample Acknowledgment Data</button>
+    <button onclick="testWithPOData()">Test with Real PO (96450)</button>
+    
+    <div id="results" style="margin-top: 20px; padding: 10px; background: #f0f0f0;"></div>
+
+    <script>
+        // Copy the exact populateAcknowledgmentFields function from PO_EDIT.HTM
+        function populateAcknowledgmentFields(acknowledgments) {
+            console.log('Populating acknowledgment fields with:', acknowledgments);
+            
+            // Clear all acknowledgment fields first
+            for (let i = 1; i <= 5; i++) {
+                const dateField = document.getElementById(`ackDate${i}`);
+                const qtyField = document.getElementById(`ackQty${i}`);
+                if (dateField) dateField.value = '';
+                if (qtyField) qtyField.value = '';
+            }
+            
+            let fieldIndex = 1;
+            
+            // Process acknowledgments structure
+            if (acknowledgments && acknowledgments.ack_line) {
+                const ackLines = Array.isArray(acknowledgments.ack_line) ? acknowledgments.ack_line : [acknowledgments.ack_line];
+                
+                for (const ackLine of ackLines) {
+                    if (ackLine.ack_entry && fieldIndex <= 5) {
+                        const ackEntries = Array.isArray(ackLine.ack_entry) ? ackLine.ack_entry : [ackLine.ack_entry];
+                        
+                        for (const entry of ackEntries) {
+                            if (fieldIndex <= 5) {
+                                const dateField = document.getElementById(`ackDate${fieldIndex}`);
+                                const qtyField = document.getElementById(`ackQty${fieldIndex}`);
+                                
+                                if (dateField && entry.date) {
+                                    // Convert date format if needed
+                                    let dateValue = entry.date;
+                                    if (dateValue.includes('/')) {
+                                        const parts = dateValue.split('/');
+                                        if (parts.length === 3) {
+                                            const month = parts[0].padStart(2, '0');
+                                            const day = parts[1].padStart(2, '0');
+                                            const year = parts[2];
+                                            dateValue = `${year}-${month}-${day}`;
+                                        }
+                                    }
+                                    dateField.value = dateValue;
+                                }
+                                
+                                if (qtyField && entry.quantity) {
+                                    qtyField.value = entry.quantity;
+                                }
+                                
+                                fieldIndex++;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            document.getElementById('results').innerHTML = `
+                <strong>Test Results:</strong><br>
+                - Processed acknowledgments: ${acknowledgments ? 'YES' : 'NO'}<br>
+                - Field 1 Date: ${document.getElementById('ackDate1').value || 'EMPTY'}<br>
+                - Field 1 Qty: ${document.getElementById('ackQty1').value || 'EMPTY'}<br>
+                - Field 2 Date: ${document.getElementById('ackDate2').value || 'EMPTY'}<br>
+                - Field 2 Qty: ${document.getElementById('ackQty2').value || 'EMPTY'}
+            `;
+        }
+        
+        function testWithSampleData() {
+            // Test with sample acknowledgment data
+            const sampleAcknowledments = {
+                ack_line: [{
+                    ack_entry: [
+                        { date: '12/15/2024', quantity: '100' },
+                        { date: '01/20/2025', quantity: '50' }
+                    ]
+                }]
+            };
+            
+            populateAcknowledgmentFields(sampleAcknowledments);
+        }
+        
+        function testWithPOData() {
+            // Test with empty acknowledgments (like PO 96450)
+            const emptyAcknowledments = null;
+            populateAcknowledgmentFields(emptyAcknowledments);
+        }
+    </script>
+</body>
+</html>

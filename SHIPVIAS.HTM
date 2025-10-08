@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>TAIMEX - Ship Vias System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Base Styles - Exact from BUYERS_EDIT.HTM */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow: hidden; overflow-x: hidden; overflow-y: hidden; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            background-attachment: scroll;
+            color: #334155;
+        }
+
+        .container {
+            width: 100%; height: 100%; background: #ffffff;
+            display: flex; flex-direction: column; overflow: hidden; overflow-x: hidden;
+            position: fixed; inset: 0;
+        }
+
+        /* Header - Exact BUYERS Style */
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+            color: #ffffff;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(30, 41, 59, 0.25);
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hamburger-menu {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+        }
+        .hamburger-menu:hover { background-color: rgba(255, 255, 255, 0.1); }
+
+        .header .logo-section {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .logo-section img {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+            filter: brightness(1.1);
+        }
+
+        .header .logo-section h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8em;
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: white;
+            position: relative;
+            z-index: 1;
+            display: none;
+        }
+
+        .welcome-user {
+            position: relative;
+            z-index: 1;
+            white-space: nowrap;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .welcome-user span {
+            color: #cbd5e1;
+            font-size: 0.8em;
+            font-weight: 400;
+        }
+
+        .welcome-user strong {
+            color: #3b82f6;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        .header .title-section {
+            text-align: right;
+            position: relative;
+            z-index: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 15px;
+            min-width: 0;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .header .title-section h2 {
+            font-size: 0.95em;
+            margin: 0;
+            font-weight: 500;
+            color: #cbd5e1;
+            letter-spacing: 0.3px;
+        }
+
+        .header .title-section p {
+            font-size: 0.75em;
+            margin: 2px 0 0 0;
+            color: #a2a8ba;
+            font-weight: 400;
+        }
+
+        /* Sidebar - Exact BUYERS Style */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translateX(-100%);
+            width: 300px;
+            height: 100%;
+            background: rgba(255, 255, 255, .08);
+            backdrop-filter: blur(1px);
+            -webkit-backdrop-filter: blur(1px);
+            color: white;
+            transition: transform 0.2s ease;
+            z-index: 2000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+        }
+        .sidebar.active { transform: translateX(0); }
+        .sidebar-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); opacity: 0; visibility: hidden;
+            transition: all 0.3s ease; z-index: 999; pointer-events: none;
+        }
+        .sidebar-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
+
+        .sidebar-content {
+            padding: 24px;
+        }
+
+        .sidebar-header {
+            padding: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .sidebar-header h3 { font-size: 1.2em; color: white; margin: 0; }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-menu a {
+            display: block;
+            padding: 12px 16px;
+            color: #f3f4f6;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .sidebar-menu a:hover {
+            background-color: rgba(30, 64, 175, 0.1);
+            color: white;
+        }
+
+        .sidebar-menu a.active {
+            background-color: rgba(30, 64, 175, 0.2);
+            color: #93c5fd;
+        }
+
+
+        /* Main Content */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; overflow-x: hidden; min-height: 0; }
+
+        /* Form Styles - Liquid Glass */
+        .form-container {
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px);
+            border-radius: 16px; padding: 20px; margin: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .form-header {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 16px; margin-bottom: 16px;
+        }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: 600; color: #374151; margin-bottom: 8px; }
+        .form-group input, .form-group textarea {
+            padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 8px;
+            transition: all 0.2s ease; background: rgba(255, 255, 255, 0.8);
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none; border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        .form-group textarea {
+            resize: vertical; font-family: inherit; min-height: 80px;
+        }
+
+        .form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; }
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white;
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); }
+        .btn-secondary { background: rgba(107, 114, 128, 0.1); color: #374151; border: 1px solid #d1d5db; }
+        .btn-secondary:hover { background: rgba(107, 114, 128, 0.2); }
+        .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
+        .btn-danger:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); }
+
+        /* Excel Grid - Exact from BUYERS_EDIT.HTM */
+        .excel-grid-wrapper {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            margin: 16px;
+        }
+
+        .excel-grid-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 0 0 12px 12px;
+            background: white;
+            position: relative;
+            min-height: 250px;
+        }
+
+        .excel-grid-container::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        .excel-grid-container::-webkit-scrollbar-track {
+            background: #f1f3f4;
+            border-radius: 6px;
+        }
+
+        .excel-grid-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            border-radius: 6px;
+            border: 2px solid #f1f3f4;
+        }
+
+        .excel-grid-container::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
+
+        .grid-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 20px 24px; border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .grid-title { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 0; }
+        .grid-stats {
+            background: rgba(59, 130, 246, 0.1); padding: 4px 12px;
+            border-radius: 20px; font-size: 0.85em; color: #64748b;
+        }
+
+        .excel-grid-premium {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 13px;
+            background: white;
+        }
+
+        .excel-header {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+            padding: 12px 16px;
+            font-weight: 600;
+            text-align: left;
+            border: 1px solid #1e3c72;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .excel-row {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+
+        .excel-row:hover {
+            background: #f8fafc;
+            transform: scale(1.001);
+        }
+
+        .excel-row:nth-child(even) {
+            background: #fafbfc;
+        }
+
+        .excel-row:nth-child(even):hover {
+            background: #f1f5f9;
+        }
+
+        .excel-cell {
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+            font-size: 0.9em;
+        }
+
+        .excel-cell.code-cell {
+            font-weight: 600;
+            color: #1e40af;
+        }
+
+        .excel-cell.actions-cell {
+            text-align: center;
+        }
+
+        .btn-icon {
+            padding: 8px 16px;
+            font-size: 0.85em;
+            border-radius: 6px;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+            font-weight: 500;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #64748b;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            color: #cbd5e1;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            font-size: 1.3em;
+            margin-bottom: 8px;
+            color: #475569;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 60px;
+            color: #64748b;
+        }
+
+        .loading i {
+            font-size: 48px;
+            animation: spin 1s linear infinite;
+            color: #3b82f6;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .required { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-bars"></i> Menu</h3>
+        </div>
+        <div class="sidebar-content">
+            <ul class="sidebar-menu">
+                <li><a href="MAIN_MENU.HTM">Main Menu</a></li>
+                <li><a href="PO_EDIT.HTM">Purchase Orders</a></li>
+                <li><a href="SO_EDIT.HTM">Sales Orders</a></li>
+                <li><a href="BUYERS_EDIT.HTM">Buyers</a></li>
+                <li><a href="SHIPVIAS.HTM" class="active">Ship Vias</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <button class="hamburger-menu" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="logo-section">
+                    <img src="uploads/assets/images/taimex_logo.png" alt="TAIMEX" onerror="showFallbackLogo(this)">
+                    <h1 id="fallbackLogo">TAIMEX</h1>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="title-row">
+                    <div class="welcome-user">
+                        <span>Welcome,</span>
+                        <strong id="userInitials">USER</strong>
+                    </div>
+                    <div class="title-section">
+                        <h2>Ship Via Management</h2>
+                        <p>Manage shipping methods</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Form Container -->
+            <div class="form-container">
+                <div class="form-header">
+                    <i class="fas fa-edit"></i>
+                    <span id="formTitle">New Ship Via</span>
+                </div>
+                
+                <form id="shipviaForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="shipviaCode">Code <span class="required">*</span></label>
+                            <input type="text" id="shipviaCode" placeholder="e.g., UPS, FEDEX" required maxlength="20" style="text-transform: uppercase;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="shipviaName">Name <span class="required">*</span></label>
+                            <input type="text" id="shipviaName" placeholder="Ship Via Name" required maxlength="50">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="shipviaDescription">Description</label>
+                            <textarea id="shipviaDescription" placeholder="Optional description"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="button" class="btn btn-danger" id="deleteBtn" style="display: none;" onclick="deleteShipVia()">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Grid Container -->
+            <div class="excel-grid-wrapper">
+                <div class="grid-header">
+                    <h3 class="grid-title"><i class="fas fa-list"></i> Ship Vias List</h3>
+                    <div class="grid-stats" id="recordCount">0 records</div>
+                </div>
+
+                <div class="loading" id="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Loading...</p>
+                </div>
+
+                <div class="excel-grid-container" id="tableContainer" style="display: none;">
+                    <table class="excel-grid-premium" id="shipviasTable">
+                        <thead>
+                            <tr>
+                                <th class="excel-header">Code</th>
+                                <th class="excel-header">Name</th>
+                                <th class="excel-header">Description</th>
+                                <th class="excel-header" style="width: 150px; text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shipviasBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <i class="fas fa-inbox"></i>
+                    <h3>No Ship Vias Found</h3>
+                    <p>Create your first ship via using the form above.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notificationMessage"></span>
+    </div>
+
+    <script>
+        let currentEditingCode = null;
+
+        // Show fallback logo if image fails
+        function showFallbackLogo(img) {
+            img.style.display = 'none';
+            const fallback = document.getElementById('fallbackLogo');
+            if (fallback) {
+                fallback.style.display = 'block';
+            }
+        }
+
+        // Sidebar toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        // Load all ship vias on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadShipVias();
+        });
+
+        // Form submission
+        document.getElementById('shipviaForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveShipVia();
+        });
+
+        // Auto uppercase for code field
+        document.getElementById('shipviaCode').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+
+        function loadShipVias() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('tableContainer').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+
+            fetch('GET_SHIPVIA.XML')
+                .then(response => response.text())
+                .then(str => (new window.DOMParser()).parseFromString(str, "text/xml"))
+                .then(data => {
+                    const shipvias = data.querySelectorAll('shipvia');
+                    const tbody = document.getElementById('shipviasBody');
+                    tbody.innerHTML = '';
+
+                    if (shipvias.length === 0) {
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('emptyState').style.display = 'block';
+                        document.getElementById('recordCount').textContent = '0 records';
+                        return;
+                    }
+
+                    shipvias.forEach(shipvia => {
+                        const code = shipvia.querySelector('code')?.textContent || '';
+                        const name = shipvia.querySelector('name')?.textContent || '';
+                        const description = shipvia.querySelector('description')?.textContent || '';
+
+                        const row = document.createElement('tr');
+                        row.className = 'excel-row';
+                        row.innerHTML = `
+                            <td class="excel-cell code-cell">${code}</td>
+                            <td class="excel-cell">${name}</td>
+                            <td class="excel-cell" style="color: #64748b;">${description || '-'}</td>
+                            <td class="excel-cell actions-cell">
+                                <button class="btn btn-primary btn-icon" onclick="editShipVia('${code}', '${escapeHtml(name)}', '${escapeHtml(description)}')">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('tableContainer').style.display = 'block';
+                    document.getElementById('recordCount').textContent = shipvias.length + ' record' + (shipvias.length !== 1 ? 's' : '');
+                })
+                .catch(error => {
+                    console.error('Error loading ship vias:', error);
+                    showNotification('Error loading ship vias', 'error');
+                    document.getElementById('loading').style.display = 'none';
+                });
+        }
+
+        function saveShipVia() {
+            const codeInput = document.getElementById('shipviaCode');
+            const nameInput = document.getElementById('shipviaName');
+            const descriptionInput = document.getElementById('shipviaDescription');
+            
+            const code = codeInput.value.trim().toUpperCase();
+            const name = nameInput.value.trim();
+            const description = descriptionInput.value.trim();
+
+            console.log('📝 Saving Ship Via:');
+            console.log('  Code:', code, '(length:', code.length, ')');
+            console.log('  Name:', name);
+            console.log('  Description:', description);
+
+            if (!code || !name) {
+                showNotification('Please fill in all required fields', 'error');
+                return;
+            }
+
+            const action = currentEditingCode ? 'UPDATE' : 'CREATE';
+            
+            // Use URLSearchParams instead of FormData for PicLan compatibility
+            const params = new URLSearchParams();
+            params.append('action', action);
+            params.append('shipvia_code', code);
+            params.append('shipvia_name', name);
+            params.append('shipvia_description', description);
+            
+            console.log('📤 Sending Data:', {
+                action: action,
+                shipvia_code: code,
+                shipvia_name: name,
+                shipvia_description: description
+            });
+
+            fetch('UPDATE_SHIPVIA.XML', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: params.toString()
+            })
+                .then(response => response.text())
+                .then(str => {
+                    console.log('📥 Server Response (raw):', str);
+                    return (new window.DOMParser()).parseFromString(str, "text/xml");
+                })
+                .then(data => {
+                    console.log('📥 Server Response (parsed):', data);
+                    
+                    // Log debug fields
+                    const debugAction = data.querySelector('debug_action')?.textContent;
+                    const debugCode = data.querySelector('debug_code')?.textContent;
+                    const debugCodeLength = data.querySelector('debug_code_length')?.textContent;
+                    const debugName = data.querySelector('debug_name')?.textContent;
+                    
+                    console.log('🔍 Debug Info from Server:');
+                    console.log('  Action:', debugAction);
+                    console.log('  Code:', debugCode, '(length:', debugCodeLength, ')');
+                    console.log('  Name:', debugName);
+                    
+                    const status = data.querySelector('status')?.textContent;
+                    const message = data.querySelector('message')?.textContent;
+
+                    if (status === 'success') {
+                        showNotification(message, 'success');
+                        resetForm();
+                        loadShipVias();
+                    } else {
+                        showNotification(message || 'Error saving ship via', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Error saving ship via:', error);
+                    showNotification('Error saving ship via', 'error');
+                });
+        }
+
+        function editShipVia(code, name, description) {
+            currentEditingCode = code;
+            
+            document.getElementById('formTitle').innerHTML = '<i class="fas fa-edit"></i> <span>Edit Ship Via</span>';
+            document.getElementById('shipviaCode').value = code;
+            document.getElementById('shipviaCode').disabled = true;
+            document.getElementById('shipviaName').value = name;
+            document.getElementById('shipviaDescription').value = description;
+            document.getElementById('deleteBtn').style.display = 'inline-flex';
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deleteShipVia() {
+            if (!currentEditingCode) return;
+
+            if (!confirm(`Are you sure you want to delete ship via "${currentEditingCode}"?`)) {
+                return;
+            }
+
+            const params = new URLSearchParams();
+            params.append('action', 'DELETE');
+            params.append('shipvia_code', currentEditingCode);
+
+            fetch('UPDATE_SHIPVIA.XML', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: params.toString()
+            })
+                .then(response => response.text())
+                .then(str => (new window.DOMParser()).parseFromString(str, "text/xml"))
+                .then(data => {
+                    const status = data.querySelector('status')?.textContent;
+                    const message = data.querySelector('message')?.textContent;
+
+                    if (status === 'success') {
+                        showNotification(message, 'success');
+                        resetForm();
+                        loadShipVias();
+                    } else {
+                        showNotification(message || 'Error deleting ship via', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting ship via:', error);
+                    showNotification('Error deleting ship via', 'error');
+                });
+        }
+
+        function resetForm() {
+            currentEditingCode = null;
+            document.getElementById('formTitle').innerHTML = '<i class="fas fa-plus-circle"></i> <span>New Ship Via</span>';
+            document.getElementById('shipviaForm').reset();
+            document.getElementById('shipviaCode').disabled = false;
+            document.getElementById('deleteBtn').style.display = 'none';
+        }
+
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            const notificationMessage = document.getElementById('notificationMessage');
+            
+            notification.className = `notification ${type}`;
+            notificationMessage.textContent = message;
+            notification.style.display = 'flex';
+
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 4000);
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+    </script>
+</body>
+</html>

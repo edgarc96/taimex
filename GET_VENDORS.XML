@@ -1,0 +1,110 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'VENDOR' TO VENDORF ELSE STOP 201,'VENDOR'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+* Get parameters from URL
+PL_GETVAR VENDOR_NUMBER FROM 'VENDOR_NUMBER' ELSE VENDOR_NUMBER = ''
+PL_GETVAR SEARCH FROM 'SEARCH' ELSE SEARCH = ''
+
+VENDOR_NUMBER = TRIM(VENDOR_NUMBER)
+SEARCH = TRIM(SEARCH)
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM:'<vendors>' 
+
+*REM Read VENDOR records
+PRINT "VENDOR_NUMBER=": VENDOR_NUMBER
+PRINT "SEARCH=": SEARCH
+
+* If specific VENDOR_NUMBER is provided, read directly
+IF VENDOR_NUMBER <> "" THEN
+    READ VENDOR.RECORD FROM VENDORF, VENDOR_NUMBER ELSE
+        XML.RESPONSE = XML.RESPONSE :XAM: '</vendors>'
+        WRITE XML.RESPONSE ON XMLDATAF,'VENDORS.XML'
+        ERR = ''
+        CALL PLW.PAGE('/XMLDATA/VENDORS.XML','',ERR)
+        RETURN
+    END
+    VENDOR_ID = VENDOR_NUMBER
+    GOTO PROCESS_VENDOR
+END
+
+* Scan all vendors for search or limited list
+SL = \SSELECT VENDOR\
+EXECUTE SL
+PRINT
+RECORD_COUNT = 0
+IF SEARCH <> "" THEN
+    MAX_RECORDS = 50  ; * Limit search results
+END ELSE
+    MAX_RECORDS = 100  ; * Limit general listing
+END
+
+10 READNEXT VENDOR_ID THEN
+    READ VENDOR.RECORD FROM VENDORF, VENDOR_ID ELSE
+        GOTO 10
+    END
+    
+    * If searching, filter by vendor name or number
+    IF SEARCH <> "" THEN
+        VENDOR_NAME = VENDOR.RECORD<1>
+        SEARCH_UPPER = OCONV(SEARCH, 'MCU')
+        VENDOR_NAME_UPPER = OCONV(VENDOR_NAME, 'MCU')
+        VENDOR_ID_UPPER = OCONV(VENDOR_ID, 'MCU')
+        
+        * Check if search term matches vendor number or name
+        IF INDEX(VENDOR_ID_UPPER, SEARCH_UPPER, 1) = 0 AND INDEX(VENDOR_NAME_UPPER, SEARCH_UPPER, 1) = 0 THEN
+            GOTO 10  ; * Skip this record
+        END
+    END
+    
+    * Limit number of records to prevent server hang
+    RECORD_COUNT = RECORD_COUNT + 1
+    IF RECORD_COUNT > MAX_RECORDS THEN GOTO DONE
+
+PROCESS_VENDOR:
+
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor>' ; * Emit record header
+
+    * VENDOR NUMBER <0> - The ID/Key
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_number>' : VENDOR_ID : '</vendor_number>'
+    
+    * VENDOR NAME <1>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_name>' : VENDOR.RECORD<1> : '</vendor_name>'
+    
+    * STREET ADDRESS <2>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_address>' : VENDOR.RECORD<2> : '</vendor_address>'
+    
+    * CITY, STATE, ZIPCODE <3>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_city>' : VENDOR.RECORD<3> : '</vendor_city>'
+    
+    XML.RESPONSE = XML.RESPONSE :XAM: '</vendor>'
+    
+    * If searching for specific VENDOR, exit after processing it
+    IF VENDOR_NUMBER <> "" THEN GOTO DONE
+    
+    * Continue with next record in scan mode
+    GOTO 10
+END
+DONE:
+*REM Complete XML response
+XML.RESPONSE = XML.RESPONSE :XAM: '</vendors>'
+ 
+*REM Output the XML
+    WRITE XML.RESPONSE ON XMLDATAF,'VENDORS.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/VENDORS.XML','',ERR)
+    RETURN
+</pre>

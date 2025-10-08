@@ -1,0 +1,57 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO' TO POF ELSE STOP 201,'PO'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM:'<debug_po_fields>' 
+
+*REM Read first few PO records to see structure
+SL = \SSELECT PO\
+EXECUTE SL
+PRINT
+
+COUNT = 0
+10 READNEXT PO_ID THEN
+    READ PO.RECORD FROM POF, PO_ID ELSE
+        GOTO 10
+    END
+
+    COUNT = COUNT + 1
+    IF COUNT > 3 THEN GOTO DONE ; * Only check first 3 records
+
+    XML.RESPONSE = XML.RESPONSE :XAM: '<po_record>' 
+    XML.RESPONSE = XML.RESPONSE :XAM: '<po_id>' : PO_ID : '</po_id>'
+    
+    * Output fields 1-15 to see structure
+    FOR I = 1 TO 15
+        FIELD_VALUE = PO.RECORD<I>
+        XML.RESPONSE = XML.RESPONSE :XAM: '<field' : I : '>' : FIELD_VALUE : '</field' : I : '>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<field' : I : '_length>' : LEN(FIELD_VALUE) : '</field' : I : '_length>'
+    NEXT I
+    
+    XML.RESPONSE = XML.RESPONSE :XAM: '</po_record>'
+    
+    GOTO 10
+END
+DONE:
+*REM Complete XML response
+XML.RESPONSE = XML.RESPONSE :XAM: '</debug_po_fields>'
+ 
+*REM Output the XML
+    WRITE XML.RESPONSE ON XMLDATAF,'DEBUG_PO_FIELDS.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/DEBUG_PO_FIELDS.XML','',ERR)
+    RETURN
+</pre>

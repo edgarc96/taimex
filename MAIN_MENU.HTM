@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TAIMEX Catalog</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Base Styles - Aligned with PRICE_EDIT3/BUYERS_EDIT */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      background-attachment: fixed;
+      color: #334155;
+    }
+
+    .container {
+      width: 100%; min-height: 100vh; background: #ffffff;
+      display: flex; flex-direction: column;
+    }
+
+    /* Header - Exact PRICE_EDIT3 Style */
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #ffffff;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      box-shadow: 0 2px 8px rgba(30, 41, 59, 0.25);
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.2em;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+      display: none;
+    }
+    .hamburger-menu:hover { background-color: rgba(255, 255, 255, 0.1); }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: white;
+      font-size: 1.8em;
+      font-family: 'Poppins', sans-serif;
+    }
+    /* Match PRICE_EDIT3 logo behavior */
+    .logo-section { position: relative; z-index: 1; display: flex; align-items: center; }
+    .logo-section img { height: 40px; width: auto; object-fit: contain; filter: brightness(1.1); display: block; }
+    .logo-section #fallbackLogo { display: none; font-family: 'Poppins', sans-serif; font-size: 1.4em; margin-left: 8px; color: #ffffff; font-weight: 700; letter-spacing: -0.3px; }
+
+    .nav-menu {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .nav-menu > li { position: relative; }
+    .nav-menu a, .dropbtn {
+      color: #cbd5e1;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+    .nav-menu a:hover, .dropbtn:hover { background: rgba(255, 255, 255, 0.1); }
+
+    /* Mega dropdown */
+    .has-dropdown .mega {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      min-width: 720px;
+      max-width: 90vw;
+      margin-top: 8px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      display: none;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+    }
+    .has-dropdown.open .mega { display: block; }
+    @media (hover: hover) and (pointer: fine) {
+      .has-dropdown:hover .mega { display: block; }
+    }
+    .mega {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(260px, 1fr));
+      gap: 12px 24px;
+    }
+    .mega h4 {
+      margin: 6px 0 12px;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #64748b;
+      font-weight: 600;
+    }
+    .mega a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      color: #334155;
+      text-decoration: none;
+      transition: background-color 0.2s ease;
+    }
+    .mega a i {
+      width: 24px;
+      text-align: center;
+      color: #3b82f6;
+      font-size: 1.1em;
+    }
+    .mega a:hover { background: #f8fafc; }
+
+    /* Hero section */
+    .hero-section {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: white;
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .hero-section h1 {
+      font-size: 2.2em;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+    .hero-section p {
+      color: #cbd5e1;
+      font-size: 1.1em;
+      margin: 0;
+    }
+
+    /* Main content */
+    main.catalog {
+      flex: 1;
+      padding: 40px 24px;
+      background: #ffffff;
+    }
+
+    .grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      padding: 24px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: #334155;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      border-color: #3b82f6;
+    }
+
+    /* Removed blue square card icons per design alignment */
+
+    .card h3 {
+      font-size: 1.2em;
+      font-weight: 600;
+      margin: 0;
+      color: #1e293b;
+    }
+
+    .card p {
+      margin: 0;
+      color: #64748b;
+      font-size: 0.95em;
+      line-height: 1.5;
+    }
+
+    footer {
+      background: #f8fafc;
+      padding: 24px;
+      text-align: center;
+      color: #64748b;
+      font-size: 0.9em;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 900px) {
+      .hamburger-menu { display: flex; }
+      .nav-menu {
+        position: fixed;
+        top: 64px;
+        left: 0;
+        right: 0;
+        background: #1e293b;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 16px;
+        gap: 8px;
+        transform: translateY(-100%);
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s ease;
+      }
+      .nav-menu.open {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .has-dropdown .mega {
+        position: relative;
+        min-width: unset;
+        max-width: unset;
+        width: 100%;
+        margin: 8px 0 0 0;
+        background: #2d3748;
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+      .mega a { color: #cbd5e1; }
+      .mega a:hover { background: rgba(255, 255, 255, 0.1); }
+      .hero-section h1 { font-size: 1.8em; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-left">
+        <button class="hamburger-menu" id="hamburger" aria-label="Open menu" type="button">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="logo-section" title="TAIMEX">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX" onerror="showFallbackLogo(this)">
+          <h1 id="fallbackLogo">TAIMEX</h1>
+        </div>
+      </div>
+      <ul class="nav-menu" id="mainMenu">
+        <li><a href="#">Home</a></li>
+        <li class="has-dropdown" id="catalogoMenu">
+          <button class="dropbtn" type="button">Catalog <i class="fa-solid fa-angle-down"></i></button>
+          <div class="mega" aria-label="Modules catalog">
+            <div>
+              <h4>Modules</h4>
+              <a href="BUYERS_EDIT.HTM"><i class="fa-solid fa-user"></i><span>Buyers</span></a>
+              <a href="SALESMAN_EDIT.HTM"><i class="fa-solid fa-id-badge"></i><span>Sales</span></a>
+              <a href="edit_um.htm"><i class="fa-solid fa-ruler-combined"></i><span>Units of Measure (UM)</span></a>
+              <a href="COMMODITIES_EDIT.HTM"><i class="fa-solid fa-cubes"></i><span>Commodities</span></a>
+            </div>
+            <div>
+              <h4>Inventory</h4>
+              <a href="PRODUCTLINE_EDIT.HTM"><i class="fa-solid fa-diagram-project"></i><span>Product Lines</span></a>
+              <a href="STOCKTRANS_EDIT.HTM"><i class="fa-solid fa-right-left"></i><span>Stock Transfers</span></a>
+              <a href="STOCKTRANS_CREATE.HTM"><i class="fa-solid fa-plus-circle"></i><span>Create Stock Transaction</span></a>
+              <a href="stockloc_edit.htm"><i class="fa-solid fa-warehouse"></i><span>Stock Locations</span></a>
+            </div>
+          </div>
+        </li>
+        <li><a href="TMP_GEN_CLEAN.html">Builder</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+
+    <div class="hero-section">
+      <h1>Modules Catalog</h1>
+      <p>Quickly access the screens we have built.</p>
+    </div>
+
+    <main class="catalog">
+      <div class="grid">
+        <a class="card" href="BUYERS_EDIT.HTM">
+          <h3>Buyers</h3>
+          <p>Create, remove, and update buyers.</p>
+        </a>
+        <a class="card" href="SALESMAN_EDIT.HTM">
+          <h3>Sales</h3>
+          <p>Sales catalog and assignments.</p>
+        </a>
+        <a class="card" href="edit_um.htm">
+          <h3>Units of Measure (UM)</h3>
+          <p>Manage units and conversions.</p>
+        </a>
+        <a class="card" href="COMMODITIES_EDIT.HTM">
+          <h3>Commodities</h3>
+          <p>Part families catalog.</p>
+        </a>
+        <a class="card" href="PRODUCTLINE_EDIT.HTM">
+          <h3>Product Lines</h3>
+          <p>Organize products by line and group.</p>
+        </a>
+        <a class="card" href="STOCKTRANS_EDIT.HTM">
+          <h3>Stock Transfers</h3>
+          <p>Authorizations and stock movements.</p>
+        </a>
+        <a class="card" href="STOCKTRANS_CREATE.HTM">
+          <h3>Create Stock Transaction</h3>
+          <p>Capture IN/OUT with reference, bin, and datecode.</p>
+        </a>
+        <a class="card" href="stockloc_edit.htm">
+          <h3>Stock Locations</h3>
+          <p>Locations and on‑hand by warehouse.</p>
+        </a>
+      </div>
+    </main>
+
+    <footer>
+      © <span id="year"></span> TAIMEX • Modules catalog
+    </footer>
+  </div>
+
+  <script>
+    (function(){
+      var hamburger = document.getElementById('hamburger');
+      var menu = document.getElementById('mainMenu');
+      var catalogoMenu = document.getElementById('catalogoMenu');
+      var dropBtn = catalogoMenu ? catalogoMenu.querySelector('.dropbtn') : null;
+
+      if(hamburger){
+        hamburger.addEventListener('click', function(){
+          menu.classList.toggle('open');
+        });
+      }
+      if(dropBtn){
+        dropBtn.addEventListener('click', function(e){
+          e.stopPropagation();
+          catalogoMenu.classList.toggle('open');
+        });
+      }
+      // Close on outside click
+      document.addEventListener('click', function(e){
+        if(catalogoMenu && !catalogoMenu.contains(e.target)){
+          catalogoMenu.classList.remove('open');
+        }
+      });
+      // Footer year
+      var y = document.getElementById('year'); if(y){ y.textContent = new Date().getFullYear(); }
+      // Fallback logo behavior (match PRICE_EDIT3)
+      window.showFallbackLogo = function(img){
+        img.style.display = 'none';
+        var f = document.getElementById('fallbackLogo');
+        if(f){ f.style.display = 'block'; }
+      };
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+* INCREMENTAL TEST - GET_PO2
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO2' TO PO2F ELSE STOP 201,'PO2'
+OPEN 'VENDOR' TO VENDORF ELSE STOP 201,'VENDOR'
+
+* Pick/BASIC separator constants
+XAM = CHAR(254)
+XVM = CHAR(253)  
+XSM = CHAR(252)
+
+* Initialize variables
+PO_NUMBER = ''
+XML.RESPONSE = ''
+CRLF = CHAR(13):CHAR(10)
+FIELD_VALUE = ''
+VENDOR_NUMBER_CLEAN = ''
+
+* Get PO number parameter
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = ''
+PO_NUMBER = TRIM(PO_NUMBER)
+
+WRITE 'INCREMENTAL TEST STARTED ':PO_NUMBER ON XMLDATAF,'DEBUG_INC_START.TXT'
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>':CRLF
+XML.RESPONSE = XML.RESPONSE:'<purchaseorders>':CRLF:'<po>':CRLF
+
+* Validate PO number
+IF PO_NUMBER = '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<error>No PO number provided</error></po></purchaseorders>'
+    GOTO FINISH_OUTPUT
+END
+
+* Read PO2 record
+READ PO.RECORD FROM PO2F, PO_NUMBER ELSE
+    XML.RESPONSE = XML.RESPONSE : '<error>PO not found</error></po></purchaseorders>'
+    GOTO FINISH_OUTPUT
+END
+
+WRITE 'PO READ SUCCESS' ON XMLDATAF,'DEBUG_INC_READ.TXT'
+
+* Test CONVERT operation (potential problem area)
+CONVERT '&' TO '&amp;' IN PO.RECORD
+
+WRITE 'CONVERT SUCCESS' ON XMLDATAF,'DEBUG_INC_CONVERT.TXT'
+
+* Extract and output basic PO fields using GOSUB
+FIELD_VALUE = PO_NUMBER
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<po_number>' : FIELD_VALUE : '</po_number>'
+
+FIELD_VALUE = PO.RECORD<1>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<po_date>' : FIELD_VALUE : '</po_date>'
+
+FIELD_VALUE = PO.RECORD<8>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<buyer>' : FIELD_VALUE : '</buyer>'
+
+WRITE 'BASIC FIELDS SUCCESS' ON XMLDATAF,'DEBUG_INC_BASIC.TXT'
+
+* Test vendor field logic (complex field selection)
+FIELD_VALUE = PO.RECORD<7>
+IF FIELD_VALUE = '' THEN FIELD_VALUE = PO.RECORD<13>
+IF FIELD_VALUE = '' THEN FIELD_VALUE = PO.RECORD<14>
+IF FIELD_VALUE = '' THEN FIELD_VALUE = PO.RECORD<6>
+IF FIELD_VALUE = '' THEN FIELD_VALUE = PO.RECORD<12>
+GOSUB CLEAN_FIELD
+VENDOR_NUMBER_CLEAN = FIELD_VALUE
+XML.RESPONSE = XML.RESPONSE : '<vendor_number>' : FIELD_VALUE : '</vendor_number>'
+
+WRITE 'VENDOR FIELD SUCCESS' ON XMLDATAF,'DEBUG_INC_VENDOR.TXT'
+
+* Test multivalue field operations (potential problem area)
+LINE_ITEMS_RAW = PO.RECORD<31>
+IF LINE_ITEMS_RAW <> '' THEN
+    LINE_COUNT = DCOUNT(LINE_ITEMS_RAW, XVM)
+    XML.RESPONSE = XML.RESPONSE : '<line_count>' : LINE_COUNT : '</line_count>'
+END ELSE
+    XML.RESPONSE = XML.RESPONSE : '<line_count>0</line_count>'
+END
+
+WRITE 'MULTIVALUE SUCCESS' ON XMLDATAF,'DEBUG_INC_MULTIVALUE.TXT'
+
+XML.RESPONSE = XML.RESPONSE : '<status>incremental_success</status>'
+GOTO FINISH_OUTPUT
+
+* Subroutine to clean field data
+CLEAN_FIELD:
+    FIELD_VALUE = TRIM(FIELD_VALUE)
+    IF FIELD_VALUE = '' THEN RETURN
+    * Replace subvalue separators with readable text
+    CONVERT XSM TO ' | ' IN FIELD_VALUE  
+    CONVERT XVM TO ' -- ' IN FIELD_VALUE
+    * Basic XML escaping
+    CONVERT '&' TO '&amp;' IN FIELD_VALUE
+    CONVERT '<' TO '&lt;' IN FIELD_VALUE
+    CONVERT '>' TO '&gt;' IN FIELD_VALUE
+    RETURN
+
+FINISH_OUTPUT:
+XML.RESPONSE = XML.RESPONSE:'</po>':CRLF:'</purchaseorders>':CRLF
+
+WRITE XML.RESPONSE ON XMLDATAF,'GET_PO2_INCREMENTAL.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/GET_PO2_INCREMENTAL.XML','',ERR)
+RETURN
+</pre>

@@ -1,0 +1,212 @@
+PicLan-IP/BASIC ^ ^
+*
+* TAIMEX Purchase Order Data Extraction - Clean Implementation
+*
+OPEN 'PO2' TO PO2F ELSE STOP 201,'PO2'
+OPEN 'VENDOR' TO VENDORF ELSE STOP 201,'VENDOR'
+
+* Pick/BASIC separator constants
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+* Get PO number parameter
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = ''
+PO_NUMBER = TRIM(PO_NUMBER)
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : '<purchaseorders><po>'
+
+* Validate PO number
+IF PO_NUMBER = '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<error>No PO number provided</error></po></purchaseorders>'
+    GOTO FINISH_OUTPUT
+END
+
+* Read PO record
+READ PO.RECORD FROM PO2F, PO_NUMBER ELSE
+    XML.RESPONSE = XML.RESPONSE : '<error>PO not found</error></po></purchaseorders>'
+    GOTO FINISH_OUTPUT
+END
+
+* Extract and output basic PO fields
+FIELD_VALUE = PO.RECORD<2>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<po_number>' : PO_NUMBER : '</po_number>'
+XML.RESPONSE = XML.RESPONSE : '<po_date>' : FIELD_VALUE : '</po_date>'
+
+FIELD_VALUE = PO.RECORD<8>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<buyer>' : FIELD_VALUE : '</buyer>'
+
+FIELD_VALUE = PO.RECORD<7>
+GOSUB CLEAN_FIELD
+VENDOR_NUMBER_CLEAN = FIELD_VALUE
+XML.RESPONSE = XML.RESPONSE : '<vendor_number>' : FIELD_VALUE : '</vendor_number>'
+
+FIELD_VALUE = PO.RECORD<15>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<po_status>' : FIELD_VALUE : '</po_status>'
+
+FIELD_VALUE = PO.RECORD<11>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<ship_via>' : FIELD_VALUE : '</ship_via>'
+
+FIELD_VALUE = PO.RECORD<80>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<email>' : FIELD_VALUE : '</email>'
+
+* Get vendor information
+READ VENDOR.RECORD FROM VENDORF, VENDOR_NUMBER_CLEAN ELSE VENDOR.RECORD = ''
+IF VENDOR.RECORD <> '' THEN
+    FIELD_VALUE = VENDOR.RECORD<1>
+    GOSUB CLEAN_FIELD
+    VENDOR_NAME = FIELD_VALUE
+    FIELD_VALUE = VENDOR.RECORD<2>
+    GOSUB CLEAN_FIELD
+    VENDOR_ADDRESS = FIELD_VALUE
+    FIELD_VALUE = VENDOR.RECORD<3>
+    GOSUB CLEAN_FIELD
+    VENDOR_CITY = FIELD_VALUE
+END ELSE
+    VENDOR_NAME = ''
+    VENDOR_ADDRESS = ''
+    VENDOR_CITY = ''
+END
+
+* Output vendor information
+XML.RESPONSE = XML.RESPONSE : '<vendor_info>'
+XML.RESPONSE = XML.RESPONSE : '<vendor_number>' : VENDOR_NUMBER_CLEAN : '</vendor_number>'
+XML.RESPONSE = XML.RESPONSE : '<vendor_name>' : VENDOR_NAME : '</vendor_name>'
+XML.RESPONSE = XML.RESPONSE : '<vendor_address1>' : VENDOR_ADDRESS : '</vendor_address1>'
+XML.RESPONSE = XML.RESPONSE : '<vendor_city>' : VENDOR_CITY : '</vendor_city>'
+XML.RESPONSE = XML.RESPONSE : '</vendor_info>'
+
+* Output shipto information (empty for now)
+XML.RESPONSE = XML.RESPONSE : '<shipto_info>'
+XML.RESPONSE = XML.RESPONSE : '<shipto_number></shipto_number>'
+XML.RESPONSE = XML.RESPONSE : '<name></name>'
+XML.RESPONSE = XML.RESPONSE : '<address1></address1>'
+XML.RESPONSE = XML.RESPONSE : '<address2></address2>'
+XML.RESPONSE = XML.RESPONSE : '<city></city>'
+XML.RESPONSE = XML.RESPONSE : '<state></state>'
+XML.RESPONSE = XML.RESPONSE : '<zip></zip>'
+XML.RESPONSE = XML.RESPONSE : '</shipto_info>'
+
+* Process line items
+LINE_ITEMS_RAW = PO.RECORD<31>
+PART_NUMBERS_RAW = PO.RECORD<32>
+DESCRIPTIONS_RAW = PO.RECORD<33>
+SCHED_DATES_RAW = PO.RECORD<34>
+PRICES_RAW = PO.RECORD<36>
+LINE_NOTES_RAW = PO.RECORD<40>
+NEEDS_DATES_RAW = PO.RECORD<38>
+
+XML.RESPONSE = XML.RESPONSE : '<line_items>'
+IF LINE_ITEMS_RAW <> '' THEN
+    LINE_COUNT = DCOUNT(LINE_ITEMS_RAW, XVM)
+    FOR LINE_INDEX = 1 TO LINE_COUNT
+        XML.RESPONSE = XML.RESPONSE : '<line_item>'
+        
+        * Line item code
+        FIELD_VALUE = EXTRACT(LINE_ITEMS_RAW, LINE_INDEX, 0, 0)
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<line_item_code>' : FIELD_VALUE : '</line_item_code>'
+        
+        * Part number
+        FIELD_VALUE = EXTRACT(PART_NUMBERS_RAW, LINE_INDEX, 0, 0)
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<part_number>' : FIELD_VALUE : '</part_number>'
+        
+        * Description
+        FIELD_VALUE = EXTRACT(DESCRIPTIONS_RAW, LINE_INDEX, 0, 0)
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<description>' : FIELD_VALUE : '</description>'
+        
+        * Scheduled date and quantity (subvalue parsing)
+        SCHED_FIELD = EXTRACT(SCHED_DATES_RAW, LINE_INDEX, 0, 0)
+        IF SCHED_FIELD <> '' AND INDEX(SCHED_FIELD, XSM, 1) > 0 THEN
+            SCHED_DATE = EXTRACT(SCHED_FIELD, 1, 1, 0)
+            SCHED_QTY = EXTRACT(SCHED_FIELD, 2, 1, 0)
+        END ELSE
+            SCHED_DATE = SCHED_FIELD
+            SCHED_QTY = '1'
+        END
+        FIELD_VALUE = SCHED_QTY
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<quantity>' : FIELD_VALUE : '</quantity>'
+        
+        FIELD_VALUE = SCHED_DATE
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<scheduled_date>' : FIELD_VALUE : '</scheduled_date>'
+        
+        * Unit price
+        FIELD_VALUE = EXTRACT(PRICES_RAW, LINE_INDEX, 0, 0)
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<unit_price>' : FIELD_VALUE : '</unit_price>'
+        
+        * Line notes
+        FIELD_VALUE = EXTRACT(LINE_NOTES_RAW, LINE_INDEX, 0, 0)
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<line_notes>' : FIELD_VALUE : '</line_notes>'
+        
+        * Vendor part number (empty for now)
+        XML.RESPONSE = XML.RESPONSE : '<vendor_part_number></vendor_part_number>'
+        
+        * Need date and quantity
+        NEED_FIELD = EXTRACT(NEEDS_DATES_RAW, LINE_INDEX, 0, 0)
+        IF NEED_FIELD <> '' AND INDEX(NEED_FIELD, XSM, 1) > 0 THEN
+            NEED_DATE = EXTRACT(NEED_FIELD, 1, 1, 0)
+            NEED_QTY = EXTRACT(NEED_FIELD, 2, 1, 0)
+        END ELSE
+            NEED_DATE = NEED_FIELD
+            NEED_QTY = SCHED_QTY
+        END
+        FIELD_VALUE = NEED_DATE
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<need_date>' : FIELD_VALUE : '</need_date>'
+        
+        FIELD_VALUE = NEED_QTY
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<need_qty>' : FIELD_VALUE : '</need_qty>'
+        
+        * Acknowledgment fields (empty as per user requirement)
+        XML.RESPONSE = XML.RESPONSE : '<ack_date></ack_date>'
+        XML.RESPONSE = XML.RESPONSE : '<ack_qty></ack_qty>'
+        
+        XML.RESPONSE = XML.RESPONSE : '</line_item>'
+    NEXT LINE_INDEX
+END
+XML.RESPONSE = XML.RESPONSE : '</line_items>'
+
+* Output remaining sections
+XML.RESPONSE = XML.RESPONSE : '<header_notes></header_notes>'
+XML.RESPONSE = XML.RESPONSE : '<line_notes></line_notes>'
+XML.RESPONSE = XML.RESPONSE : '<noted_stamp></noted_stamp>'
+XML.RESPONSE = XML.RESPONSE : '<production_notes></production_notes>'
+XML.RESPONSE = XML.RESPONSE : '<acknowledgments></acknowledgments>'
+XML.RESPONSE = XML.RESPONSE : '<needs_info></needs_info>'
+XML.RESPONSE = XML.RESPONSE : '<schedule_info></schedule_info>'
+XML.RESPONSE = XML.RESPONSE : '<status>found</status>'
+XML.RESPONSE = XML.RESPONSE : '</po></purchaseorders>'
+GOTO FINISH_OUTPUT
+
+* Subroutine to clean field data
+CLEAN_FIELD:
+    * Remove control characters
+    CONVERT CHAR(0) TO '' IN FIELD_VALUE
+    CONVERT CHAR(1) TO '' IN FIELD_VALUE
+    CONVERT CHAR(2) TO '' IN FIELD_VALUE
+    CONVERT CHAR(3) TO '' IN FIELD_VALUE
+    CONVERT CHAR(4) TO '' IN FIELD_VALUE
+    CONVERT CHAR(5) TO '' IN FIELD_VALUE
+    * Escape XML characters
+    CONVERT '&' TO '&amp;' IN FIELD_VALUE
+    CONVERT '<' TO '&lt;' IN FIELD_VALUE
+    CONVERT '>' TO '&gt;' IN FIELD_VALUE
+    RETURN
+
+FINISH_OUTPUT:
+    PRINT XML.RESPONSE
+    END

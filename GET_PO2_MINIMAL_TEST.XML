@@ -1,0 +1,51 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+* MINIMAL TEST VERSION - GET_PO2
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO2' TO PO2F ELSE STOP 201,'PO2'
+
+* Initialize variables
+PO_NUMBER = ''
+XML.RESPONSE = ''
+CRLF = CHAR(13):CHAR(10)
+
+* Get PO number parameter
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = ''
+PO_NUMBER = TRIM(PO_NUMBER)
+
+* Create simple debug log
+WRITE 'MINIMAL TEST STARTED WITH PO: ':PO_NUMBER ON XMLDATAF,'DEBUG_MINIMAL_START.TXT'
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>':CRLF
+XML.RESPONSE = XML.RESPONSE:'<purchaseorders>':CRLF:'<po>':CRLF
+
+* Simple validation
+IF PO_NUMBER = '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<error>No PO number provided</error></po></purchaseorders>'
+    GOTO FINISH_OUTPUT
+END
+
+* Try to read PO record
+READ PO.RECORD FROM PO2F, PO_NUMBER ELSE
+    XML.RESPONSE = XML.RESPONSE : '<error>PO not found</error></po></purchaseorders>'
+    GOTO FINISH_OUTPUT
+END
+
+* Simple success response
+XML.RESPONSE = XML.RESPONSE : '<po_number>' : PO_NUMBER : '</po_number>'
+XML.RESPONSE = XML.RESPONSE : '<status>success</status>'
+
+FINISH_OUTPUT:
+XML.RESPONSE = XML.RESPONSE:'</po>':CRLF:'</purchaseorders>':CRLF
+
+WRITE XML.RESPONSE ON XMLDATAF,'GET_PO2_MINIMAL_TEST.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/GET_PO2_MINIMAL_TEST.XML','',ERR)
+RETURN
+</pre>

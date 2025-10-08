@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taimex - Product line</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>*{margin:0;padding:0;box-sizing:border-box}html,body{height:100vh;overflow:hidden;width:100%}body{font-family:Inter,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;background:linear-gradient(135deg,#f1f5f9 0%,#e2e8f0 100%);color:#334155;width:100%}.container{width:100%;height:100vh;background:#fff;display:flex;flex-direction:column;overflow:hidden}.header{background:linear-gradient(135deg,#1e293b 0%,#1e3a8a 100%);color:#fff;padding:12px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(30,41,59,.25);position:relative;z-index:100;width:100%}.header-left{display:flex;align-items:center;gap:20px;position:relative;z-index:1}.logo-section img{height:40px;width:auto;object-fit:contain;filter:brightness(1.05)}.title-section{text-align:right;position:relative;z-index:1}.title-row{display:flex;align-items:center;justify-content:flex-end;gap:15px}.welcome-user{white-space:nowrap}.welcome-user span{color:#cbd5e1;font-size:.8em;font-weight:400}.welcome-user strong{color:#3b82f6;margin-left:4px;font-weight:600}.title-section h2{font-size:.95em;margin:0;font-weight:500;color:#cbd5e1;letter-spacing:.3px}.title-section p{font-size:.75em;margin:2px 0 0 0;color:#a2a8ba;font-weight:400}.hamburger-menu{background:none;border:none;color:#fff;font-size:1.2em;cursor:pointer;padding:8px;border-radius:6px;transition:background-color .2s ease}.hamburger-menu:hover{background-color:rgba(255,255,255,.12)}.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;width:100%}.sidebar{position:fixed;top:0;left:-300px;width:300px;height:100vh;background:rgba(255,255,255,.08);backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);color:#fff;transition:left .2s ease;z-index:2000;box-shadow:2px 0 12px rgba(0,0,0,.35)}.sidebar.active{left:0}.sidebar-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.55);opacity:0;visibility:hidden;transition:all .25s ease;z-index:1500;pointer-events:none}.sidebar-overlay.active{opacity:1;visibility:visible;pointer-events:auto}.sidebar-content{padding:24px}.sidebar-header{padding:20px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.05)}.sidebar-header h3{font-size:1.2em;color:#fff;margin:0}.sidebar-menu{list-style:none;padding:0;margin:0}.sidebar-menu li{margin-bottom:8px}.sidebar-menu a{display:block;padding:12px 16px;color:#f3f4f6;text-decoration:none;border-radius:8px;transition:all .2s ease;font-weight:500}.sidebar-menu a:hover{background-color:rgba(30,64,175,.1);color:#fff}.sidebar-menu a.active{background-color:rgba(30,64,175,.2);color:#93c5fd}.sidebar-menu a i{margin-right:12px;width:20px;text-align:center}.tab-navigation{background:#fff;border-bottom:1px solid #e2e8f0;width:100%}.tab-buttons{display:flex;flex-wrap:wrap;width:100%}.tab-button{background:none;border:none;padding:12px 20px;color:#64748b;font-weight:500;cursor:pointer;transition:all .3s ease;border-bottom:3px solid transparent;display:flex;align-items:center;gap:8px}.tab-button:hover{color:#1e40af;background:rgba(30,64,175,.05)}.tab-button.active{color:#1e40af;background:rgba(30,64,175,.1);border-bottom-color:#1e40af;font-weight:600}.tab-content{flex:1;overflow:hidden;width:100%}.tab-pane{display:none;height:100%;overflow-y:auto;padding:16px 20px;background:#f8fafc;width:100%}.tab-pane.active{display:block}.form-container{background:rgba(255,255,255,.9);border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 8px 32px rgba(0,0,0,.1);width:100%;max-width:none}.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:16px;width:100%;max-width:none}.form-group{display:flex;flex-direction:column}.form-group label{font-weight:600;color:#374151;margin-bottom:8px}.form-group input,.form-group select,.form-group textarea{padding:10px 12px;border:2px solid #e5e7eb;border-radius:8px;transition:.2s;width:100%}.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:#3b82f6}.btn{padding:12px 24px;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:8px}.btn-primary{background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);color:white}.btn-secondary{background:#6b7280;color:white}.form-actions{display:flex;gap:12px;margin-top:20px}.search-container{margin-bottom:12px;width:100%}.search-container input{width:100%;padding:10px 12px;border:2px solid #e5e7eb;border-radius:8px}.excel-grid-wrapper{background:rgba(255,255,255,.95);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.1);overflow:hidden;flex:1;display:flex;flex-direction:column;min-height:0;width:100%}.grid-toolbar{background:#f8f9fa;padding:12px 20px;border-bottom:1px solid #dee2e6;display:flex;align-items:center;justify-content:space-between;width:100%}.results-count{background:rgba(59,130,246,0.1);padding:4px 12px;border-radius:20px;font-size:.85em;color:#64748b}.excel-grid-container{flex:1;overflow-y:auto;overflow-x:auto;border:1px solid #dee2e6;border-radius:0 0 12px 12px;background:#fff;position:relative;min-height:250px;height:calc(100vh - 240px);width:100%}.excel-grid-container::-webkit-scrollbar{width:12px}.excel-grid-container::-webkit-scrollbar-track{background:#f1f3f4;border-radius:6px}.excel-grid-container::-webkit-scrollbar-thumb{background:linear-gradient(135deg,#2a5298 0%,#1e3c72 100%);border-radius:6px;border:2px solid #f1f3f4}.excel-grid-container::-webkit-scrollbar-thumb:hover{background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%)}table.excel-grid-premium{width:100%;border-collapse:collapse;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;font-size:11px;background:#fff;min-width:100%;border:1px solid #dee2e6}.excel-header{background:linear-gradient(135deg,#2a5298 0%,#1e3c72 100%);color:white;padding:8px 12px;font-weight:600;text-align:left;border-right:1px solid #1e3c72;position:sticky;top:0;z-index:10;cursor:pointer;user-select:none;transition:all .2s ease;font-size:11px}.excel-header:hover{background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%)}.excel-header.sorted{background:linear-gradient(135deg,#2a5298 0%,#1e3c72 100%)}.header-content{display:flex;align-items:center;justify-content:space-between;gap:8px}.sort-icon{opacity:.7;font-size:12px;transition:opacity .2s ease}.excel-header:hover .sort-icon{opacity:1}.resize-handle{position:absolute;right:0;top:0;bottom:0;width:4px;cursor:col-resize;background:rgba(255,255,255,.2);opacity:0;transition:opacity .2s ease}.excel-header:hover .resize-handle{opacity:1}.excel-row{transition:all .2s ease;cursor:pointer}.excel-row:nth-child(even){background:#fafafa}.excel-row:hover{background:#eef2ff}.excel-row.selected{background:#dbeafe}.filter-row th{background:#f1f5f9;position:sticky;top:36px;z-index:5}.filter-cell{padding:6px 8px;border-bottom:1px solid #e5e7eb}.filter-input{width:100%;padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px}.toolbar-right{display:flex;gap:8px}.grid-btn{background:#e2e8f0;color:#1e293b;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:6px}.grid-btn:hover{filter:brightness(.95)}.excel-cell{padding:6px 10px;border-right:1px solid #dee2e6;border-bottom:1px solid #dee2e6;vertical-align:middle;position:relative;font-size:11px}.excel-cell.readonly{opacity:.85}.excel-cell:last-child{border-right:none}.cell-content{display:flex;align-items:center;gap:6px}.action-buttons{display:flex;align-items:center;justify-content:center;gap:8px}.btn-sm{border:none;padding:6px 8px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}.btn-edit{background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);color:#fff}.btn-delete{background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%);color:#fff}.actions-header{min-width:120px} .notification-container{position:fixed;top:20px;right:20px;z-index:10000;pointer-events:none} .notification{background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#fff;padding:16px 24px;border-radius:12px;box-shadow:0 10px 25px rgba(16,185,129,.3);display:flex;align-items:center;gap:12px;font-weight:500;font-size:14px;min-width:300px;transform:translateX(400px);opacity:0;transition:all .4s cubic-bezier(0.175,0.885,0.32,1.275);border-left:4px solid #34d399;backdrop-filter:blur(10px)} .notification.show{transform:translateX(0);opacity:1} .notification.hide{transform:translateX(400px);opacity:0} .notification-icon{background:rgba(255,255,255,.2);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:16px;animation:pulse 2s infinite} .notification-content{flex:1} .notification-title{font-weight:600;margin-bottom:2px} .notification-message{font-size:13px;opacity:.9} @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}} .notification.bounce{animation:slideInBounce .6s cubic-bezier(0.175,0.885,0.32,1.275)} @keyframes slideInBounce{0%{transform:translateX(400px) scale(.8);opacity:0}60%{transform:translateX(-10px) scale(1.02);opacity:1}100%{transform:translateX(0) scale(1);opacity:1}} .notification.error{background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%);box-shadow:0 10px 25px rgba(239,68,68,.3);border-left:4px solid #f87171} .notification.warning{background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);box-shadow:0 10px 25px rgba(245,158,11,.3);border-left:4px solid #fbbf24} .notification.info{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);box-shadow:0 10px 25px rgba(59,130,246,.3);border-left:4px solid #60a5fa} .notification.loading{background:linear-gradient(135deg,#10b981 0%,#059669 100%);box-shadow:0 10px 25px rgba(16,185,129,.3);border-left:4px solid #34d399} .notification.loading .notification-icon i{animation:spin 1s linear infinite} @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}</style>
+</head>
+<body>
+<div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+<div class="sidebar" id="sidebar">
+<div class="sidebar-header">
+<h3>Menu</h3>
+</div>
+<div class="sidebar-content">
+        <ul class="sidebar-menu">
+                <li><a href="#" class="active">Customer search</a></li>
+                <li><a href="#">Sales orders</a></li>
+                <li><a href="#">Reports</a></li>
+                <li><a href="#">Customer management</a></li>
+                <li><a href="#">Settings</a></li>
+                <li><a href="#">Help</a></li>
+        </ul>
+</div>
+</div>
+
+<div class="container">
+<div class="header">
+<div class="header-left">
+<button class="hamburger-menu" onclick="toggleSidebar()">
+<i class="fas fa-bars"></i>
+</button>
+<div class="logo-section">
+<img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX">
+</div>
+</div>
+<div class="title-section">
+  <div class="title-row">
+  <div class="welcome-user">
+  <span>Welcome</span>
+  <strong>^USER^</strong>
+  </div>
+  <div>
+  <h2>Taimex - Product line</h2>
+  <p>Management system</p>
+  </div>
+  </div>
+  </div>
+  </div>
+
+<div class="main-content">
+<div class="tab-navigation">
+<div class="tab-buttons">
+        <button type="button" class="tab-button active" data-tab-index="0">
+<i class="fas fa-plus"></i>Data capture
+</button>
+        <button type="button" class="tab-button " data-tab-index="1">
+<i class="fas fa-search"></i>Search & view
+</button>
+  </div>
+  </div>
+  <div class="tab-content">
+  <div class="tab-pane active" id="tab-0"><div class="form-container"><h3 style="margin-bottom:24px; color:#1e293b;">Data capture</h3><style>.form-group.required>label::after{content:" *";color:#ef4444;margin-left:4px}.info-alert{display:flex;gap:10px;align-items:flex-start;background:#eff6ff;border-left:4px solid #3b82f6;padding:12px 16px;border-radius:8px;color:#1e3a8a;margin-bottom:16px}.info-alert i{color:#3b82f6;margin-top:2px}.tab-pane .form-container{max-width:none;width:100%;margin:0;padding:20px 40px;display:flex;flex-direction:column;align-items:center}.form-grid{display:flex;flex-direction:column;gap:16px;max-width:500px;width:100%}.form-group{width:100%} </style><div class="info-alert"><i class="fas fa-info-circle"></i><div><strong>Important:</strong> Fields marked with <span style="color:#ef4444">*</span> are required. If applicable, both parts of the part number are required for exact searches.</div></div><form class="form-grid" onsubmit="return false;">            <div class="form-group required">
+<label>Code</label>
+<input type="text" placeholder="Code" name="com_code" required aria-required="true"></input>
+</div>
+            <div class="form-group required">
+<label>Description</label>
+<input type="text" placeholder="Description" name="description" required aria-required="true"></input>
+</div>
+            <div class="form-group">
+<label>Date</label>
+<input type="date" placeholder="Select date" name="date"></input>
+</div></form><div class="form-actions"><button type="button" class="btn btn-primary" onclick="return handleSave()"><i class="fas fa-save"></i> Save</button><button type="button" class="btn btn-secondary" onclick="return handleClear()"><i class="fas fa-undo"></i> Clear</button></div></div></div><div class="tab-pane " id="tab-1"><div class="form-container"><h3 style="margin-bottom:24px; color:#1e293b;">Search & view</h3><div class="info-alert"><i class="fas fa-info-circle"></i><div><strong>Tip:</strong> You can search by text and filter by column. Click headers to sort. If applicable, both parts of the part number are required for exact searches.</div></div><div class="search-container"><input type="text" id="searchInput" placeholder="Search..." oninput="return handleSearch(this.value)"></div><div class="excel-grid-wrapper">  <div class="grid-toolbar">    <div class="toolbar-left"><span class="results-count"><i class="fas fa-database"></i> <span id="recordsCount">0 records shown</span></span></div>    <div class="toolbar-right">      <button type="button" class="grid-btn" onclick="return loadAllRecordsFromPicLan()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;"><i class="fas fa-cloud-download-alt"></i> Load from piclan</button>      <button type="button" class="grid-btn" onclick="return exportToCSV()"><i class="fas fa-download"></i> Export csv</button>      <button type="button" class="grid-btn" onclick="return clearFilters()"><i class="fas fa-times"></i> Clear filters</button>      <button type="button" class="grid-btn" onclick="return manualCleanupLocalStorage()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;"><i class="fas fa-broom"></i> Clear cache</button>    </div>  </div>  <div class="excel-grid-container">    <table class="excel-grid-premium">      <thead>        <tr>              <th class="excel-header" onclick="return sortTable(0)">
+ <div class="header-content">
+<i class="fas fa-tag"></i> Code
+<i class="fas fa-sort sort-icon"></i>
+ </div>
+<span class="resize-handle"></span>
+</th>
+              <th class="excel-header" onclick="return sortTable(1)">
+<div class="header-content">
+<i class="fas fa-file-alt"></i> Description
+<i class="fas fa-sort sort-icon"></i>
+</div>
+<span class="resize-handle"></span>
+</th>
+              <th class="excel-header" onclick="return sortTable(2)">
+<div class="header-content">
+<i class="fas fa-calendar-alt"></i> Date
+<i class="fas fa-sort sort-icon"></i>
+</div>
+<span class="resize-handle"></span>
+</th>
+<th class="excel-header actions-header">
+<div class="header-content">
+<i class="fas fa-cogs"></i> Actions
+</div>
+</th></tr>        <tr class="filter-row">              <th class="filter-cell">
+ <input type="text" class="filter-input" placeholder="Filter code..." id="filter_com_code" onkeyup="return filterRecords()">
+</th>
+              <th class="filter-cell">
+<input type="text" class="filter-input" placeholder="Filter description..." id="filter_description" onkeyup="return filterRecords()">
+</th>
+              <th class="filter-cell">
+<input type="date" class="filter-input" placeholder="Filter date..." id="filter_date" onchange="return filterRecords()">
+</th><th class="filter-cell"></th></tr>      </thead>      <tbody id="recordsTableBody"></tbody>    </table>  </div></div></div></div>
+</div>
+</div>
+</div>
+
+<div class="notification-container" id="notificationContainer"></div>
+
+<script>
+ var __schemaFields = [{"label":"Code","name":"com_code","type":"text","placeholder":"Code"},{"label":"Description","name":"description","type":"text","placeholder":"Description"},{"label":"Date","name":"date","type":"date","placeholder":"Select date"}];
+var __displayFields = [{"label":"Code","name":"com_code","type":"text","placeholder":"Code"},{"label":"Description","name":"description","type":"text","placeholder":"Description"},{"label":"Date","name":"date","type":"date","placeholder":"Select date"}];
+
+// Notification system
+function initializeNotifications() {
+var c = document.getElementById("notificationContainer");
+if (!c) {
+c = document.createElement("div");
+c.className = "notification-container";
+c.id = "notificationContainer";
+document.body.appendChild(c);
+}
+}
+
+var loadingNotification = null;
+
+function showSuccessNotification(title, message) {
+initializeNotifications();
+var container = document.getElementById("notificationContainer");
+var notification = document.createElement("div");
+notification.className = "notification";
+notification.innerHTML = '<div class="notification-icon"><i class="fas fa-check"></i></div><div class="notification-content"><div class="notification-title">' + (title || "Success") + '</div>' + (message ? '<div class="notification-message">' + message + '</div>' : '') + '</div>';
+container.appendChild(notification);
+setTimeout(function() { notification.classList.add("show", "bounce"); }, 100);
+setTimeout(function() {
+notification.classList.remove("show");
+notification.classList.add("hide");
+setTimeout(function() {
+if (notification.parentNode) {
+notification.parentNode.removeChild(notification);
+}
+}, 400);
+}, 4000);
+}
+
+// Data management functions
+function _storageKey() {
+return ("taimex_records_" + (document.title || "sistema").toLowerCase().replace(/\W+/g, "_")).slice(0, 120);
+}
+
+function _loadRecs() {
+try {
+var t = localStorage.getItem(_storageKey());
+return t ? JSON.parse(t) : [];
+} catch (e) {
+console.error(e);
+return [];
+}
+}
+
+function _saveRecs(list) {
+try {
+localStorage.setItem(_storageKey(), JSON.stringify(list));
+} catch (e) {
+console.error(e);
+}
+}
+
+function _collect() {
+var data = {};
+var c = document.querySelector("#tab-0 .form-grid");
+(__schemaFields || []).forEach(function(f) {
+var el = c && c.querySelector("[name='" + f.name + "']");
+data[f.name] = el ? el.value : "";
+});
+return data;
+}
+
+// Tab switching functionality
+function switchTab(index) {
+console.log("switchTab called with index:", index);
+var buttons = document.querySelectorAll(".tab-button");
+var panes = document.querySelectorAll(".tab-pane");
+for (var i = 0; i < buttons.length; i++) {
+buttons[i].classList.toggle("active", i === index);
+}
+for (var i = 0; i < panes.length; i++) {
+panes[i].classList.toggle("active", i === index);
+}
+try {
+renderGrid("");
+updateSortUI();
+} catch (e) {
+console.error("Error in switchTab:", e);
+}
+return false;
+}
+window.switchTab = switchTab;
+
+// ---- Notifications: error variant ----
+function showErrorNotification(title, message) {
+try {
+initializeNotifications();
+var container = document.getElementById("notificationContainer");
+var notification = document.createElement("div");
+notification.className = "notification error";
+notification.innerHTML = '<div class="notification-icon"><i class="fas fa-exclamation-triangle"></i></div>' +
+'<div class="notification-content">' +
+'<div class="notification-title">' + (title || 'Error') + '</div>' +
+(message ? '<div class="notification-message">' + message + '</div>' : '') +
+'</div>';
+container.appendChild(notification);
+setTimeout(function() { notification.classList.add("show", "bounce"); }, 100);
+setTimeout(function() {
+notification.classList.remove("show");
+notification.classList.add("hide");
+setTimeout(function() {
+if (notification.parentNode) {
+notification.parentNode.removeChild(notification);
+}
+}, 400);
+}, 4000);
+} catch (e) { console.error('showErrorNotification error:', e); }
+}
+
+// ---- OP users resolver and fetch ----
+var __opFetchCache = { inflight: {}, last: {} };
+var __ramOpUsers = {};
+
+function _resolveUserName(initials) {
+try {
+var key = String(initials || '').trim().toUpperCase();
+if (!key) return '';
+var rec = __ramOpUsers[key] || null;
+return rec && rec.name ? String(rec.name).trim() : '';
+} catch (e) { console.error('_resolveUserName error:', e); return ''; }
+}
+
+function __parseOpUsersXML(xmlText) {
+try {
+var parser = new DOMParser();
+var doc = parser.parseFromString(xmlText || '', 'application/xml');
+var users = [];
+var nodes = doc.getElementsByTagName('User');
+if (!nodes || !nodes.length) {
+try { nodes = doc.querySelectorAll('User, OP, Operator, Row, RECORD, Record, row, user'); } catch (_) {}
+}
+if (!nodes || !nodes.length) {
+if (doc && doc.documentElement) nodes = [doc.documentElement];
+}
+for (var i = 0; i < nodes.length; i++) {
+var n = nodes[i];
+var g = function(tag){ var el = n.getElementsByTagName(tag)[0]; return el ? (el.textContent || '').trim() : ''; };
+var ini = g('Initials') || g('INITIALS') || g('Ini') || g('INI');
+if (!ini) continue;
+var name = g('Name') || g('NAME');
+if (!name) {
+var fn = g('FirstName') || g('FIRSTNAME') || g('First_Name');
+var ln = g('LastName') || g('LASTNAME') || g('Last_Name');
+name = (fn + ' ' + ln).trim();
+}
+if (/^desconocido$/i.test(name || '')) name = '';
+users.push({ initials: String(ini).toUpperCase(), name: (name || '').trim(), active: true });
+}
+return users;
+} catch (e) { console.warn('__parseOpUsersXML error:', e); return []; }
+}
+
+function __mergeOpUsersToRam(fetched) {
+try {
+if (!Array.isArray(fetched) || !fetched.length) return __ramOpUsers;
+for (var i = 0; i < fetched.length; i++) {
+var fu = fetched[i] || {};
+var key = String(fu.initials || '').trim().toUpperCase();
+if (!key) continue;
+var name = (fu.name && String(fu.name).trim()) || '';
+var active = typeof fu.active === 'boolean' ? fu.active : true;
+__ramOpUsers[key] = { initials: key, name: name, active: active };
+}
+return __ramOpUsers;
+} catch (e) { console.error('__mergeOpUsersToRam error:', e); return __ramOpUsers; }
+}
+
+function fetchOpUser(initials) {
+var ini = String(initials || '').trim();
+if (!ini) return Promise.resolve([]);
+var key = String(ini).toUpperCase();
+if (key.length !== 2) return Promise.resolve([]);
+if (__opFetchCache.inflight[key]) return __opFetchCache.inflight[key];
+
+var baseUrls = (window.GET_OP_BASE_URLS && Array.isArray(window.GET_OP_BASE_URLS) && window.GET_OP_BASE_URLS.length)
+? window.GET_OP_BASE_URLS
+: ['http://54.189.226.145/get_opdata.xml'];
+var paramNames = ['INITIALS'];
+
+function attempt(baseIdx, paramIdx) {
+if (baseIdx >= baseUrls.length) {
+return Promise.resolve([]);
+}
+if (paramIdx >= paramNames.length) {
+return attempt(baseIdx + 1, 0);
+}
+var pname = paramNames[paramIdx];
+var url = baseUrls[baseIdx] + '?' + pname + '=' + encodeURIComponent(key) + '&_=' + Date.now();
+return fetch(url, {
+method: 'GET',
+cache: 'no-store',
+headers: { 'Accept': 'application/xml,text/xml;q=0.9,*/*;q=0.8', 'Pragma': 'no-cache', 'Cache-Control': 'no-store' }
+})
+.then(function(res){ if (!res.ok) throw new Error('HTTP ' + res.status + ' (' + pname + ')'); return res.text(); })
+.then(function(txt){ var list = __parseOpUsersXML(txt); __mergeOpUsersToRam(list); if (!list.length) { return attempt(baseIdx, paramIdx + 1); } return list; })
+.catch(function(){ if (paramIdx + 1 < paramNames.length) { return attempt(baseIdx, paramIdx + 1); } return attempt(baseIdx + 1, 0); });
+}
+
+var p = attempt(0, 0).finally(function(){ try { delete __opFetchCache.inflight[key]; } catch (_) {} });
+__opFetchCache.inflight[key] = p;
+return p;
+}
+
+// ---- Authorization Helper styles ----
+function ensureAuthStyles() {
+try {
+if (document.getElementById('authHelperStyles')) return;
+var css = ''+
+'.creation-section{margin:12px 0;padding:12px;background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);border:1px solid #3b82f6;border-radius:8px;width:100%;max-width:900px;align-self:center}'+
+'.creation-header{margin:8px 0 12px 0;color:#1e293b;display:flex;align-items:center;gap:8px;font-size:1em;font-weight:600}'+
+'.creation-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:center}'+
+'.creation-grid .form-group{margin-bottom:0}'+
+'.creation-grid label{display:block;font-weight:600;color:#374151;margin-bottom:4px;font-size:.9rem}'+
+'.creation-grid input{padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:all .2s ease;background:rgba(255,255,255,.9);width:100%;height:34px}'+
+'.creation-grid input:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 2px rgba(59,130,246,.12)}'+
+'.creation-actions{margin-top:8px;text-align:right}'+
+'.btn-sm{padding:6px 10px;font-size:.85rem;height:34px}'+
+'.creation-section .btn-primary{background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);border-color:#2563eb}'+
+'.creation-section .btn-primary:hover{background:linear-gradient(135deg,#2563eb 0%,#1e40af 100%);border-color:#1e40af}'+
+'@media (max-width:768px){.creation-grid{grid-template-columns:1fr;gap:8px}}';
+var style = document.createElement('style');
+style.id = 'authHelperStyles';
+style.type = 'text/css';
+style.appendChild(document.createTextNode(css));
+document.head.appendChild(style);
+} catch (e) { console.error('ensureAuthStyles error:', e); }
+}
+
+// ---- Authorization Helper UI wiring ----
+function ensureAuthContainer() {
+try {
+ensureAuthStyles();
+var c = document.getElementById('authorizationHelperContainer');
+if (!c) {
+c = document.createElement('div');
+c.id = 'authorizationHelperContainer';
+}
+c.className = 'creation-section';
+c.style.display = 'none';
+c.innerHTML = ''+
+'<h4 class="creation-header"><i class="fas fa-user-check"></i> Confirm capture</h4>'+
+'<div class="creation-grid">'+
+'  <div class="form-group"><label for="authComCodeInput">Code <span style="color:#ef4444;">*</span></label><input type="text" id="authComCodeInput" maxlength="120" placeholder="Code" onkeydown="handleAuthInputKeyDown(event)" autocomplete="off"></div>'+
+'  <div class="form-group"><label for="authDescInput">Description <span style="color:#ef4444;">*</span></label><input type="text" id="authDescInput" maxlength="120" placeholder="Description" onkeydown="handleAuthInputKeyDown(event)" autocomplete="off"></div>'+
+'  <div class="form-group"><button type="button" class="btn btn-primary btn-sm" onclick="confirmAuthorization()"><i class="fas fa-check"></i> Save</button></div>'+
+'</div>'+
+'<div class="creation-actions"><button type="button" class="btn btn-secondary btn-sm" onclick="closeAuthHelper()"><i class="fas fa-times"></i> Cancel</button></div>'+
+'';
+var actions = document.querySelector('#tab-0 .form-container .form-actions');
+if (actions && actions.parentNode) {
+if (c.parentNode !== actions.parentNode || c.previousSibling !== actions) {
+actions.parentNode.insertBefore(c, actions.nextSibling);
+}
+} else {
+var fc = document.querySelector('#tab-0 .form-container');
+if (fc) fc.appendChild(c);
+}
+} catch (e) { console.error('ensureAuthContainer error:', e); }
+}
+
+function handleFormKeyDown(ev) {
+try {
+ev = ev || window.event;
+var key = ev.key || ev.code || '';
+if (key === 'Enter') {
+if (ev.preventDefault) ev.preventDefault();
+return openAuthForCurrentForm();
+}
+} catch (e) { console.error('handleFormKeyDown error:', e); }
+return true;
+}
+
+function installFormKeydown() {
+try {
+var form = document.querySelector('#tab-0 .form-grid');
+if (form && !form.__authKeydownBound) {
+form.addEventListener('keydown', handleFormKeyDown);
+form.__authKeydownBound = true;
+}
+} catch (e) { console.error('installFormKeydown error:', e); }
+}
+
+function openAuthForCurrentForm() {
+try {
+// 1) Read values from form
+var codeEl = document.querySelector("#tab-0 .form-grid [name='com_code']");
+var descEl = document.querySelector("#tab-0 .form-grid [name='description']");
+var code = codeEl ? (codeEl.value || '').trim() : '';
+var desc = descEl ? (descEl.value || '').trim() : '';
+
+ if (!code || !desc) {
+showErrorNotification('Required fields', 'Please complete code and description before continuing.');
+return false;
+}
+
+// Ensure helper exists and is placed right after form actions
+ensureAuthContainer();
+
+// Show the helper
+var helperContainer = document.getElementById('authorizationHelperContainer');
+if (helperContainer) helperContainer.style.display = 'block';
+
+// Pre-fill helper inputs with form values
+var authCodeInput = document.getElementById('authComCodeInput');
+var authDescInput = document.getElementById('authDescInput');
+if (authCodeInput) authCodeInput.value = code;
+if (authDescInput) authDescInput.value = desc;
+
+// Focus first input
+if (authCodeInput) authCodeInput.focus();
+} catch (e) { console.error('openAuthForCurrentForm error:', e); }
+return false;
+}
+
+// Authorization helper removed - using simplified confirmation approach
+
+function handleAuthInputKeyDown(ev) {
+try {
+ev = ev || window.event;
+var key = ev.key || ev.code || '';
+if (key === 'Enter') {
+if (ev.preventDefault) ev.preventDefault();
+try { return confirmAuthorization(); } catch (_) {}
+return false;
+}
+if (key === 'Escape') {
+if (ev.preventDefault) ev.preventDefault();
+try { return closeAuthHelper(); } catch (_) {}
+return false;
+}
+} catch (e) { console.error('handleAuthInputKeyDown error:', e); }
+return true;
+}
+
+function closeAuthHelper() {
+try {
+var helper = document.getElementById('authorizationHelperContainer');
+if (helper) helper.style.display = 'none';
+} catch (e) { console.error('closeAuthHelper error:', e); }
+return false;
+}
+
+function confirmAuthorization() {
+try {
+// Prefer values from helper inputs; fallback to main form
+var codeHelper = document.getElementById('authComCodeInput');
+var descHelper = document.getElementById('authDescInput');
+var codeInputEl = document.querySelector("#tab-0 .form-grid [name='com_code']");
+var descInputEl = document.querySelector("#tab-0 .form-grid [name='description']");
+
+var code = codeHelper && codeHelper.value ? String(codeHelper.value).trim() : (codeInputEl ? String(codeInputEl.value || '').trim() : '');
+var desc = descHelper && descHelper.value ? String(descHelper.value).trim() : (descInputEl ? String(descInputEl.value || '').trim() : '');
+
+ if (!code || !desc) {
+try { showErrorNotification('Required fields', 'Code and description are required to continue'); } catch(_){ }
+if (!code && codeHelper) codeHelper.focus();
+else if (!desc && descHelper) descHelper.focus();
+return false;
+}
+
+// Persist record (allowing duplicate after explicit confirmation)
+var mainRecords = _loadRecs();
+mainRecords.push({ com_code: code, description: desc, date: new Date().toISOString().split('T')[0] });
+_saveRecs(mainRecords);
+
+showSuccessNotification('Saved', 'Record created: ' + code);
+closeAuthHelper();
+try { handleClear(); } catch(_){ }
+try { renderGrid(''); } catch(_){ }
+} catch (e) { console.error('confirmAuthorization error:', e); }
+return false;
+}
+
+// Utility functions
+function escapeHtml(text) {
+  var div = document.createElement('div');
+  div.textContent = text || '';
+  return div.innerHTML;
+}
+
+function formatDateMDY(s) {
+  try {
+    var v = String(s || '').trim();
+    if (!v) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v)) { // YYYY-MM-DD -> MM-DD-YYYY
+      return v.slice(5,7) + '-' + v.slice(8,10) + '-' + v.slice(0,4);
+    }
+    return v;
+  } catch (e) { return String(s || ''); }
+}
+
+function sortTable(colIndex) {
+  try {
+    if (__sortIndex === colIndex) {
+      __sortDir = __sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      __sortIndex = colIndex;
+      __sortDir = 'asc';
+    }
+    
+    var recs = _loadRecs();
+    var fieldNames = ['com_code', 'description', 'date'];
+    var field = fieldNames[colIndex];
+    
+    if (field) {
+      recs.sort(function(a, b) {
+        var aVal = String(a[field] || '').toLowerCase();
+        var bVal = String(b[field] || '').toLowerCase();
+        var result = aVal.localeCompare(bVal);
+        return __sortDir === 'desc' ? -result : result;
+      });
+      _saveRecs(recs);
+    }
+    
+    renderGrid('');
+    updateSortUI();
+  } catch (e) { console.error('sortTable error:', e); }
+  return false;
+}
+
+function handleSearch(q) {
+  try {
+    console.log('handleSearch:', q);
+    renderGrid(q || '');
+  } catch (e) { console.error('handleSearch error:', e); }
+  return false;
+}
+
+function filterRecords() {
+  try {
+    return renderGrid((document.getElementById('searchInput') || {}).value || '');
+  } catch (e) { console.error('filterRecords error:', e); }
+  return false;
+}
+
+function editRecord(index) {
+  try {
+    var recs = _loadRecs();
+    var r = recs[index];
+    if (!r) return false;
+    // Fill form in Data Capture
+    var codeEl = document.querySelector("#tab-0 .form-grid [name='com_code']");
+    var descEl = document.querySelector("#tab-0 .form-grid [name='description']");
+    var dateEl = document.querySelector("#tab-0 .form-grid [name='date']");
+    if (codeEl) codeEl.value = r.com_code || '';
+    if (descEl) descEl.value = r.description || '';
+    if (dateEl) dateEl.value = r.date || '';
+    // Switch to Data Capture tab (index 0)
+    try { switchTab(0); } catch(_){}
+    showSuccessNotification('Record loaded', 'Editing record ' + (r.com_code || ''));
+  } catch (e) { console.error('editRecord error:', e); }
+  return false;
+}
+
+function deleteRecord(index) {
+  try {
+    var recs = _loadRecs();
+    if (index < 0 || index >= recs.length) return false;
+    recs.splice(index, 1);
+    _saveRecs(recs);
+    renderGrid('');
+    showSuccessNotification('Deleted', 'Record removed');
+  } catch (e) { console.error('deleteRecord error:', e); }
+  return false;
+}
+
+function clearFilters() {
+  try {
+    var inputs = document.querySelectorAll('.filter-input');
+    for (var i = 0; i < inputs.length; i++) inputs[i].value = '';
+    renderGrid('');
+  } catch (e) { console.error('clearFilters error:', e); }
+  return false;
+}
+
+function exportToCSV() {
+  try {
+    var recs = _loadRecs();
+    if (!recs.length) {
+      showErrorNotification('No data', 'No records to export');
+      return false;
+    }
+     var csv = 'Code,Description,Date\n';
+    for (var i = 0; i < recs.length; i++) {
+      var r = recs[i] || {};
+      csv += '"' + (r.com_code || '') + '","' + (r.description || '') + '","' + (r.date || '') + '"\n';
+    }
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'productline_data.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    showSuccessNotification('Exported', 'Csv file downloaded');
+  } catch (e) { console.error('exportToCSV error:', e); }
+  return false;
+}
+
+function loadAllRecordsFromPicLan() {
+  showErrorNotification('Not implemented', 'PicLan integration not available in this version');
+  return false;
+}
+
+function manualCleanupLocalStorage() {
+  try {
+    localStorage.removeItem(_storageKey());
+    renderGrid('');
+    showSuccessNotification('Cache cleared', 'Local data cleared');
+  } catch (e) { console.error('manualCleanupLocalStorage error:', e); }
+  return false;
+}
+
+// Form handlers
+function handleClear() {
+document.querySelectorAll(".form-grid input, .form-grid textarea").forEach(function(el) {
+el.value = "";
+});
+document.querySelectorAll(".form-grid select").forEach(function(el) {
+el.selectedIndex = 0;
+});
+return false;
+}
+
+  function handleSave() {
+  try {
+  // Open Authorization Helper instead of saving immediately
+  return openAuthForCurrentForm();
+  } catch (e) {
+  console.error(e);
+  }
+  return false;
+  }
+
+// Grid and sorting functionality
+var __sortIndex = -1, __sortDir = "asc";
+var __lastRenderedRows = [];
+
+function renderGrid(filter) {
+  try {
+    var tbody = document.getElementById('recordsTableBody');
+    if (!tbody) return false;
+
+    var recs = _loadRecs();
+    var q = String(filter || '').toLowerCase();
+    var fc = String((document.getElementById('filter_com_code') || {}).value || '').toLowerCase();
+    var fd = String((document.getElementById('filter_description') || {}).value || '').toLowerCase();
+    var fdate = String((document.getElementById('filter_date') || {}).value || '').toLowerCase();
+
+    var rows = [];
+    for (var i = 0; i < recs.length; i++) {
+      var r = recs[i] || {};
+      var code = String(r.com_code == null ? '' : r.com_code);
+      var desc = String(r.description == null ? '' : r.description);
+      var dateISO = String(r.date == null ? '' : r.date);
+      var dateMDY = formatDateMDY(dateISO);
+
+      if (q) {
+        var t = (code + ' ' + desc + ' ' + dateISO + ' ' + dateMDY).toLowerCase();
+        if (t.indexOf(q) === -1) continue;
+      }
+      if (fc && code.toLowerCase().indexOf(fc) === -1) continue;
+      if (fd && desc.toLowerCase().indexOf(fd) === -1) continue;
+      if (fdate && (dateISO.toLowerCase().indexOf(fdate) === -1 && dateMDY.toLowerCase().indexOf(fdate) === -1)) continue;
+
+      rows.push({ index: i, code: code, desc: desc, dateDisp: dateMDY });
+    }
+
+    // Render
+    if (!rows.length) {
+      tbody.innerHTML = "<tr class='excel-row'><td class='excel-cell' colspan='100%'>No records</td></tr>";
+    } else {
+      var html = '';
+      for (var k = 0; k < rows.length; k++) {
+        var row = rows[k];
+        html += "<tr class='excel-row'>" +
+                "<td class='excel-cell'><div class='cell-content'><i class='fas fa-tag' style='opacity:.6'></i> " + escapeHtml(row.code) + "</div></td>" +
+                "<td class='excel-cell'><div class='cell-content'><i class='fas fa-file-alt' style='opacity:.6'></i> " + escapeHtml(row.desc) + "</div></td>" +
+                "<td class='excel-cell'><div class='cell-content'><i class='fas fa-calendar-alt' style='opacity:.6'></i> " + escapeHtml(row.dateDisp) + "</div></td>" +
+                "<td class='excel-cell'><div class='action-buttons'>" +
+                  "<button class='btn-sm btn-edit' onclick='return editRecord(" + row.index + ")'><i class='fas fa-edit'></i></button>" +
+                  "<button class='btn-sm btn-delete' onclick='return deleteRecord(" + row.index + ")'><i class='fas fa-trash'></i></button>" +
+              "</div></td>" +
+              "</tr>";
+      }
+      tbody.innerHTML = html;
+    }
+
+    // Update results count
+    try {
+      var rc = document.getElementById('recordsCount');
+      if (rc) rc.textContent = rows.length + ' records shown';
+    } catch(_){}
+
+  } catch (e) {
+    console.error('renderGrid error:', e);
+  }
+  return false;
+}
+
+function updateSortUI() {
+  try {
+    var headers = document.querySelectorAll('.excel-header');
+    for (var i = 0; i < headers.length; i++) {
+      var h = headers[i];
+      var icon = h.querySelector('.sort-icon');
+      if (icon) {
+        icon.className = 'fas fa-sort sort-icon';
+        if (i === __sortIndex) {
+          icon.className = __sortDir === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
+        }
+      }
+    }
+  } catch (e) { console.error('updateSortUI error:', e); }
+  return true;
+}
+
+function toggleSidebar() {
+try {
+var sb = document.getElementById("sidebar");
+var ov = document.querySelector(".sidebar-overlay");
+if (!sb || !ov) return;
+var act = sb.classList.toggle("active");
+ov.classList.toggle("active", act);
+} catch (e) {
+console.error("toggleSidebar error", e);
+}
+}
+
+// Event listeners
+document.addEventListener("click", function(ev) {
+try {
+var btn = ev.target.closest && ev.target.closest(".tab-button");
+if (btn) {
+var list = document.querySelectorAll(".tab-button");
+var idx = Array.prototype.indexOf.call(list, btn);
+if (typeof window.switchTab === "function") {
+window.switchTab(idx);
+}
+ev.preventDefault();
+return false;
+}
+
+// Sidebar menu links: set active state and close sidebar
+var menuLink = ev.target.closest && ev.target.closest('.sidebar-menu a');
+if (menuLink) {
+var links = document.querySelectorAll('.sidebar-menu a');
+for (var k = 0; k < links.length; k++) {
+links[k].classList.remove('active');
+}
+menuLink.classList.add('active');
+try { toggleSidebar(); } catch (e2) { /* noop */ }
+ev.preventDefault();
+return false;
+}
+} catch (e) {
+console.error("Delegated click error:", e);
+}
+});
+
+// Initialize
+try {
+ensureAuthContainer();
+renderGrid("");
+updateSortUI();
+installFormKeydown();
+} catch (e) {}
+</script>
+</body>
+</html>

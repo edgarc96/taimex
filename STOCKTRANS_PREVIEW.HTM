@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <title>TAIMEX - Stock Transaction Preview</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --blue-800: #1e3a8a;
+      --blue-700: #1d4ed8;
+      --blue-600: #2563eb;
+      --blue-500: #3b82f6;
+      --slate-900: #0f172a;
+      --slate-800: #1e293b;
+      --slate-700: #334155;
+      --slate-600: #475569;
+      --slate-200: #e5e7eb;
+      --slate-100: #f1f5f9;
+      --bg: #f8fafc;
+      --white: #fff;
+      --green-500: #22c55e;
+      --green-600: #16a34a;
+      --amber-500: #f59e0b;
+    }
+
+    *{box-sizing:border-box}
+    html, body { min-height:100vh; width:100%; overflow:auto }
+    body { margin:0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); color:#334155; width:100% }
+
+    /* Header */
+    .header { background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%); color:#ffffff; padding:12px 24px; display:flex; justify-content:space-between; align-items:center; position:relative; box-shadow:0 2px 8px rgba(30,41,59,0.25); z-index:100; width:100% }
+    .header-inner { display:flex; align-items:center; justify-content: space-between; width:100% }
+    .header-left { display:flex; align-items:center; gap: 20px; }
+    .hamburger-menu { background:none; border:none; color:#fff; font-size:1.2em; cursor:pointer; padding:8px; border-radius:6px; transition:background-color .2s ease }
+    .hamburger-menu:hover{ background-color:rgba(255,255,255,0.12) }
+    .logo-section img { height: 40px; width:auto; object-fit:contain; filter:brightness(1.05) }
+    .title-section{ text-align:right; position:relative; z-index:1 }
+    .title-row{ display:flex; align-items:center; justify-content:flex-end; gap:15px }
+    .welcome-user{ white-space:nowrap }
+    .welcome-user span{ color:#cbd5e1; font-size:.8em; font-weight:400 }
+    .welcome-user strong{ color:#3b82f6; margin-left:4px; font-weight:600 }
+    .title-section h2{ font-size:.95em; margin:0; font-weight:500; color:#cbd5e1; letter-spacing:.3px }
+    .title-section p{ font-size:.75em; margin:2px 0 0 0; color:#a2a8ba; font-weight:400 }
+
+    /* Sidebar */
+    .sidebar-overlay { position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,.55); opacity:0; visibility:hidden; transition:all .25s ease; z-index:1500; pointer-events:none }
+    .sidebar-overlay.active { opacity:1; visibility:visible; pointer-events:auto }
+    .sidebar { position:fixed; top:0; left:-300px; width:300px; height:100vh; background:rgba(255,255,255,.08); backdrop-filter:blur(1px); -webkit-backdrop-filter:blur(1px); color:#fff; transition:left .2s ease; z-index:2000; box-shadow:2px 0 12px rgba(0,0,0,.35); display:flex; flex-direction:column }
+    .sidebar.open, .sidebar.active { left:0 }
+    .sidebar-header { padding: 16px; border-bottom: 1px solid rgba(255,255,255,.2); font-weight: 700; color: #fff; }
+    .sidebar-content { padding: 8px 0; overflow:auto; }
+    .sidebar-menu { list-style:none; margin:0; padding:0; }
+    .sidebar-menu li a { display:block; padding: 12px 16px; color: #fff; text-decoration:none; transition: background-color .15s ease, color .15s ease }
+    .sidebar-menu li a:hover, .sidebar-menu li a.active { background: rgba(255,255,255,.12); color: #fff; }
+
+    /* Layout */
+    .container{ width:100%; min-height:100vh; background:#fff; display:flex; flex-direction:column; overflow:visible }
+    .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; width: 100%; }
+
+    /* Preview Container */
+    .preview-container { max-width:800px; width:100%; margin:0 auto; padding:20px 40px; }
+    .preview-card { background:#ffffff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); padding:32px; margin-bottom:24px; }
+    .preview-header { text-align:center; margin-bottom:32px; }
+    .preview-header h2 { color:#1e293b; font-size:24px; margin:0 0 8px 0; }
+    .preview-header p { color:#64748b; font-size:14px; margin:0; }
+
+    /* Transaction Details */
+    .detail-grid { display:grid; grid-template-columns: 1fr 1fr; gap:20px 32px; margin-bottom:32px; }
+    .detail-item { display:flex; flex-direction:column; gap:4px; }
+    .detail-label { font-weight:600; color:#374151; font-size:13px; text-transform:uppercase; letter-spacing:0.5px; }
+    .detail-value { color:#1f2937; font-size:15px; font-weight:500; }
+    .detail-item.full-width { grid-column: 1 / -1; }
+
+    /* Status Badge */
+    .status-badge { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+    .status-badge.validated { background:#dcfce7; color:#166534; }
+    .status-badge.pending { background:#fef3c7; color:#92400e; }
+
+    /* Actions */
+    .actions { display:flex; gap: 16px; align-items:center; justify-content:center; margin-top: 32px; }
+    .btn { border:none; border-radius: 8px; padding: 12px 24px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow: 0 2px 4px rgba(0,0,0,.1); text-decoration:none; font-size:14px; }
+    .btn-primary { background: #1d4ed8; color: white; }
+    .btn-primary:hover { background:#1e40af; }
+    .btn-secondary { background: #6b7280; color: white; }
+    .btn-secondary:hover { background:#4b5563; }
+    .btn-outline { background: white; color: #374151; border: 1px solid #d1d5db; }
+    .btn-outline:hover { background:#f9fafb; }
+    .btn i { opacity:.9 }
+
+    /* Notifications */
+    .notification-container { position: fixed; right: 16px; top: 16px; z-index: 50; display:flex; flex-direction: column; gap:10px; }
+
+    /* Info alert */
+    .info-alert { display:flex; gap:10px; align-items:flex-start; background:#eff6ff; border-left:4px solid #3b82f6; padding:12px 16px; border-radius:8px; color:#1e3a8a; margin-bottom:16px }
+    .info-alert i { color:#3b82f6; margin-top:2px }
+
+    /* Notification animations */
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOutRight {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar-overlay" onclick="toggleSidebar(false)"></div>
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">Menu</div>
+    <div class="sidebar-content">
+      <ul class="sidebar-menu">
+        <li><a href="MAIN_MENU.HTM"><i class="fas fa-home"></i> Main Menu</a></li>
+        <li><a href="STOCKTRANS_CREATE.HTM"><i class="fas fa-plus"></i> Create Transaction</a></li>
+        <li><a href="STOCKTRANS_EDIT.HTM"><i class="fas fa-users-cog"></i> Stock Transactions</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="container">
+    <div class="header">
+      <div class="header-left">
+        <button class="hamburger-menu" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX" onerror="this.onerror=null;this.src='http://54.189.226.145/uploads/assets/images/taimex_logo.png';">
+        </div>
+      </div>
+      <div class="title-section">
+        <div class="title-row">
+          <div class="welcome-user"><span>Welcome</span><strong>Admin User</strong></div>
+          <div>
+            <h2>TAIMEX</h2>
+            <p>Stock Transaction Preview</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="preview-container">
+        <div class="info-alert">
+          <i class="fas fa-info-circle"></i>
+          <div><strong>Review Transaction:</strong> Please verify all details below before submitting. Once submitted, the transaction will be processed and cannot be easily reversed.</div>
+        </div>
+
+        <div class="preview-card">
+          <div class="preview-header">
+            <h2>Transaction Preview</h2>
+            <p>Review the details below and confirm to submit your stock transaction</p>
+            <div class="status-badge validated" id="validationStatus">
+              <i class="fas fa-check-circle"></i> Validated
+            </div>
+          </div>
+
+          <div class="detail-grid" id="transactionDetails">
+            <!-- Transaction details will be populated by JavaScript -->
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn btn-primary" onclick="submitTransaction()">
+              <i class="fas fa-check"></i> Confirm & Submit
+            </button>
+            <button type="button" class="btn btn-outline" onclick="goBack()">
+              <i class="fas fa-arrow-left"></i> Back to Edit
+            </button>
+            <a href="MAIN_MENU.HTM" class="btn btn-secondary">
+              <i class="fas fa-times"></i> Cancel
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notification-container" id="notificationContainer"></div>
+
+  <script>
+    // Sidebar controls
+    function toggleSidebar(force) {
+      try {
+        var sidebar = document.getElementById('sidebar');
+        var overlay = document.querySelector('.sidebar-overlay');
+        if (!sidebar || !overlay) return false;
+        var isOpen = sidebar.classList.contains('active');
+        var open = (typeof force === 'boolean') ? force : !isOpen;
+        sidebar.classList.toggle('active', open);
+        overlay.classList.toggle('active', open);
+        return open;
+      } catch (e) { console.warn('toggleSidebar error:', e); return false; }
+    }
+
+    // ESC closes sidebar
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape') toggleSidebar(false);
+    });
+
+    // Modern notification system
+    var loadingNotification = null;
+
+    function showSuccessNotification(title, message) {
+      var container = document.getElementById('notificationContainer');
+      var notification = document.createElement('div');
+      notification.className = 'notification success-notification';
+      notification.style.cssText = 'display:flex;align-items:center;gap:12px;background:#ffffff;border:1px solid #d1fae5;border-radius:12px;padding:12px 16px;box-shadow:0 10px 30px rgba(2,6,23,0.12);animation:slideInRight 0.3s ease;';
+      
+      notification.innerHTML = 
+        '<div style="width:32px;height:32px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;color:#16a34a;"><i class="fas fa-check"></i></div>' +
+        '<div><div style="font-weight:600;color:#1f2937;font-size:14px;">' + (title || 'Success') + '</div>' +
+        (message ? '<div style="font-size:12px;color:#6b7280;margin-top:2px;">' + message + '</div>' : '') + '</div>';
+      
+      container.appendChild(notification);
+      setTimeout(function() {
+        if (notification.parentNode) {
+          notification.style.animation = 'slideOutRight 0.3s ease';
+          setTimeout(function() { notification.remove(); }, 300);
+        }
+      }, 4000);
+    }
+
+    function showErrorNotification(title, message) {
+      var container = document.getElementById('notificationContainer');
+      var notification = document.createElement('div');
+      notification.className = 'notification error-notification';
+      notification.style.cssText = 'display:flex;align-items:center;gap:12px;background:#ffffff;border:1px solid #fecaca;border-radius:12px;padding:12px 16px;box-shadow:0 10px 30px rgba(2,6,23,0.12);animation:slideInRight 0.3s ease;';
+      
+      notification.innerHTML = 
+        '<div style="width:32px;height:32px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;color:#dc2626;"><i class="fas fa-exclamation-triangle"></i></div>' +
+        '<div><div style="font-weight:600;color:#1f2937;font-size:14px;">' + (title || 'Error') + '</div>' +
+        (message ? '<div style="font-size:12px;color:#6b7280;margin-top:2px;">' + message + '</div>' : '') + '</div>';
+      
+      container.appendChild(notification);
+      setTimeout(function() {
+        if (notification.parentNode) {
+          notification.style.animation = 'slideOutRight 0.3s ease';
+          setTimeout(function() { notification.remove(); }, 300);
+        }
+      }, 5000);
+    }
+
+    function showLoadingNotification(message) {
+      hideLoadingNotification();
+      
+      var container = document.getElementById('notificationContainer');
+      loadingNotification = document.createElement('div');
+      loadingNotification.className = 'notification loading-notification';
+      loadingNotification.style.cssText = 'display:flex;align-items:center;gap:12px;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;padding:12px 16px;box-shadow:0 10px 30px rgba(2,6,23,0.12);animation:slideInRight 0.3s ease;';
+      
+      loadingNotification.innerHTML = 
+        '<div style="width:32px;height:32px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;color:#6b7280;"><i class="fas fa-spinner fa-spin"></i></div>' +
+        '<div><div style="font-weight:600;color:#1f2937;font-size:14px;">Processing</div>' +
+        (message ? '<div style="font-size:12px;color:#6b7280;margin-top:2px;">' + message + '</div>' : '') + '</div>';
+      
+      container.appendChild(loadingNotification);
+    }
+
+    function hideLoadingNotification() {
+      if (loadingNotification && loadingNotification.parentNode) {
+        loadingNotification.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(function() { 
+          if (loadingNotification && loadingNotification.parentNode) {
+            loadingNotification.remove(); 
+          }
+          loadingNotification = null;
+        }, 300);
+      }
+    }
+
+    // Transaction data from URL parameters or localStorage
+    var transactionData = {};
+
+    // Load transaction data on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      loadTransactionData();
+      displayTransactionDetails();
+    });
+
+    function loadTransactionData() {
+      // Try to get data from URL parameters first
+      var urlParams = new URLSearchParams(window.location.search);
+      
+      transactionData = {
+        partNumber: urlParams.get('part') || '',
+        quantity: urlParams.get('qty') || '',
+        transactionType: urlParams.get('type') || '',
+        partDescription: urlParams.get('partDescription') || '',
+        typeDescription: urlParams.get('typeDescription') || '',
+        transactionDirection: urlParams.get('transactionDirection') || '',
+        initials: urlParams.get('initials') || '',
+        availableQty: urlParams.get('availableQty') || '',
+        projectedBalance: urlParams.get('projectedBalance') || '',
+        reference: urlParams.get('reference') || '',
+        whBinLoc: urlParams.get('whBinLoc') || '',
+        dateCode: urlParams.get('dateCode') || '',
+        notes: urlParams.get('notes') || ''
+      };
+
+      // If no URL params, try localStorage as fallback
+      if (!transactionData.partNumber) {
+        var stored = localStorage.getItem('stockTransactionPreview');
+        if (stored) {
+          try {
+            transactionData = JSON.parse(stored);
+          } catch (e) {
+            console.warn('Failed to parse stored transaction data:', e);
+          }
+        }
+      }
+    }
+
+    function displayTransactionDetails() {
+      var container = document.getElementById('transactionDetails');
+      
+      if (!transactionData.partNumber) {
+        container.innerHTML = '<div class="detail-item full-width"><div class="detail-label">Error</div><div class="detail-value">No transaction data found. Please go back and create a new transaction.</div></div>';
+        return;
+      }
+
+      var html = '';
+      
+      // Part Number
+      html += '<div class="detail-item"><div class="detail-label">Part Number</div><div class="detail-value">' + (transactionData.partNumber || 'N/A') + '</div></div>';
+      
+      // Quantity
+      html += '<div class="detail-item"><div class="detail-label">Quantity</div><div class="detail-value">' + (transactionData.quantity || 'N/A') + '</div></div>';
+      
+      // Transaction Type
+      html += '<div class="detail-item"><div class="detail-label">Transaction Type</div><div class="detail-value">' + (transactionData.transactionType || 'N/A') + '</div></div>';
+      
+      // Part Description
+      if (transactionData.partDescription) {
+        html += '<div class="detail-item full-width"><div class="detail-label">Part Description</div><div class="detail-value">' + transactionData.partDescription + '</div></div>';
+      }
+
+      // Type Description
+      if (transactionData.typeDescription) {
+        html += '<div class="detail-item full-width"><div class="detail-label">Type Description</div><div class="detail-value">' + transactionData.typeDescription + '</div></div>';
+      }
+
+      // Direction (IN/OUT)
+      if (transactionData.transactionDirection) {
+        html += '<div class="detail-item"><div class="detail-label">Direction</div><div class="detail-value">' + transactionData.transactionDirection + '</div></div>';
+      }
+
+      // Initials
+      if (transactionData.initials) {
+        html += '<div class="detail-item"><div class="detail-label">Initials</div><div class="detail-value">' + transactionData.initials + '</div></div>';
+      }
+
+      // Available Qty (for OUT with bin/date)
+      if (transactionData.availableQty) {
+        html += '<div class="detail-item"><div class="detail-label">Available Qty</div><div class="detail-value">' + transactionData.availableQty + '</div></div>';
+      }
+
+      // Projected Balance
+      if (transactionData.projectedBalance) {
+        html += '<div class="detail-item"><div class="detail-label">Projected Balance</div><div class="detail-value">' + transactionData.projectedBalance + '</div></div>';
+      }
+      
+      // Reference
+      if (transactionData.reference) {
+        html += '<div class="detail-item"><div class="detail-label">Reference</div><div class="detail-value">' + transactionData.reference + '</div></div>';
+      }
+      
+      // Warehouse Bin Location
+      if (transactionData.whBinLoc) {
+        html += '<div class="detail-item"><div class="detail-label">WH Bin Location</div><div class="detail-value">' + transactionData.whBinLoc + '</div></div>';
+      }
+      
+      // Date Code
+      if (transactionData.dateCode) {
+        html += '<div class="detail-item"><div class="detail-label">Date Code</div><div class="detail-value">' + transactionData.dateCode + '</div></div>';
+      }
+      
+      // Notes
+      if (transactionData.notes) {
+        html += '<div class="detail-item full-width"><div class="detail-label">Notes</div><div class="detail-value">' + transactionData.notes + '</div></div>';
+      }
+      
+      container.innerHTML = html;
+    }
+
+    function submitTransaction() {
+      if (!transactionData.partNumber) {
+        showErrorNotification('Error', 'No transaction data to submit');
+        return;
+      }
+
+      showLoadingNotification('Submitting transaction...');
+
+      // Build parameters for CREATE_STK_TRANSACTION.XML
+      var params = new URLSearchParams({
+        PARTNUM: transactionData.partNumber,
+        QTY: transactionData.quantity,
+        MTLTYPE: transactionData.transactionType,
+        REFERENCE: transactionData.reference || '',
+        WHBIN: transactionData.whBinLoc || '',
+        YYMM: transactionData.dateCode || '',
+        NOTES: transactionData.notes || ''
+      });
+
+      var createUrl = '/CREATE_STK_TRANSACTION.XML?' + params.toString();
+      
+      fetch(createUrl)
+        .then(function(response) {
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          return response.text();
+        })
+        .then(function(xmlText) {
+          try {
+            hideLoadingNotification();
+            console.log('Creation response:', xmlText);
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(xmlText, 'application/xml');
+            
+            var statusEl = doc.querySelector('status');
+            if (statusEl && statusEl.textContent === 'success') {
+              var stockIdEl = doc.querySelector('stockId');
+              var stockId = stockIdEl ? stockIdEl.textContent : 'Unknown';
+              
+              showSuccessNotification('Transaction Submitted', 'Stock transaction #' + stockId + ' created successfully!');
+              
+              // Clear stored data
+              localStorage.removeItem('stockTransactionPreview');
+              
+              // Redirect to main menu after delay
+              setTimeout(function() {
+                window.location.href = 'MAIN_MENU.HTM';
+              }, 3000);
+            } else {
+              var messageEl = doc.querySelector('message');
+              var errorMsg = messageEl ? messageEl.textContent : 'Submission failed';
+              showErrorNotification('Submission Error', errorMsg);
+            }
+          } catch (e) {
+            hideLoadingNotification();
+            console.error('XML parsing error:', e);
+            showErrorNotification('Error', 'Invalid response from server');
+          }
+        })
+        .catch(function(error) {
+          hideLoadingNotification();
+          console.error('Submission error:', error);
+          showErrorNotification('Submission Error', 'Failed to submit transaction: ' + error.message);
+        });
+    }
+
+    function goBack() {
+      // Store current data in localStorage for editing
+      localStorage.setItem('stockTransactionEdit', JSON.stringify(transactionData));
+      window.location.href = 'STOCKTRANS_CREATE.HTM';
+    }
+  </script>
+</body>
+</html>

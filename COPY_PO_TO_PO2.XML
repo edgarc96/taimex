@@ -1,0 +1,46 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+
+INCLUDE PLBASIC BP.INCLUDES PLW.INCLUDES
+
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO' TO POF ELSE STOP 201,'PO'
+OPEN 'PO2' TO PO2F ELSE STOP 201,'PO2'
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+PL_GETVAR PO_NUMBER FROM 'po_number' ELSE PO_NUMBER = ''
+
+XML.RESPONSE = '<?xml version="1.0"?><response>'
+
+IF PO_NUMBER = "" THEN
+    XML.RESPONSE = XML.RESPONSE : '<error>PO Number is required</error></response>'
+    WRITE XML.RESPONSE ON XMLDATAF,'COPY_PO_TO_PO2.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/COPY_PO_TO_PO2.XML','',ERR)
+    RETURN
+END
+
+* Read from original PO database (read-only, works fine)
+READ PO.RECORD FROM POF, PO_NUMBER ELSE GOTO PO_NOT_FOUND
+
+* Write same record to PO2 database (should work without cornell restriction)
+WRITE PO.RECORD ON PO2F, PO_NUMBER
+
+XML.RESPONSE = XML.RESPONSE : '<status>SUCCESS</status>'
+XML.RESPONSE = XML.RESPONSE : '<message>PO ' : PO_NUMBER : ' copied from PO to PO2 database successfully</message>'
+XML.RESPONSE = XML.RESPONSE : '<source_database>PO</source_database>'
+XML.RESPONSE = XML.RESPONSE : '<target_database>PO2</target_database>'
+XML.RESPONSE = XML.RESPONSE : '</response>'
+WRITE XML.RESPONSE ON XMLDATAF,'COPY_PO_TO_PO2.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/COPY_PO_TO_PO2.XML','',ERR)
+RETURN
+
+PO_NOT_FOUND:
+XML.RESPONSE = XML.RESPONSE : '<error>PO not found in original PO database: ' : PO_NUMBER : '</error></response>'
+WRITE XML.RESPONSE ON XMLDATAF,'COPY_PO_TO_PO2.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/COPY_PO_TO_PO2.XML','',ERR)
+RETURN
+</PRE>

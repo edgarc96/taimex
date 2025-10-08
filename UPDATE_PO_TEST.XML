@@ -1,0 +1,27 @@
+*REM TEST UPDATE_PO - Simplified test version to diagnose issues
+
+INCLUDE PLWEB.INC
+INCLUDE STRMODES.INC
+
+*REM Initialize response immediately
+XML.RESPONSE = '<?xml version="1.0"?><test_response>'
+
+*REM Get basic parameter
+PO_NUMBER = PLW.GET.VALUE("po_number")
+
+*REM Simple escape function
+ESCAPED_PO = PO_NUMBER
+CONVERT '&' TO '&amp;' IN ESCAPED_PO
+CONVERT '<' TO '&lt;' IN ESCAPED_PO
+CONVERT '>' TO '&gt;' IN ESCAPED_PO
+
+*REM Add debug info
+XML.RESPONSE = XML.RESPONSE : '<received_po>' : ESCAPED_PO : '</received_po>'
+XML.RESPONSE = XML.RESPONSE : '<status>test_working</status>'
+XML.RESPONSE = XML.RESPONSE : '</test_response>'
+
+*REM Output response
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_PO_TEST.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_PO_TEST.XML','',ERR)
+RETURN

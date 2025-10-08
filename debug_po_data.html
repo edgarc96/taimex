@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug PO 96540 Data Structure</title>
+</head>
+<body>
+    <h1>Debug PO 96540 Data Structure</h1>
+    <button onclick="loadPOData()">Load PO Data</button>
+    <div id="output"></div>
+
+    <script>
+    function loadPOData() {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'GET_PO2.XML?PO_NUMBER=96540', true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xhr.responseText, 'text/xml');
+                
+                const output = document.getElementById('output');
+                let html = '<h2>Raw XML Response:</h2><pre>' + escapeHtml(xhr.responseText) + '</pre>';
+                
+                // Parse line items
+                const lineItemsSection = xmlDoc.querySelector('line_items');
+                if (lineItemsSection) {
+                    const lineItems = Array.from(lineItemsSection.querySelectorAll('line_item'));
+                    html += '<h2>Line Items:</h2>';
+                    lineItems.forEach((item, index) => {
+                        const partNumber = item.querySelector('part_number')?.textContent || '';
+                        const description = item.querySelector('description')?.textContent || '';
+                        html += `<p><strong>Index ${index}:</strong> ${partNumber} - ${description}</p>`;
+                    });
+                }
+                
+                // Parse schedule info
+                const scheduleSection = xmlDoc.querySelector('schedule_info');
+                if (scheduleSection) {
+                    const scheduleEntries = Array.from(scheduleSection.querySelectorAll('schedule_entry'));
+                    html += '<h2>Schedule Entries:</h2>';
+                    scheduleEntries.forEach((entry, index) => {
+                        html += `<p><strong>Schedule Entry ${index}:</strong></p>`;
+                        const scheduleItems = Array.from(entry.querySelectorAll('schedule_item'));
+                        scheduleItems.forEach((item, itemIndex) => {
+                            const date = item.querySelector('date')?.textContent || '';
+                            const quantity = item.querySelector('quantity')?.textContent || '';
+                            html += `<p>&nbsp;&nbsp;Item ${itemIndex}: ${date} - ${quantity}</p>`;
+                        });
+                    });
+                }
+                
+                // Parse needs info
+                const needsSection = xmlDoc.querySelector('needs_info');
+                if (needsSection) {
+                    const needsEntries = Array.from(needsSection.querySelectorAll('needs_entry'));
+                    html += '<h2>Needs Entries:</h2>';
+                    needsEntries.forEach((entry, index) => {
+                        html += `<p><strong>Needs Entry ${index}:</strong></p>`;
+                        const needsItems = Array.from(entry.querySelectorAll('needs_item'));
+                        needsItems.forEach((item, itemIndex) => {
+                            const date = item.querySelector('date')?.textContent || '';
+                            const quantity = item.querySelector('quantity')?.textContent || '';
+                            html += `<p>&nbsp;&nbsp;Item ${itemIndex}: ${date} - ${quantity}</p>`;
+                        });
+                    });
+                }
+                
+                output.innerHTML = html;
+            }
+        };
+        xhr.send();
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    </script>
+</body>
+</html>

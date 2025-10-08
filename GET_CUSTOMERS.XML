@@ -1,0 +1,296 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'CUSTOMER' TO CUSTOMERF ELSE STOP 201,'CUSTOMER'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+* Get parameters from URL
+PL_GETVAR CUSTOMER_NUMBER FROM 'CUSTOMER_NUMBER' ELSE CUSTOMER_NUMBER = ''
+PL_GETVAR BILLTO_CODE FROM 'BILLTO_CODE' ELSE BILLTO_CODE = ''
+PL_GETVAR SEARCH FROM 'SEARCH' ELSE SEARCH = ''
+
+CUSTOMER_NUMBER = TRIM(CUSTOMER_NUMBER)
+BILLTO_CODE = TRIM(BILLTO_CODE)
+SEARCH = TRIM(SEARCH)
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM:'<customers>' 
+
+*REM Read CUSTOMER records
+PRINT "===== GET_CUSTOMERS.XML DEBUG ====="
+PRINT "CUSTOMER_NUMBER RECEIVED=": CUSTOMER_NUMBER
+PRINT "CUSTOMER_NUMBER LENGTH=": LEN(CUSTOMER_NUMBER)
+PRINT "BILLTO_CODE RECEIVED=": BILLTO_CODE
+PRINT "BILLTO_CODE LENGTH=": LEN(BILLTO_CODE)
+PRINT "SEARCH RECEIVED=": SEARCH
+PRINT "SEARCH LENGTH=": LEN(SEARCH)
+PRINT "==================================="
+
+* Prioritize BILLTO_CODE if provided
+IF BILLTO_CODE <> "" THEN CUSTOMER_NUMBER = BILLTO_CODE
+
+* If specific CUSTOMER_NUMBER is provided, try direct read first, then search by field 0
+IF CUSTOMER_NUMBER <> "" THEN
+    FOUND = 0
+    PRINT "DEBUG: Searching for CUSTOMER_NUMBER=": CUSTOMER_NUMBER
+    
+    * STRATEGY 1: Try direct read by ID (fastest)
+    READ CUSTOMER.RECORD FROM CUSTOMERF, CUSTOMER_NUMBER THEN
+        CUSTOMER_ID = CUSTOMER_NUMBER
+        FOUND = 1
+        PRINT "DEBUG: Found by direct read, ID=": CUSTOMER_ID
+        GOTO PROCESS_CUSTOMER
+    END
+    
+    PRINT "DEBUG: Not found by direct read, scanning all customers..."
+    
+    * STRATEGY 2: If not found by ID, scan for matching field 0
+    SL = \SSELECT CUSTOMER\
+    EXECUTE SL
+    SCAN_COUNT = 0
+    
+    10000 READNEXT CUSTOMER_ID THEN
+        SCAN_COUNT = SCAN_COUNT + 1
+        READ CUSTOMER.RECORD FROM CUSTOMERF, CUSTOMER_ID ELSE
+            GOTO 10000
+        END
+        
+        * Check if field 0 matches the search
+        CUSTOMER_NUM_FIELD = CUSTOMER.RECORD<0>
+        
+        * Debug every 100th record
+        IF MOD(SCAN_COUNT, 100) = 0 THEN
+            PRINT "DEBUG: Scanned ": SCAN_COUNT : " records so far..."
+        END
+        
+        IF CUSTOMER_NUM_FIELD = CUSTOMER_NUMBER THEN
+            FOUND = 1
+            PRINT "DEBUG: Found match in field 0! ID=": CUSTOMER_ID : ", Field0=": CUSTOMER_NUM_FIELD
+            GOTO PROCESS_CUSTOMER
+        END
+        
+        GOTO 10000
+    END
+    
+    PRINT "DEBUG: Finished scan, scanned ": SCAN_COUNT : " total records"
+    
+    * If not found, return empty
+    IF FOUND = 0 THEN
+        PRINT "DEBUG: NOT FOUND after full scan!"
+        XML.RESPONSE = XML.RESPONSE :XAM: '</customers>'
+        WRITE XML.RESPONSE ON XMLDATAF,'CUSTOMERS.XML'
+        ERR = ''
+        CALL PLW.PAGE('/XMLDATA/CUSTOMERS.XML','',ERR)
+        RETURN
+    END
+END
+
+* Scan all customers for search or limited list
+SL = \SSELECT CUSTOMER\
+EXECUTE SL
+PRINT
+RECORD_COUNT = 0
+IF SEARCH <> "" THEN
+    MAX_RECORDS = 50  ; * Limit search results
+END ELSE
+    MAX_RECORDS = 100  ; * Limit general listing
+END
+
+10 READNEXT CUSTOMER_ID THEN
+    READ CUSTOMER.RECORD FROM CUSTOMERF, CUSTOMER_ID ELSE
+        GOTO 10
+    END
+    
+    * If searching, filter by customer name or number
+    IF SEARCH <> "" THEN
+        CUSTOMER_NAME = CUSTOMER.RECORD<1>
+        CUSTOMER_NUM_FIELD = CUSTOMER.RECORD<0>
+        
+        SEARCH_UPPER = OCONV(SEARCH, 'MCU')
+        CUSTOMER_NAME_UPPER = OCONV(CUSTOMER_NAME, 'MCU')
+        CUSTOMER_ID_UPPER = OCONV(CUSTOMER_ID, 'MCU')
+        CUSTOMER_NUM_UPPER = OCONV(CUSTOMER_NUM_FIELD, 'MCU')
+        
+        * PRIORITY 1: Exact match on customer ID (highest priority)
+        IF CUSTOMER_ID_UPPER = SEARCH_UPPER THEN
+            * Perfect match, process immediately
+            GOTO PROCESS_CUSTOMER
+        END
+        
+        * PRIORITY 2: Check if search term matches customer name or field 0
+        IF INDEX(CUSTOMER_NAME_UPPER, SEARCH_UPPER, 1) = 0 AND INDEX(CUSTOMER_NUM_UPPER, SEARCH_UPPER, 1) = 0 THEN
+            GOTO 10  ; * Skip this record
+        END
+    END
+    
+    * Limit number of records to prevent server hang
+    RECORD_COUNT = RECORD_COUNT + 1
+    IF RECORD_COUNT > MAX_RECORDS THEN GOTO DONE
+
+PROCESS_CUSTOMER:
+
+    XML.RESPONSE = XML.RESPONSE :XAM: '<customer>' ; * Emit record header
+    
+    * DEBUG INFO
+    XML.RESPONSE = XML.RESPONSE :XAM: '<!-- DEBUG: Searched for: ' : CUSTOMER_NUMBER : ', Found ID: ' : CUSTOMER_ID : ' -->'
+
+    * CUSTOMER CODE - The ID/Key
+    XML.RESPONSE = XML.RESPONSE :XAM: '<customer_code>' : CUSTOMER_ID : '</customer_code>'
+    
+    * CUSTOMER NUMBER <0> - Only use field 0, do not fallback to name
+    CUSTOMER_NUM_FIELD = CUSTOMER.RECORD<0>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<customer_number>' : CUSTOMER_NUM_FIELD : '</customer_number>'
+    
+    * CUSTOMER NAME <1> - Clean special characters
+    CUST_NAME = CUSTOMER.RECORD<1>
+    * Remove ALL control and non-ASCII characters
+    CLEANED_NAME = ''
+    FOR I = 1 TO LEN(CUST_NAME)
+        CHAR_CODE = SEQ(CUST_NAME[I,1])
+        * Keep only printable ASCII (32-126) and common extended (128-255 safe)
+        IF CHAR_CODE >= 32 AND CHAR_CODE <= 126 THEN
+            CLEANED_NAME = CLEANED_NAME : CUST_NAME[I,1]
+        END ELSE IF CHAR_CODE > 126 AND CHAR_CODE < 253 THEN
+            * Replace problematic chars with space
+            CLEANED_NAME = CLEANED_NAME : ' '
+        END
+    NEXT I
+    * Trim and collapse multiple spaces
+    CLEANED_NAME = TRIM(CLEANED_NAME)
+    XML.RESPONSE = XML.RESPONSE :XAM: '<customer_name><![CDATA[' : CLEANED_NAME : ']]></customer_name>'
+    
+    * STREET ADDRESSES <2> - Multivalue field, separate each line
+    * First multivalue = Street 1, Second multivalue = Street 2, etc.
+    STREET_COUNT = DCOUNT(CUSTOMER.RECORD<2>, XVM)
+    
+    * STREET 1 <2,1> - First line of street address
+    STREET1 = CUSTOMER.RECORD<2,1>
+    CLEANED_STREET1 = ''
+    FOR I = 1 TO LEN(STREET1)
+        CHAR_CODE = SEQ(STREET1[I,1])
+        IF CHAR_CODE >= 32 AND CHAR_CODE <= 126 THEN
+            CLEANED_STREET1 = CLEANED_STREET1 : STREET1[I,1]
+        END ELSE IF CHAR_CODE > 126 AND CHAR_CODE < 253 THEN
+            CLEANED_STREET1 = CLEANED_STREET1 : ' '
+        END
+    NEXT I
+    CLEANED_STREET1 = TRIM(CLEANED_STREET1)
+    XML.RESPONSE = XML.RESPONSE :XAM: '<customer_street1><![CDATA[' : CLEANED_STREET1 : ']]></customer_street1>'
+    
+    * STREET 2 <2,2> - Second line of street address if exists
+    STREET2 = ''
+    IF STREET_COUNT >= 2 THEN
+        STREET2 = CUSTOMER.RECORD<2,2>
+        CLEANED_STREET2 = ''
+        FOR I = 1 TO LEN(STREET2)
+            CHAR_CODE = SEQ(STREET2[I,1])
+            IF CHAR_CODE >= 32 AND CHAR_CODE <= 126 THEN
+                CLEANED_STREET2 = CLEANED_STREET2 : STREET2[I,1]
+            END ELSE IF CHAR_CODE > 126 AND CHAR_CODE < 253 THEN
+                CLEANED_STREET2 = CLEANED_STREET2 : ' '
+            END
+        NEXT I
+        STREET2 = TRIM(CLEANED_STREET2)
+    END
+    XML.RESPONSE = XML.RESPONSE :XAM: '<customer_street2><![CDATA[' : STREET2 : ']]></customer_street2>'
+    
+    * LEGACY FIELDS (for backward compatibility) - Use Street 1 only
+    XML.RESPONSE = XML.RESPONSE :XAM: '<customer_address><![CDATA[' : CLEANED_STREET1 : ']]></customer_address>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<customer_address1><![CDATA[' : CLEANED_STREET1 : ']]></customer_address1>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<customer_address2><![CDATA[' : STREET2 : ']]></customer_address2>'
+    
+    * CITY/STATE/ZIP <3> - Parse and separate
+    CITY_STATE_ZIP = CUSTOMER.RECORD<3>
+    * Clean non-ASCII characters
+    CLEANED_CITY = ''
+    FOR I = 1 TO LEN(CITY_STATE_ZIP)
+        CHAR_CODE = SEQ(CITY_STATE_ZIP[I,1])
+        IF CHAR_CODE >= 32 AND CHAR_CODE <= 126 THEN
+            CLEANED_CITY = CLEANED_CITY : CITY_STATE_ZIP[I,1]
+        END ELSE IF CHAR_CODE > 126 AND CHAR_CODE < 253 THEN
+            CLEANED_CITY = CLEANED_CITY : ' '
+        END
+    NEXT I
+    CITY_STATE_ZIP = TRIM(CLEANED_CITY)
+    
+    * Output full field and separated components
+    XML.RESPONSE = XML.RESPONSE :XAM: '<customer_city><![CDATA[' : CITY_STATE_ZIP : ']]></customer_city>'
+    
+    * Try to parse CITY, STATE, ZIP
+    * Common formats: "CITY, STATE ZIP" or "CITY STATE ZIP"
+    PARSED_CITY = ''
+    PARSED_STATE = ''
+    PARSED_ZIP = ''
+    
+    IF INDEX(CITY_STATE_ZIP, ',', 1) > 0 THEN
+        PARSED_CITY = TRIM(FIELD(CITY_STATE_ZIP, ',', 1))
+        REST = TRIM(FIELD(CITY_STATE_ZIP, ',', 2))
+        IF REST <> '' THEN
+            * Parse STATE ZIP from rest
+            WORD_COUNT = DCOUNT(REST, ' ')
+            IF WORD_COUNT >= 2 THEN
+                PARSED_STATE = FIELD(REST, ' ', 1)
+                PARSED_ZIP = FIELD(REST, ' ', 2)
+            END ELSE IF WORD_COUNT = 1 THEN
+                * Could be just state or just zip
+                IF LEN(REST) = 2 THEN
+                    PARSED_STATE = REST
+                END ELSE
+                    PARSED_ZIP = REST
+                END
+            END
+        END
+    END ELSE
+        * No comma, try space-based parsing
+        WORD_COUNT = DCOUNT(CITY_STATE_ZIP, ' ')
+        IF WORD_COUNT >= 3 THEN
+            * Last 2 words are likely STATE ZIP
+            PARSED_ZIP = FIELD(CITY_STATE_ZIP, ' ', WORD_COUNT)
+            PARSED_STATE = FIELD(CITY_STATE_ZIP, ' ', WORD_COUNT - 1)
+            * Everything before is city
+            PARSED_CITY = ''
+            FOR W = 1 TO WORD_COUNT - 2
+                IF W > 1 THEN PARSED_CITY = PARSED_CITY : ' '
+                PARSED_CITY = PARSED_CITY : FIELD(CITY_STATE_ZIP, ' ', W)
+            NEXT W
+        END ELSE
+            PARSED_CITY = CITY_STATE_ZIP
+        END
+    END
+    
+    XML.RESPONSE = XML.RESPONSE :XAM: '<customer_state>' : PARSED_STATE : '</customer_state>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<customer_zip>' : PARSED_ZIP : '</customer_zip>'
+    
+    * BILL TO CODE <8> - Who gets the invoice
+    BILL_TO_CODE = CUSTOMER.RECORD<8>
+    IF INDEX(BILL_TO_CODE, '*', 1) > 0 THEN BILL_TO_CODE = FIELD(BILL_TO_CODE, '*', 1)
+    XML.RESPONSE = XML.RESPONSE :XAM: '<bill_to_code>' : BILL_TO_CODE : '</bill_to_code>'
+    
+    XML.RESPONSE = XML.RESPONSE :XAM: '</customer>'
+    
+    * If searching for specific CUSTOMER, exit after processing it
+    IF CUSTOMER_NUMBER <> "" THEN GOTO DONE
+    
+    * Continue with next record in scan mode
+    GOTO 10
+END
+DONE:
+*REM Complete XML response
+XML.RESPONSE = XML.RESPONSE :XAM: '</customers>'
+ 
+*REM Output the XML
+    WRITE XML.RESPONSE ON XMLDATAF,'CUSTOMERS.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/CUSTOMERS.XML','',ERR)
+    RETURN
+</pre>

@@ -1,0 +1,38 @@
+FUNCTION
+* Find PO numbers that have acknowledgment data for testing
+
+OPEN "PO" TO F.PO ELSE STOP 201, "PO"
+
+PRINT "Content-Type: text/xml"
+PRINT ""
+PRINT "<?xml version='1.0' encoding='UTF-8'?>"
+PRINT "<response>"
+
+COUNT = 0
+* Start from a recent PO range
+START.PO = 96400
+END.PO = 96500
+
+FOR PO.NUM = START.PO TO END.PO
+    READ PO.RECORD FROM F.PO, PO.NUM THEN
+        * Check field <49> for acknowledgment data
+        ACK.DATA = PO.RECORD<49>
+        
+        IF ACK.DATA NE "" THEN
+            COUNT += 1
+            PRINT "<po_with_ack>"
+            PRINT "<po_number>":PO.NUM:"</po_number>"
+            PRINT "<ack_data_length>":LEN(ACK.DATA):"</ack_data_length>"
+            PRINT "<ack_preview>":ACK.DATA[1,50]:"</ack_preview>"
+            PRINT "</po_with_ack>"
+            
+            * Stop after finding 3 examples  
+            IF COUNT GE 3 THEN BREAK
+        END
+    END
+NEXT PO.NUM
+
+PRINT "<total_found>":COUNT:"</total_found>"
+PRINT "</response>"
+
+RETURN

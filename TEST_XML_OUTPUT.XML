@@ -1,0 +1,62 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO2' TO PO2F ELSE STOP 201,'PO2'
+OPEN 'VENDOR' TO VENDORF ELSE STOP 201,'VENDOR'
+
+* Define constants
+XAM = CHAR(254)
+
+* Get parameters from URL
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = '96540'
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<test_xml>' 
+
+* Read PO record
+READ PO.RECORD FROM PO2F, PO_NUMBER ELSE
+    XML.RESPONSE = XML.RESPONSE : XAM : '<error>PO not found: ' : PO_NUMBER : '</error>'
+    GOTO FINISH_OUTPUT
+END
+
+* Test vendor info output
+VENDOR_NUMBER = PO.RECORD<2>
+XML.RESPONSE = XML.RESPONSE : XAM : '<vendor_number_raw>' : VENDOR_NUMBER : '</vendor_number_raw>'
+
+IF VENDOR_NUMBER <> '' THEN
+    READ VENDOR.RECORD FROM VENDORF, VENDOR_NUMBER ELSE VENDOR.RECORD = ''
+    XML.RESPONSE = XML.RESPONSE : XAM : '<vendor_info>'
+    
+    * Escape special characters in vendor data
+    VENDOR_NAME = VENDOR.RECORD<1>
+    VENDOR_ADDRESS = VENDOR.RECORD<2>
+    VENDOR_CITY = VENDOR.RECORD<3>
+    
+    * Replace & with &amp; to fix XML parsing
+    CONVERT '&' TO '&amp;' IN VENDOR_NAME
+    CONVERT '&' TO '&amp;' IN VENDOR_ADDRESS
+    CONVERT '&' TO '&amp;' IN VENDOR_CITY
+    
+    XML.RESPONSE = XML.RESPONSE : XAM : '<vendor_number>' : VENDOR_NUMBER : '</vendor_number>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<vendor_name>' : VENDOR_NAME : '</vendor_name>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<vendor_address1>' : VENDOR_ADDRESS : '</vendor_address1>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<vendor_city>' : VENDOR_CITY : '</vendor_city>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '</vendor_info>'
+END
+
+FINISH_OUTPUT:
+*REM Complete XML response
+XML.RESPONSE = XML.RESPONSE : XAM : '</test_xml>'
+ 
+*REM Output the XML
+    WRITE XML.RESPONSE ON XMLDATAF,'TEST_XML_OUTPUT.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/TEST_XML_OUTPUT.XML','',ERR)
+    RETURN
+</pre>

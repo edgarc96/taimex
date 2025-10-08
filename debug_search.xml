@@ -1,0 +1,76 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+  OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+  OPEN 'WO' TO WOF ELSE STOP 201,'WO'
+  OPEN 'LIID' TO LIIDF ELSE STOP 201,'LIID'
+  OPEN 'PARTS' TO PARTS.FILE ELSE STOP 201,'PARTS'
+
+*
+* REM Get parameters from URL for Work Order processing - try multiple parameter names
+PL_GETVAR WO_ID FROM 'WO_ID' ELSE WO_ID = ''
+PL_GETVAR WO_ID2 FROM 'wo_id' ELSE WO_ID2 = ''
+PL_GETVAR WO_ID3 FROM 'WOID' ELSE WO_ID3 = ''
+PL_GETVAR ACTION FROM 'ACTION' ELSE ACTION = 'EDIT'
+PL_GETVAR ACTION2 FROM 'action' ELSE ACTION2 = 'EDIT'
+
+* Use whichever WO_ID has a value
+IF WO_ID = '' AND WO_ID2 <> '' THEN WO_ID = WO_ID2
+IF WO_ID = '' AND WO_ID3 <> '' THEN WO_ID = WO_ID3
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : AM:'<DebugSearch>' 
+
+XML.RESPONSE = XML.RESPONSE : AM:'<input_wo_id>' : WO_ID : '</input_wo_id>'
+XML.RESPONSE = XML.RESPONSE : AM:'<input_wo_id2>' : WO_ID2 : '</input_wo_id2>'
+XML.RESPONSE = XML.RESPONSE : AM:'<input_wo_id3>' : WO_ID3 : '</input_wo_id3>'
+XML.RESPONSE = XML.RESPONSE : AM:'<input_action>' : ACTION : '</input_action>'
+XML.RESPONSE = XML.RESPONSE : AM:'<input_action2>' : ACTION2 : '</input_action2>'
+
+*REM Try to read the record with multiple approaches
+XML.RESPONSE = XML.RESPONSE : AM:'<attempts>'
+
+* Attempt 1: Direct read
+READ WO.RECORD FROM WOF, WO_ID THEN
+    XML.RESPONSE = XML.RESPONSE : AM:'<attempt1>SUCCESS - Direct read worked</attempt1>'
+    XML.RESPONSE = XML.RESPONSE : AM:'<record_found>YES</record_found>'
+    XML.RESPONSE = XML.RESPONSE : AM:'<wo_date>' : WO.RECORD<1> : '</wo_date>'
+    XML.RESPONSE = XML.RESPONSE : AM:'<wo_type>' : WO.RECORD<20> : '</wo_type>'
+    XML.RESPONSE = XML.RESPONSE : AM:'<assy_no>' : WO.RECORD<32> : '</assy_no>'
+END ELSE
+    XML.RESPONSE = XML.RESPONSE : AM:'<attempt1>FAILED - Direct read failed</attempt1>'
+    
+    * Attempt 2: String conversion
+    STR_WO_ID = WO_ID : ''
+    READ WO.RECORD FROM WOF, STR_WO_ID THEN
+        XML.RESPONSE = XML.RESPONSE : AM:'<attempt2>SUCCESS - String conversion worked</attempt2>'
+        XML.RESPONSE = XML.RESPONSE : AM:'<record_found>YES</record_found>'
+    END ELSE
+        XML.RESPONSE = XML.RESPONSE : AM:'<attempt2>FAILED - String conversion failed</attempt2>'
+        
+        * Attempt 3: Trimmed
+        TRIM_WO_ID = TRIM(WO_ID)
+        READ WO.RECORD FROM WOF, TRIM_WO_ID THEN
+            XML.RESPONSE = XML.RESPONSE : AM:'<attempt3>SUCCESS - Trimmed worked</attempt3>'
+            XML.RESPONSE = XML.RESPONSE : AM:'<record_found>YES</record_found>'
+        END ELSE
+            XML.RESPONSE = XML.RESPONSE : AM:'<attempt3>FAILED - Trimmed failed</attempt3>'
+            XML.RESPONSE = XML.RESPONSE : AM:'<record_found>NO</record_found>'
+        END
+    END
+END
+
+XML.RESPONSE = XML.RESPONSE : AM:'</attempts>'
+XML.RESPONSE = XML.RESPONSE : AM:'</DebugSearch>'
+
+*REM Output the XML
+WRITE XML.RESPONSE ON XMLDATAF,'DEBUG_SEARCH.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/DEBUG_SEARCH.XML','',ERR)
+RETURN
+</pre>

@@ -1,0 +1,210 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+  OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+ 
+*
+* REM Get parameters from URL
+PL_GETVAR CODE FROM 'CODE' ELSE CODE = ''
+PL_GETVAR DESCRIPTION FROM 'DESCRIPTION' ELSE DESCRIPTION = ''
+PL_GETVAR INITIALS FROM 'INITIALS' ELSE INITIALS = ''
+PL_GETVAR NAME FROM 'NAME' ELSE NAME = ''
+PL_GETVAR STATUS FROM 'STATUS' ELSE STATUS = ''
+* Optional bulk rewrite: full initials list
+PL_GETVAR INITIALS_ALL FROM 'INITIALS_ALL' ELSE INITIALS_ALL = ''
+
+CODE = TRIM(CODE)
+DESCRIPTION = TRIM(DESCRIPTION)
+INITIALS = TRIM(INITIALS)
+NAME = TRIM(NAME)
+STATUS = TRIM(STATUS)
+INITIALS_ALL = TRIM(INITIALS_ALL)
+
+* Normalize initials to only first two uppercase letters (strip names or dots)
+INITIALS = OCONV(INITIALS, 'MCU')
+TEMP.INIT = ''
+FOR II = 1 TO LEN(INITIALS)
+  CH = INITIALS[II,1]
+  VV = SEQ(CH)
+  IF VV >= 65 AND VV <= 90 THEN
+    IF LEN(TEMP.INIT) < 2 THEN TEMP.INIT := CH
+  END
+NEXT II
+INITIALS = TEMP.INIT
+
+*
+*PL_ADD_HDR 'Set-Cookie: INIT=':INITIALS:'; domain=cde.com;'
+*        R.ERR = '302 MOVED TEMPORARILY'
+*        PL_ADD_HDR 'Location: /':MENU
+  
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : AM:'<stocktrans>' 
+
+*REM Validate parameters (allow INITIALS omitted when INITIALS_ALL provided)
+IF CODE = "" OR DESCRIPTION = "" OR (INITIALS = "" AND INITIALS_ALL = "") THEN
+    XML.RESPONSE = XML.RESPONSE :AM: '<error>Missing required parameters</error>'
+    XML.RESPONSE = XML.RESPONSE :AM: '</stocktrans>'
+    WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_ERROR.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/UPDATE_ERROR.XML','',ERR)
+    RETURN
+END
+
+*REM Open database files
+OPEN "MTLTRANS" TO MTLTRANS.FILE ELSE
+    XML.RESPONSE = XML.RESPONSE : AM:'<error>Cannot open MTLTRANS file</error>'
+    XML.RESPONSE = XML.RESPONSE : AM:'</stocktrans>'
+    WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_ERROR.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/UPDATE_ERROR.XML','',ERR)
+    RETURN
+END
+    
+*
+* REM Write/Update record
+READ STOCK.RECORD FROM MTLTRANS.FILE, CODE ELSE
+    STOCK.RECORD = ''
+END
+
+* Sanitize existing initials list in field 7 to contain only VM-separated 2-letter initials
+LINES = DCOUNT(STOCK.RECORD<7>, VM)
+IF LINES > 0 THEN
+    CLEAN = ''
+    FOR I = 1 TO LINES
+        RAW = OCONV(TRIM(STOCK.RECORD<7,I>), 'MCU')
+        TMP = ''
+        FOR JJ = 1 TO LEN(RAW)
+            CH2 = RAW[JJ,1]
+            VV2 = SEQ(CH2)
+            IF VV2 >= 65 AND VV2 <= 90 THEN
+                IF LEN(TMP) < 2 THEN TMP := CH2
+            END
+        NEXT JJ
+        IF TMP # '' THEN
+            IF CLEAN = '' THEN
+                CLEAN = TMP
+            END ELSE
+                * Deduplicate by exact VM token
+                IF INDEX(VM:CLEAN:VM, VM:TMP:VM, 1) = 0 THEN CLEAN = CLEAN : VM : TMP
+            END
+        END
+    NEXT I
+    STOCK.RECORD<7> = CLEAN
+END
+
+* Set fields
+STOCK.RECORD<3> = DESCRIPTION
+STOCK.RECORD<6> = STATUS
+
+* Handle updates
+IF INITIALS_ALL # '' THEN
+    * Bulk rewrite of entire initials list (any non-letter acts as separator)
+    RAWALL = OCONV(INITIALS_ALL, 'MCU')
+    CLEAN.SET = ''
+    BUFF = ''
+    FOR II = 1 TO LEN(RAWALL)
+        CH = RAWALL[II,1]
+        VV = SEQ(CH)
+        IF VV >= 65 AND VV <= 90 THEN
+            IF LEN(BUFF) < 2 THEN BUFF := CH
+        END ELSE
+            IF LEN(BUFF) = 2 THEN
+                IF INDEX(VM:CLEAN.SET:VM, VM:BUFF:VM, 1) = 0 THEN
+                    IF CLEAN.SET = '' THEN CLEAN.SET = BUFF ELSE CLEAN.SET = CLEAN.SET : VM : BUFF
+                END
+            END
+            BUFF = ''
+        END
+    NEXT II
+    * Flush trailing token
+    IF LEN(BUFF) = 2 THEN
+        IF INDEX(VM:CLEAN.SET:VM, VM:BUFF:VM, 1) = 0 THEN
+            IF CLEAN.SET = '' THEN CLEAN.SET = BUFF ELSE CLEAN.SET = CLEAN.SET : VM : BUFF
+        END
+    END
+    * Apply rewrite (delete record if empty)
+    IF CLEAN.SET = '' THEN
+        DELETE MTLTRANS.FILE, CODE
+    END ELSE
+        STOCK.RECORD<7> = CLEAN.SET
+        WRITE STOCK.RECORD ON MTLTRANS.FILE, CODE
+    END
+END ELSE
+    IF STATUS = 'DELETE' THEN
+        * Remove initials from field 7
+        LINES = DCOUNT(STOCK.RECORD<7>, VM)
+        NEW_INITIALS = ''
+        FOR I = 1 TO LINES
+            IF STOCK.RECORD<7,I> # INITIALS THEN
+                IF NEW_INITIALS = '' THEN
+                    NEW_INITIALS = STOCK.RECORD<7,I>
+                END ELSE
+                    NEW_INITIALS = NEW_INITIALS : VM : STOCK.RECORD<7,I>
+                END
+            END
+        NEXT I
+        STOCK.RECORD<7> = NEW_INITIALS
+        
+        * If no initials left, delete record
+        IF NEW_INITIALS = '' THEN
+            DELETE MTLTRANS.FILE, CODE
+        END ELSE
+            WRITE STOCK.RECORD ON MTLTRANS.FILE, CODE
+        END
+    END ELSE
+        * Add initials if not exists
+        FOUND = 0
+        LINES = DCOUNT(STOCK.RECORD<7>, VM)
+        FOR I = 1 TO LINES
+            IF STOCK.RECORD<7,I> = INITIALS THEN
+                FOUND = 1
+            END
+        NEXT I
+        
+        IF FOUND = 0 THEN
+            IF STOCK.RECORD<7> = '' THEN
+                STOCK.RECORD<7> = INITIALS
+            END ELSE
+                STOCK.RECORD<7> = STOCK.RECORD<7> : VM : INITIALS
+            END
+        END
+        
+        WRITE STOCK.RECORD ON MTLTRANS.FILE, CODE
+    END
+END
+
+* Read updated record for response
+READ STOCK.RECORD FROM MTLTRANS.FILE, CODE ELSE
+    STOCK.RECORD = ''
+END
+
+* Generate success response
+XML.RESPONSE = XML.RESPONSE :AM: '<status>success</status>'
+XML.RESPONSE = XML.RESPONSE :AM: '<stock>'
+XML.RESPONSE = XML.RESPONSE :AM: '<code>' : CODE : '</code>'
+XML.RESPONSE = XML.RESPONSE :AM: '<description>':STOCK.RECORD<3>:'</description>'
+XML.RESPONSE = XML.RESPONSE :AM: '<type>': STOCK.RECORD<6>:'</type>'
+XML.RESPONSE = XML.RESPONSE :AM: '<opers>'
+LINES = DCOUNT(STOCK.RECORD<7>,VM)
+FOR I = 1 TO LINES     
+    XML.RESPONSE = XML.RESPONSE :AM: '<user>' : STOCK.RECORD<7,I> : '</user>'
+    USERNAME = OCONV(STOCK.RECORD<7,I>,'TOPERS;X;;1')
+    XML.RESPONSE = XML.RESPONSE :AM: '<user_name>' : USERNAME: '</user_name>'
+NEXT I
+XML.RESPONSE = XML.RESPONSE :AM: '</opers>'
+XML.RESPONSE = XML.RESPONSE :AM: '</stock>'
+
+*REM Complete XML response
+XML.RESPONSE = XML.RESPONSE :AM: '</stocktrans>'
+ 
+*REM Output the XML
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_SUCCESS.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_SUCCESS.XML','',ERR)
+RETURN
+</pre>
+                                                                                                                                                                          

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Compile UPDATE_SO.XML</title>
+</head>
+<body>
+    <h1>Compiling UPDATE_SO.XML...</h1>
+    <pre id="output">Loading...</pre>
+    
+    <script>
+        // Try to compile UPDATE_SO.XML
+        fetch('http://54.189.226.145/UPDATE_SO.XML')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('output').textContent = 
+                    '✅ UPDATE_SO.XML loaded successfully!\n\n' +
+                    'The file should now be compiled by the server.\n\n' +
+                    'Close this window and try Save Final again.';
+            })
+            .catch(error => {
+                document.getElementById('output').textContent = 
+                    '❌ Error: ' + error.message;
+            });
+    </script>
+</body>
+</html>

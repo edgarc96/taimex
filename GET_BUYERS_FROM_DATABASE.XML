@@ -1,0 +1,66 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+*
+* GET_BUYERS_FROM_DATABASE.XML - Read buyers from BUYERS database
+*
+* Initialize ALL variables first
+INITIALS = ''
+BUYERS.RECORD = ''
+XML.RESPONSE = ''
+ERR = ''
+OUTFILE = ''
+XAM = CHAR(254)
+BUYER_COUNT = 0
+
+* Open files
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'BUYERS' TO BUYERSF ELSE GOTO NO_BUYERS_FILE
+
+* Get parameter
+PL_GETVAR SOURCE FROM 'SOURCE' ELSE SOURCE = ''
+
+* Build XML header
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<buyers>'
+
+* If SOURCE=BUYERS, read from BUYERS database
+IF SOURCE = 'BUYERS' THEN
+    * Read all records from BUYERS file
+    SELECT BUYERSF TO BUYERS_LIST
+    LOOP
+        READNEXT BUYER_KEY FROM BUYERS_LIST ELSE EXIT
+        READ BUYERS.RECORD FROM BUYERSF, BUYER_KEY ELSE CONTINUE
+        
+        * Add buyer to XML
+        XML.RESPONSE = XML.RESPONSE : XAM : '<buyer>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '<buyer_initials>' : BUYER_KEY : '</buyer_initials>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '<buyer_name>BUYERS Database Entry</buyer_name>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '</buyer>'
+        BUYER_COUNT = BUYER_COUNT + 1
+    REPEAT
+    
+    IF BUYER_COUNT = 0 THEN
+        XML.RESPONSE = XML.RESPONSE : XAM : '<message>No buyers found in BUYERS database</message>'
+    END
+    
+    GOTO FINISH
+END
+
+* Default behavior - return empty for non-BUYERS source
+XML.RESPONSE = XML.RESPONSE : XAM : '<message>Use SOURCE=BUYERS parameter</message>'
+GOTO FINISH
+
+NO_BUYERS_FILE:
+XML.RESPONSE = XML.RESPONSE : XAM : '<error>Cannot open BUYERS file</error>'
+
+FINISH:
+* Close XML
+XML.RESPONSE = XML.RESPONSE : XAM : '</buyers>'
+
+* Write and serve
+OUTFILE = 'GET_BUYERS_FROM_DATABASE.XML'
+WRITE XML.RESPONSE ON XMLDATAF, OUTFILE
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/' : OUTFILE, '', ERR)
+RETURN
+</PRE>

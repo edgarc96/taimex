@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAIMEX - Sistema de Gestión</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab {
+            display: none;
+        }
+
+        .tab.active {
+            display: block;
+        }
+    </style>
+    <style>
+        .nav-tab:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .nav-tab.active {
+            color: #007bff;
+            background: white;
+        }
+
+        .nav-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #007bff;
+        }
+
+        .tab-content {
+            padding: 40px;
+        }
+
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.3);
+        }
+
+        .alert {
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            padding-left: 45px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .table-header {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h4 {
+            margin: 0;
+            font-size: 1.2em;
+        }
+
+        .table-stats {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .vehicles-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .vehicles-table thead {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .vehicles-table th {
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .vehicles-table th:hover {
+            background: #e9ecef;
+        }
+
+        .vehicles-table th::after {
+            content: '↕️';
+            position: absolute;
+            right: 10px;
+            opacity: 0.5;
+            font-size: 0.8em;
+        }
+
+        .vehicles-table td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            color: #495057;
+        }
+
+        .vehicles-table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .vehicles-table tbody tr:hover {
+            background: #f8f9fa;
+            transform: scale(1.01);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .vehicles-table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .vehicles-table tbody tr:nth-child(even):hover {
+            background: #e9ecef;
+        }
+
+        .vehicle-id-cell {
+            font-weight: bold;
+            color: #007bff;
+            font-size: 1.1em;
+        }
+
+        .vehicle-id-cell a {
+            color: #007bff;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .vehicle-id-cell a:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+
+        .vehicle-year-cell {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .vehicle-make-cell {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .vehicle-model-cell {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .vehicle-price-cell {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .vehicle-motor-cell {
+            color: #6610f2;
+            font-weight: 500;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .tab-content {
+                padding: 20px;
+            }
+
+            .vehicles-table {
+                font-size: 0.9em;
+            }
+
+            .vehicles-table th,
+            .vehicles-table td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="uploads/assets/images/taimex_logo.png" alt="Logo Taimex" />
+            <p>Sistema de Gestión de Vehículos</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('alta')">
+                ➕ Agregar Vehículo
+            </button>
+            <button class="nav-tab" onclick="showTab('consulta')">
+                🔍 Consultar Vehículos
+            </button>
+            <button class="nav-tab" onclick="showTab('cambio')">
+                ✏️ Modificar Vehículo
+            </button>
+            <button class="nav-tab" onclick="showTab('baja')">
+                🗑️ Eliminar Vehículo
+            </button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Tab: Alta -->
+            <div class="tab active" id="alta">
+                <h3>Agregar Nuevo Vehículo</h3>
+                <form id="addForm" action="/HELLOGRIDUA.HTM" name="VEHICLE.frm" method="GET">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="addYear">Año</label>
+                            <input type="number" id="addYear" name="year" min="1900" max="2030" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="addMake">Marca</label>
+                            <input type="text" id="addMake" name="make" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addModel">Modelo</label>
+                        <input type="text" id="addModel" name="model" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="addMotor">Motor</label>
+                            <input type="text" id="addMotor" name="motor" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="addPrice">Precio</label>
+                            <input type="number" id="addPrice" name="price" min="0" step="0.01" max="9999999999" required>
+                        </div>
+                    </div>
+                    <button name='GUARDAR' value='GUARDAR' id="GUARDAR" type="submit" class="btn btn-primary">Guardar Vehículo</button>
+                </form>
+            </div>
+
+            <!-- Tab: Consulta -->
+            <div class="tab" id="consulta">
+                <h3>Consultar Vehículos</h3>
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" placeholder="Buscar por ID, marca, modelo, motor o precio...">
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h4>📋 Lista de Vehículos</h4>
+                        <div class="table-stats">
+                            Total: <span id="totalVehicles">0</span> vehículos
+                        </div>
+                    </div>
+
+                    <div id="vehiclesList">
+                        <!-- La tabla se cargará aquí -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Cambio -->
+            <div class="tab" id="cambio">
+                <h3>Modificar Vehículo</h3>
+                <form id="updateForm" action="/HELLOGRIDUA.HTM" name="VEHICLE.frm" method="GET">
+                    <div class="form-group">
+                        <label for="updateId">ID del Vehículo</label>
+                        <input type="text" id="updateId" name="id" placeholder="ej. MX-001" required>
+                        <button type="button" class="btn btn-info" onclick="loadVehicle()" style="margin-top: 10px;">
+                            Cargar Datos
+                        </button>
+                        <div id="updatePreview" class="alert alert-info" style="display: none;">
+                            <strong>📋 Datos actuales:</strong><br>
+                            ID: <span id="previewId"></span><br>
+                            Año: <span id="previewYear"></span><br>
+                            Marca: <span id="previewMake"></span><br>
+                            Modelo: <span id="previewModel"></span><br>
+                            Motor: <span id="previewMotor"></span><br>
+                            Precio: <span id="previewPrice"></span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="updateYear">Año</label>
+                            <input type="number" id="updateYear" name="year" min="1900" max="2030" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateMake">Marca</label>
+                            <input type="text" id="updateMake" name="make" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="updateModel">Modelo</label>
+                        <input type="text" id="updateModel" name="model" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="updateMotor">Motor</label>
+                            <input type="text" id="updateMotor" name="motor" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updatePrice">Precio</label>
+                            <input type="number" id="updatePrice" name="price" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    <button type="submit" name="GUARDAR" value="UPDATE" class="btn btn-success">Actualizar Vehículo</button>
+                </form>
+            </div>
+
+            <!-- Tab: Baja -->
+            <div class="tab" id="baja">
+                <h3>Eliminar Vehículo</h3>
+                <form id="deleteForm" action="/HELLOGRIDUA.HTM" name="VEHICLE.frm" method="GET">
+                    <div class="form-group">
+                        <label for="deleteId">ID del Vehículo a Eliminar</label>
+                        <input type="text" id="deleteId" name="id" placeholder="ej. MX-001" required>
+                        <button type="button" class="btn btn-info" onclick="previewDelete()" style="margin-top: 10px;">
+                            Vista Previa
+                        </button>
+                    </div>
+                    <div id="deletePreview" class="alert alert-info" style="display: none;">
+                        <!-- Vista previa del vehículo a eliminar -->
+                    </div>
+                    <button type="submit" name="GUARDAR" value="DELETE" class="btn btn-danger">Eliminar Vehículo</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Área de mensajes -->
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        let vehicles = [];
+        try {
+            vehicles = [^VEHICLE.LIST^].filter(Boolean);
+            // Limpiar objetos vacíos
+            vehicles = vehicles.filter(v => v && v.id && v.id.trim() !== '');
+        } catch(e) {
+            console.warn('Error cargando vehículos:', e);
+            vehicles = [];
+        }
+
+        let currentSort = { column: 'id', ascending: true };
+        let newId = "^NEWID^";
+            
+        function generateId() { return newId; }
+      
+        // Función para cambiar tabs
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.nav-tab[onclick="showTab('${tabId}')"]`).classList.add('active');
+            if (tabId === 'consulta') loadVehicles();
+        }
+
+        // Función para mostrar mensajes
+        function showMessage(message, type = 'info') {
+            const messagesDiv = document.getElementById('messages');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = message;
+            
+            messagesDiv.innerHTML = '';
+            messagesDiv.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.style.opacity = '0';
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 300);
+            }, 5000);
+        }
+
+        // Función para cargar vehículos en la tabla
+        function loadVehicles(vehiclesToShow = vehicles) {
+            const vehiclesList = document.getElementById('vehiclesList');
+            const totalVehicles = document.getElementById('totalVehicles');
+            totalVehicles.textContent = vehiclesToShow.length;
+
+            if (vehiclesToShow.length === 0) {
+                vehiclesList.innerHTML = `
+                    <div class="no-data">
+                        <h3>No hay vehículos registrados</h3>
+                        <p>Agrega tu primer vehículo desde la pestaña "Agregar Vehículo"</p>
+                    </div>
+                `;
+                return;
+            }
+
+            vehiclesList.innerHTML = `
+                <table class="vehicles-table">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable('id')">ID Vehículo</th>
+                            <th onclick="sortTable('year')">Año</th>
+                            <th onclick="sortTable('make')">Marca</th>
+                            <th onclick="sortTable('model')">Modelo</th>
+                            <th onclick="sortTable('motor')">Motor</th>
+                            <th onclick="sortTable('price')">Precio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${vehiclesToShow.map(vehicle => `
+                            <tr>
+                                <td class="vehicle-id-cell">
+                                    <a href="/detalle.html?id=${vehicle.id}" target="_blank" title="Ver detalles de ${vehicle.id}">
+                                        ${vehicle.id}
+                                    </a>
+                                </td>
+                                <td class="vehicle-year-cell">${vehicle.year}</td>
+                                <td class="vehicle-make-cell">${vehicle.make}</td>
+                                <td class="vehicle-model-cell">${vehicle.model}</td>
+                                <td class="vehicle-motor-cell">${vehicle.motor || 'N/A'}</td>
+                                <td class="vehicle-price-cell">$${vehicle.price || '0'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Función para ordenar tabla
+        function sortTable(column) {
+            if (currentSort.column === column) {
+                currentSort.ascending = !currentSort.ascending;
+            } else {
+                currentSort.column = column;
+                currentSort.ascending = true;
+            }
+            
+            const sortedVehicles = [...vehicles].sort((a, b) => {
+                let aVal = a[column];
+                let bVal = b[column];
+                
+                if (typeof aVal === 'string') {
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal.toLowerCase();
+                }
+                
+                if (currentSort.ascending) {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+            
+            loadVehicles(sortedVehicles);
+        }
+
+        // Cargar vehículo para actualizar
+        function loadVehicle() {
+            const id = document.getElementById('updateId').value.trim().toUpperCase();
+            const vehicle = vehicles.find(v => v && v.id && v.id.toUpperCase() === id);
+
+            if (vehicle) {
+                document.getElementById('updateYear').value = vehicle.year;
+                document.getElementById('updateMake').value = vehicle.make;
+                document.getElementById('updateModel').value = vehicle.model;
+                document.getElementById('updateMotor').value = vehicle.motor || '';
+                document.getElementById('updatePrice').value = vehicle.price || '';
+                
+                document.getElementById('previewId').textContent = vehicle.id;
+                document.getElementById('previewYear').textContent = vehicle.year;
+                document.getElementById('previewMake').textContent = vehicle.make;
+                document.getElementById('previewModel').textContent = vehicle.model;
+                document.getElementById('previewMotor').textContent = vehicle.motor || 'N/A';
+                document.getElementById('previewPrice').textContent = '$' + (vehicle.price || '0');
+                document.getElementById('updatePreview').style.display = 'block';
+
+                showMessage(`✅ Datos del vehículo ${vehicle.id} cargados`, 'success');
+            } else {
+                showMessage(`❌ No se encontró el vehículo con ID ${id}`, 'error');
+                document.getElementById('updatePreview').style.display = 'none';
+            }
+        }
+
+        // Vista previa para eliminar
+        function previewDelete() {
+            const id = document.getElementById('deleteId').value.trim().toUpperCase();
+            const vehicle = vehicles.find(v => v && v.id && v.id.toUpperCase() === id);
+            const previewDiv = document.getElementById('deletePreview');
+
+            if (vehicle) {
+                previewDiv.innerHTML = `
+                    <strong>⚠️ Vehículo a eliminar:</strong><br>
+                    ID: ${vehicle.id}<br>
+                    Año: ${vehicle.year}<br>
+                    Marca: ${vehicle.make}<br>
+                    Modelo: ${vehicle.model}<br>
+                    Motor: ${vehicle.motor || 'N/A'}<br>
+                    Precio: $${vehicle.price || '0'}<br>
+                `;
+                previewDiv.style.display = 'block';
+            } else {
+                showMessage(`❌ No se encontró el vehículo con ID ${id}`, 'error');
+                previewDiv.style.display = 'none';
+            }
+        }
+
+        // Event listeners - se ejecutan cuando el DOM está listo
+        document.getElementById('addForm').addEventListener('submit', function(e) {
+    e.preventDefault(); // Evitar envío automático
+    
+    const formData = new FormData(this);
+    const newVehicle = {
+        id: generateId(),
+        year: parseInt(formData.get('year')),
+        make: formData.get('make'),
+        model: formData.get('model'),
+        motor: formData.get('motor'),
+        price: parseFloat(formData.get('price'))
+    };
+    
+    // 1. Actualizar localmente
+    vehicles.push(newVehicle);
+    showMessage(`✅ Vehículo guardado con ID ${newVehicle.id}`, 'success');
+    this.reset();
+    
+    // 2. Crear URL con parámetros para enviar al servidor
+    const params = new URLSearchParams({
+        'GUARDAR': 'GUARDAR',
+        'year': newVehicle.year,
+        'make': newVehicle.make,
+        'model': newVehicle.model,
+        'motor': newVehicle.motor,
+        'price': newVehicle.price
+    });
+    
+    // 3. Enviar al servidor en background (sin recargar página)
+    fetch(`/HELLOGRIDUA.HTM?${params.toString()}`)
+        .then(response => response.text())
+        .then(data => {
+            console.log('Guardado en servidor exitosamente');
+        })
+        .catch(error => {
+            console.error('Error al guardar en servidor:', error);
+            showMessage('❌ Error al guardar en servidor', 'error');
+        });
+    });
+            // Búsqueda de vehículo
+            document.getElementById('searchInput').addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                const filteredVehicles = vehicles.filter(vehicle => 
+                    (vehicle && vehicle.id && vehicle.id.toLowerCase().includes(searchTerm)) ||
+                    (vehicle && vehicle.make && vehicle.make.toLowerCase().includes(searchTerm)) ||
+                    (vehicle && vehicle.model && vehicle.model.toLowerCase().includes(searchTerm)) ||
+                    (vehicle && vehicle.year && vehicle.year.toString().includes(searchTerm)) ||
+                    (vehicle && vehicle.motor && vehicle.motor.toLowerCase().includes(searchTerm)) ||
+                    (vehicle && vehicle.price && vehicle.price.toString().includes(searchTerm))
+                );
+                loadVehicles(filteredVehicles);
+            });
+
+            // Formulario actualizar vehículo
+            document.getElementById('updateForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const id = formData.get('id');
+                const vehicleIndex = vehicles.findIndex(v => v.id === id);
+                
+                if (vehicleIndex !== -1) {
+                    vehicles[vehicleIndex] = {
+                        id: id,
+                        year: parseInt(formData.get('year')),
+                        make: formData.get('make'),
+                        model: formData.get('model'),
+                        motor: formData.get('motor'),
+                        price: parseFloat(formData.get('price'))
+                    };
+                    
+                    showMessage(`✅ Vehículo ${id} actualizado correctamente`, 'success');
+                    this.reset();
+                    document.getElementById('updatePreview').style.display = 'none';
+                    
+                    // AGREGAR ESTE CÓDIGO PARA ENVIAR AL SERVIDOR
+                    const params = new URLSearchParams({
+                        'GUARDAR': 'UPDATE',
+                        'id': id,
+                        'year': formData.get('year'),
+                        'make': formData.get('make'),
+                        'model': formData.get('model'),
+                        'price': formData.get('price'),
+                        'motor': formData.get('motor'),
+                        
+                    });
+                    
+                    fetch(`/HELLOGRIDUA.HTM?${params.toString()}`)
+                        .then(response => response.text())
+                        .then(data => {
+                            console.log('Actualizado en servidor exitosamente');
+                        })
+                        .catch(error => {
+                            console.error('Error al actualizar en servidor:', error);
+                            showMessage('❌ Error al actualizar en servidor', 'error');
+                        });
+                } else {
+                    showMessage(`❌ No se encontró el vehículo con ID ${id}`, 'error');
+                }
+            });
+                    // ─── ELIMINAR VEHÍCULO ────────────────────────────────────────────────
+        document.getElementById('deleteForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const formData     = new FormData(this);
+            const id           = formData.get('id');
+            const vehicleIndex = vehicles.findIndex(v => v.id === id);
+
+            if (vehicleIndex !== -1) {
+                // 1. Quitarlo del arreglo local
+                vehicles.splice(vehicleIndex, 1);
+
+                // 2. Mensaje, limpiar y ocultar preview
+                showMessage(`✅ Vehículo ${id} eliminado correctamente`, 'success');
+                this.reset();
+                document.getElementById('deletePreview').style.display = 'none';
+
+                // 3. Enviar la orden al servidor
+                const params = new URLSearchParams({
+                    'GUARDAR': 'DELETE',   // o el valor que tu backend espere
+                    'id': id
+                });
+
+                fetch(`/HELLOGRIDUA.HTM?${params.toString()}`)
+                    .then(res => res.text())
+                    .then(()  => console.log('Eliminado en servidor exitosamente'))
+                    .catch(err => {
+                        console.error('Error al eliminar en servidor:', err);
+                        showMessage('❌ Error al eliminar en servidor', 'error');
+                    });
+
+            } else {
+                showMessage(`❌ No se encontró el vehículo con ID ${id}`, 'error');
+            }
+        });
+
+    </script>
+<pre>
+  PicLan-IP/BASIC ^ ^
+  *
+     OPEN 'VEHICLES' TO VEHICLESF ELSE STOP 201,'VEHICLE'
+ *
+     PL_GETVAR GUARDAR FROM 'GUARDAR' ELSE GUARDAR = ''
+     PL_GETVAR MAKE FROM 'make' ELSE MAKE = ''
+     PL_GETVAR YEAR FROM 'year' ELSE YEAR = ''
+     PL_GETVAR MODEL FROM 'model' ELSE MODEL = ''
+     PL_GETVAR MOTOR FROM 'motor' ELSE MOTOR= ''
+     PL_GETVAR PRICE FROM 'price' ELSE PRICE = ''
+     PL_GETVAR ID FROM 'id' ELSE ID = ''
+  *
+     VEHICLE.LIST = '' ; NEWID = ''
+      EXECUTE 'COUNT VEHICLES' CAPTURING ERR
+      QTY = FIELD(ERR,' ',2) + 1
+      NEWID = 'MX-':QTY'R%3'
+     CALL BUILDVEHICLELIST(VEHICLE.LIST)
+     VEHICLE.LIST = PL_AMTOCRLF(VEHICLE.LIST)
+     PRINT
+     PRINT 'GUARDAR = ':GUARDAR
+     BEGIN CASE
+        CASE GUARDAR EQ 'GUARDAR' 
+         EXECUTE 'COUNT VEHICLES' CAPTURING ERR
+         QTY = FIELD(ERR,' ',2) + 1
+         NEWID = 'MX-':QTY'R%3'
+         NREC = ''
+         NREC<1> = MAKE
+         NREC<2> = MODEL
+         NREC<3> = YEAR
+         NREC<4> = MOTOR
+         NREC<5> = PRICE
+         WRITE NREC ON VEHICLESF,NEWID
+         PRINT NEWID :' ADDED'
+         GUARDAR = ''
+        CASE GUARDAR EQ 'UPDATE' 
+          READ NREC FROM VEHICLESF,ID ELSE NREC = ''
+          NREC<1> = MAKE
+          NREC<2> = MODEL
+          NREC<3> = YEAR
+          NREC<4> = MOTOR
+          NREC<5> = PRICE
+          WRITE NREC ON VEHICLESF,ID
+          PRINT ID:' UPDATED SUCCESFULLY'
+        CASE GUARDAR EQ 'DELETE'
+          DELETE VEHICLESF,ID
+          PRINT ID:' DELETED FROM VEHICLESF'
+      END CASE
+     VEHICLE.LIST = ''
+     CALL BUILDVEHICLELIST(VEHICLE.LIST)
+     VEHICLE.LIST = PL_AMTOCRLF(VEHICLE.LIST)
+     *
+  
+  </pre>  
+</body>
+</html>
+                                        

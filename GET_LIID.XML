@@ -1,0 +1,78 @@
+
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+* GET_LIID.XML - Get next available ID from LIID database
+* Database: LIID (contains records for different types: PO, LIID SO, WO, etc.)
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'LIID' TO LIIDF ELSE GOTO LIID_ERROR
+
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+CRLF = CHAR(13):CHAR(10)
+
+PL_GETVAR ID_TYPE FROM 'TYPE' ELSE ID_TYPE = 'PO'
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Clean and validate parameters
+ID_TYPE = TRIM(ID_TYPE)
+ID_TYPE = OCONV(ID_TYPE, "MCU")
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>':CRLF
+XML.RESPONSE = XML.RESPONSE:'<liid_response>':CRLF
+XML.RESPONSE := '<!-- LIID System: Reading record [':ID_TYPE:'] from LIID database -->':CRLF
+
+* Read the record for the specified type from LIID database
+READ LIID.RECORD FROM LIIDF, ID_TYPE ELSE GOTO CREATE_INITIAL_RECORD
+
+* Record found - get current ID and increment
+CURRENT_ID = LIID.RECORD<1>
+NEXT_ID = CURRENT_ID + 1
+XML.RESPONSE := '<!-- Found existing record: CURRENT=':CURRENT_ID:' NEXT=':NEXT_ID:' -->':CRLF
+
+* Update the record with new next ID
+LIID.RECORD<1> = NEXT_ID
+WRITE LIID.RECORD ON LIIDF, ID_TYPE
+GOTO OUTPUT_SUCCESS
+
+CREATE_INITIAL_RECORD:
+* Record not found - create initial record with ID 96451
+XML.RESPONSE := '<!-- Creating new LIID record [':ID_TYPE:'] with initial ID 96451 -->':CRLF
+NEXT_ID = 96451
+LIID.RECORD = ''
+LIID.RECORD<1> = NEXT_ID
+LIID.RECORD<2> = DATE()
+LIID.RECORD<3> = TIME()
+WRITE LIID.RECORD ON LIIDF, ID_TYPE
+GOTO OUTPUT_SUCCESS
+
+OUTPUT_SUCCESS:
+* Build success response
+XML.RESPONSE := '<status>success</status>':CRLF
+XML.RESPONSE := '<id_type>':ID_TYPE:'</id_type>':CRLF
+XML.RESPONSE := '<next_id>':NEXT_ID:'</next_id>':CRLF
+XML.RESPONSE := '</liid_response>':CRLF
+
+WRITE XML.RESPONSE ON XMLDATAF,'RESPONSE.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/RESPONSE.XML','',ERR)
+STOP
+
+LIID_ERROR:
+* LIID database not found - return error
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>':CRLF
+XML.RESPONSE := '<liid_response>':CRLF
+XML.RESPONSE := '<status>error</status>':CRLF
+XML.RESPONSE := '<message>LIID database not found</message>':CRLF
+XML.RESPONSE := '</liid_response>':CRLF
+
+WRITE XML.RESPONSE ON XMLDATAF,'RESPONSE.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/RESPONSE.XML','',ERR)
+STOP
+END
+</pre>

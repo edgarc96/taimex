@@ -1,0 +1,58 @@
+<pre>
+PicLan-IP/BASIC ^ ^
+*
+* DELETE_SO_TMP.XML - Delete Sales Order from TMP database
+* Called when user deletes a draft
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'TMP' TO TMPF ELSE STOP 201,'TMP'
+
+XVM = CHAR(253)
+XSM = CHAR(252)
+XAM = CHAR(254)
+
+PL_GETVAR TEMP_ID FROM 'temp_id' ELSE TEMP_ID = ''
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize response
+SUCCESS = 0
+MESSAGE = ''
+
+* Check if temp_id was provided
+IF TEMP_ID = '' THEN
+  MESSAGE = 'No temp_id provided'
+  GOTO SEND_RESPONSE
+END
+
+* Check if record exists
+READ TMP_REC FROM TMPF, TEMP_ID THEN
+  * Record exists, delete it
+  DELETE TMPF, TEMP_ID
+  SUCCESS = 1
+  MESSAGE = 'Draft deleted successfully'
+END ELSE
+  * Record doesn't exist - consider it success (already deleted)
+  SUCCESS = 1
+  MESSAGE = 'Draft not found (may have been already deleted)'
+END
+
+SEND_RESPONSE:
+* Send XML response
+XML_RESPONSE = '<?xml version="1.0"?><response>'
+XML_RESPONSE := '<success>'
+IF SUCCESS THEN
+  XML_RESPONSE := 'true'
+END ELSE
+  XML_RESPONSE := 'false'
+END
+XML_RESPONSE := '</success>'
+XML_RESPONSE := '<message>' : MESSAGE : '</message>'
+XML_RESPONSE := '<temp_id>' : TEMP_ID : '</temp_id>'
+XML_RESPONSE := '</response>'
+
+WRITE XML_RESPONSE ON XMLDATAF,'RESPONSE.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/RESPONSE.XML','',ERR)
+RETURN
+END
+</PRE>

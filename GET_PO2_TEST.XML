@@ -1,0 +1,43 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO2' TO PO2F ELSE STOP 201,'PO2'
+
+* Define constants
+XAM = CHAR(254)
+
+* Get parameters from URL
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = ''
+PO_NUMBER = TRIM(PO_NUMBER)
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<result>' 
+
+* Simple test
+IF PO_NUMBER <> '' THEN
+    READ PO.RECORD FROM PO2F, PO_NUMBER ELSE
+        XML.RESPONSE = XML.RESPONSE : XAM : '<status>NOT_FOUND</status>'
+        GOTO FINISH
+    END
+    XML.RESPONSE = XML.RESPONSE : XAM : '<status>FOUND</status>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<po_date>' : PO.RECORD<1> : '</po_date>'
+END ELSE
+    XML.RESPONSE = XML.RESPONSE : XAM : '<status>NO_PO_NUMBER</status>'
+END
+
+FINISH:
+*REM Complete XML response
+XML.RESPONSE = XML.RESPONSE : XAM : '</result>'
+ 
+*REM Output the XML
+    WRITE XML.RESPONSE ON XMLDATAF,'GET_PO2_TEST.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/GET_PO2_TEST.XML','',ERR)
+    RETURN
+</pre>

@@ -1,0 +1,31 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+* Simple debug version to isolate the error
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize basic XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : '<WorkOrder>'
+
+*REM Get WO_ID parameter
+PL_GETVAR WO_ID FROM 'WO_ID' ELSE WO_ID = 'MISSING'
+PL_GETVAR ACTION FROM 'ACTION' ELSE ACTION = 'MISSING'
+
+*REM Basic response with received parameters
+XML.RESPONSE = XML.RESPONSE : '<status>DEBUG</status>'
+XML.RESPONSE = XML.RESPONSE : '<message>Received WO_ID: ' : WO_ID : ', ACTION: ' : ACTION : '</message>'
+XML.RESPONSE = XML.RESPONSE : '</WorkOrder>'
+
+*REM Write debug response
+OPEN 'XMLDATA' TO XMLDATAF ELSE 
+    XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?><WorkOrder><status>ERROR</status><message>Cannot open XMLDATA folder</message></WorkOrder>'
+END
+
+WRITE XML.RESPONSE ON XMLDATAF,'DEBUG_RESPONSE.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/DEBUG_RESPONSE.XML','',ERR)
+RETURN
+</pre>

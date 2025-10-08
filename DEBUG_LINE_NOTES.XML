@@ -1,0 +1,97 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+*
+* DEBUG_LINE_NOTES.XML - Debug service to find line item notes fields
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO' TO POF ELSE STOP 201,'PO'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253) 
+XSM = CHAR(252)
+
+* Get PO number parameter
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = ''
+
+* Add XML header
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<debug>'
+
+IF PO_NUMBER = "" THEN
+    XML.RESPONSE = XML.RESPONSE : XAM : '<error>Missing PO_NUMBER parameter</error>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '</debug>'
+    WRITE XML.RESPONSE ON XMLDATAF,'DEBUG_LINE_NOTES.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/DEBUG_LINE_NOTES.XML','',ERR)
+    RETURN
+END
+
+* Read PO record
+READ PO.RECORD FROM POF, PO_NUMBER ELSE
+    XML.RESPONSE = XML.RESPONSE : XAM : '<error>PO not found: ' : PO_NUMBER : '</error>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '</debug>'
+    WRITE XML.RESPONSE ON XMLDATAF,'DEBUG_LINE_NOTES.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/DEBUG_LINE_NOTES.XML','',ERR)
+    RETURN
+END
+
+XML.RESPONSE = XML.RESPONSE : XAM : '<po_number>' : PO_NUMBER : '</po_number>'
+
+* Focus on field <40> specifically - suspected line notes field
+FIELD_40_DATA = PO.RECORD<40>
+XML.RESPONSE = XML.RESPONSE : XAM : '<field_40>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<data>' : FIELD_40_DATA : '</data>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<is_empty>' : (FIELD_40_DATA = '') : '</is_empty>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<length>' : LEN(FIELD_40_DATA) : '</length>'
+IF FIELD_40_DATA <> '' THEN
+    VALUE_COUNT_40 = DCOUNT(FIELD_40_DATA, XVM)
+    XML.RESPONSE = XML.RESPONSE : XAM : '<multivalue_count>' : VALUE_COUNT_40 : '</multivalue_count>'
+    IF VALUE_COUNT_40 > 1 THEN
+        FOR I = 1 TO VALUE_COUNT_40
+            XML.RESPONSE = XML.RESPONSE : XAM : '<note_' : I : '>' : FIELD_40_DATA<1,I> : '</note_' : I : '>'
+        NEXT I
+    END
+END
+XML.RESPONSE = XML.RESPONSE : XAM : '</field_40>'
+
+* Check fields 35-60 for potential line notes and other data
+FOR FIELD_NUM = 35 TO 60
+    FIELD_DATA = PO.RECORD<FIELD_NUM>
+    IF FIELD_DATA <> '' THEN
+        * Check if looks like readable text vs codes
+        READABLE = 0
+        IF LEN(FIELD_DATA) > 5 AND INDEX(FIELD_DATA, ' ', 1) > 0 THEN READABLE = 1
+        
+        XML.RESPONSE = XML.RESPONSE : XAM : '<field_' : FIELD_NUM : '>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '<data>' : FIELD_DATA : '</data>'
+        
+        * Check if multivalue
+        VALUE_COUNT = DCOUNT(FIELD_DATA, XVM)
+        XML.RESPONSE = XML.RESPONSE : XAM : '<multivalue_count>' : VALUE_COUNT : '</multivalue_count>'
+        
+        * Check if looks like readable text
+        XML.RESPONSE = XML.RESPONSE : XAM : '<appears_readable>' : READABLE : '</appears_readable>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '<length>' : LEN(FIELD_DATA) : '</length>'
+        
+        XML.RESPONSE = XML.RESPONSE : XAM : '</field_' : FIELD_NUM : '>'
+    END
+NEXT FIELD_NUM
+
+* Show part numbers for reference
+XML.RESPONSE = XML.RESPONSE : XAM : '<part_numbers>' : PO.RECORD<32> : '</part_numbers>'
+PART_COUNT = DCOUNT(PO.RECORD<32>, XVM)
+XML.RESPONSE = XML.RESPONSE : XAM : '<part_count>' : PART_COUNT : '</part_count>'
+
+XML.RESPONSE = XML.RESPONSE : XAM : '</debug>'
+
+* Output XML
+WRITE XML.RESPONSE ON XMLDATAF,'DEBUG_LINE_NOTES.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/DEBUG_LINE_NOTES.XML','',ERR)
+RETURN
+</PRE>

@@ -1,0 +1,50 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+
+* Get basic parameters first
+PL_GETVAR WORK_NUMBER FROM 'WORK_NUMBER' ELSE WORK_NUMBER = ''
+PL_GETVAR WO_DATE FROM 'WO_DATE' ELSE WO_DATE = ''
+PL_GETVAR ACTION FROM 'ACTION' ELSE ACTION = ''
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+CRLF = CHAR(13):CHAR(10)
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>':CRLF
+XML.RESPONSE = XML.RESPONSE:'<WorkOrderSave>':CRLF
+XML.RESPONSE = XML.RESPONSE:'  <debug>DEBUG_UPDATE_VERSION</debug>':CRLF
+XML.RESPONSE = XML.RESPONSE:'  <action>':ACTION:'</action>':CRLF
+XML.RESPONSE = XML.RESPONSE:'  <work_number>':WORK_NUMBER:'</work_number>':CRLF
+XML.RESPONSE = XML.RESPONSE:'  <wo_date>':WO_DATE:'</wo_date>':CRLF
+
+* Simple validation
+IF WORK_NUMBER = '' THEN
+    XML.RESPONSE = XML.RESPONSE:'  <status>ERROR</status>':CRLF
+    XML.RESPONSE = XML.RESPONSE:'  <message>Work Number is required</message>':CRLF
+    GOTO FINISH
+END
+
+IF WO_DATE = '' THEN
+    XML.RESPONSE = XML.RESPONSE:'  <status>ERROR</status>':CRLF
+    XML.RESPONSE = XML.RESPONSE:'  <message>WO Date is required</message>':CRLF
+    GOTO FINISH
+END
+
+* Test date conversion
+WO_DATE_JULIAN = ICONV(WO_DATE, 'D4/')
+XML.RESPONSE = XML.RESPONSE:'  <date_conversion>':WO_DATE_JULIAN:'</date_conversion>':CRLF
+
+XML.RESPONSE = XML.RESPONSE:'  <status>SUCCESS</status>':CRLF
+XML.RESPONSE = XML.RESPONSE:'  <message>Debug test successful</message>':CRLF
+XML.RESPONSE = XML.RESPONSE:'  <wo_id>':WORK_NUMBER:'</wo_id>':CRLF
+
+FINISH:
+XML.RESPONSE = XML.RESPONSE:'</WorkOrderSave>':CRLF
+
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_WO_DEBUG.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_WO_DEBUG.XML','',ERR)
+RETURN
+</pre>

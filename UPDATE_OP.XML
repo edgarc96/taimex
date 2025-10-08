@@ -1,0 +1,186 @@
+ 
+
+    PicLan-IP/BASIC ^ ^
+    *
+      OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+      OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+    *
+    * REM Get parameters from URL
+    PL_GETVAR  INITIALS FROM 'INITIALS' ELSE INITIALS = ''
+    PL_GETVAR  NAME FROM 'NAME' ELSE NAME = ''
+    PL_GETVAR  PASSWORD FROM 'PASSWORD' ELSE PASSWORD = ''
+    PL_GETVAR  CONFIRM FROM 'CONFIRM' ELSE CONFIRM = ''
+   
+    INITIALS = TRIM(INITIALS)
+    NAME = TRIM(NAME)
+    PASSWORD = TRIM(PASSWORD)
+    CONFIRM = TRIM(CONFIRM)
+    * Normalize case for key
+    INITIALS = OCONV(INITIALS, "MCU")
+    * Deletion flag (if present and truthy, perform deletion)
+    PL_GETVAR  DELREQ FROM 'DELETE' ELSE DELREQ = ''
+    DELFLAG = OCONV(DELREQ, "MCU")
+    IF DELFLAG = '1' OR DELFLAG = 'Y' OR DELFLAG = 'YES' OR DELFLAG = 'T' OR DELFLAG = 'TRUE' THEN DELFLAG = 1 ELSE DELFLAG = 0
+    *
+    PL_ADD_HDR '"Content-Type: application/xml"'
+    OUT.KEY = 'UPD_':INITIALS:'.XML'
+
+    *REM Initialize XML response
+    XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+    XML.RESPONSE = XML.RESPONSE : AM:'<response>'
+
+    * Backend password parameters & validation
+    IF PASSWORD # '' THEN
+        LENPW = LEN(PASSWORD)
+        HASU = 0 ; HASL = 0 ; HASD = 0 ; HASS = 0
+        FOR I = 1 TO LENPW
+            CH = PASSWORD[I,1]
+            IF CH >= 'A' AND CH <= 'Z' THEN HASU = 1
+            IF CH >= 'a' AND CH <= 'z' THEN HASL = 1
+            IF CH >= '0' AND CH <= '9' THEN HASD = 1
+            IF NOT((CH >= 'A' AND CH <= 'Z') OR (CH >= 'a' AND CH <= 'z') OR (CH >= '0' AND CH <= '9')) THEN HASS = 1
+        NEXT I
+        PWDERR = 0 ; PWDMSG = ''
+        IF LENPW < 8 THEN PWDERR = 1 ; PWDMSG = 'Password must have at least 8 characters'
+        IF PWDERR = 0 AND HASU = 0 THEN PWDERR = 1 ; PWDMSG = 'Password must include an uppercase letter'
+        IF PWDERR = 0 AND HASL = 0 THEN PWDERR = 1 ; PWDMSG = 'Password must include a lowercase letter'
+        IF PWDERR = 0 AND HASD = 0 THEN PWDERR = 1 ; PWDMSG = 'Password must include a digit'
+        IF PWDERR = 0 AND HASS = 0 THEN PWDERR = 1 ; PWDMSG = 'Password must include a special character'
+        IF PWDERR = 0 AND CONFIRM # '' AND CONFIRM # PASSWORD THEN PWDERR = 1 ; PWDMSG = 'Passwords do not match'
+        IF PWDERR THEN
+            XML.RESPONSE = XML.RESPONSE :AM: '<status>error</status>'
+            XML.RESPONSE = XML.RESPONSE :AM: '<message>' : PWDMSG : '</message>'
+            XML.RESPONSE = XML.RESPONSE :AM: '</response>'
+            WRITE XML.RESPONSE ON XMLDATAF,OUT.KEY
+            ERR = ''
+            CALL PLW.PAGE('/XMLDATA/':OUT.KEY,'',ERR)
+            RETURN
+        END
+    END
+    
+    *REM Validate parameters
+    IF INITIALS = "" THEN
+        XML.RESPONSE = XML.RESPONSE :AM: '<status>error</status>'
+        XML.RESPONSE = XML.RESPONSE :AM: '<message>Missing required parameter: INITIALS</message>'
+        XML.RESPONSE = XML.RESPONSE :AM: '</response>'
+        WRITE XML.RESPONSE ON XMLDATAF,OUT.KEY
+        ERR = ''
+        CALL PLW.PAGE('/XMLDATA/':OUT.KEY,'',ERR)
+        RETURN
+    END
+    
+
+    * OPERS file already opened earlier at start of program
+    
+    * If DELETE requested, remove from OPERS, then return
+    IF DELFLAG THEN
+        * Remove from OPERS dictionary/file
+        DELETE OPERSF, INITIALS
+
+        * Load current OP_USERS content
+        USERDATA = ''
+        READ USERDATA FROM XMLDATAF, 'OP_USERS.TXT' ELSE USERDATA = ''
+        CR = CHAR(13)
+        NL = CHAR(10)
+        TMP = USERDATA
+        CONVERT CR:NL TO @AM IN TMP
+        CONVERT NL TO @AM IN TMP
+        LINES = DCOUNT(TMP, @AM)
+        TXT = ''
+        FOR I = 1 TO LINES
+            LINE = TRIM(TMP<I>)
+            IF LINE # '' THEN
+                DELIM = '|'
+                IF INDEX(LINE,'|',1) = 0 THEN
+                    IF INDEX(LINE,',',1) THEN DELIM = ','
+                    IF INDEX(LINE,';',1) THEN DELIM = ';'
+                    IF INDEX(LINE,CHAR(9),1) THEN DELIM = CHAR(9)
+                END
+                USER_INI = TRIM(FIELD(LINE, DELIM, 1))
+                IF OCONV(USER_INI, "MCU") # INITIALS THEN
+                    IF TXT # '' THEN TXT := CR:NL
+                    TXT := TXT : LINE
+                END
+            END
+        NEXT I
+        WRITE TXT ON XMLDATAF, 'OP_USERS.TXT'
+
+        XML.RESPONSE = XML.RESPONSE :AM: '<status>success</status>'
+        XML.RESPONSE = XML.RESPONSE :AM: '<message>User deleted</message>'
+        XML.RESPONSE = XML.RESPONSE :AM: '<initials>' : INITIALS : '</initials>'
+        XML.RESPONSE = XML.RESPONSE :AM: '</response>'
+        WRITE XML.RESPONSE ON XMLDATAF,OUT.KEY
+        ERR = ''
+        CALL PLW.PAGE('/XMLDATA/':OUT.KEY,'',ERR)
+        RETURN
+    END
+    
+    * REM Read/Create OPERS record
+    OPERS.RECORD = ""
+    READ OPERS.RECORD FROM OPERSF, INITIALS ELSE
+        * Crear nuevo registro si no existe
+        OPERS.RECORD = ""
+    END
+    
+    IF NAME <> "" THEN
+        OPERS.RECORD<1> = NAME
+    END
+    
+    * REM Write OPERS record
+    WRITE OPERS.RECORD TO OPERSF, INITIALS
+    
+    * Maintain XMLDATA/OP_USERS mirror (INITIALS|NAME)
+    USERDATA = ''
+    READ USERDATA FROM XMLDATAF, 'OP_USERS.TXT' ELSE USERDATA = ''
+    CR = CHAR(13)
+    NL = CHAR(10)
+    TMP = USERDATA
+    CONVERT CR:NL TO @AM IN TMP
+    CONVERT NL TO @AM IN TMP
+    LINES = DCOUNT(TMP, @AM)
+    FOUND = 0
+    UPDNAME = TRIM(NAME)
+    IF UPDNAME = "" THEN UPDNAME = TRIM(OPERS.RECORD<1>)
+    LINEOUT = INITIALS : '|' : UPDNAME
+    TXT = ''
+    FOR I = 1 TO LINES
+        LINE = TRIM(TMP<I>)
+        IF LINE # '' THEN
+            DELIM = '|'
+            IF INDEX(LINE,'|',1) = 0 THEN
+                IF INDEX(LINE,',',1) THEN DELIM = ','
+                IF INDEX(LINE,';',1) THEN DELIM = ';'
+                IF INDEX(LINE,CHAR(9),1) THEN DELIM = CHAR(9)
+            END
+            USER_INI = TRIM(FIELD(LINE, DELIM, 1))
+            IF OCONV(USER_INI, "MCU") = INITIALS THEN
+                FOUND = 1
+                IF TXT # '' THEN TXT := CR:NL
+                TXT := TXT : LINEOUT
+            END ELSE
+                IF TXT # '' THEN TXT := CR:NL
+                TXT := TXT : LINE
+            END
+        END
+    NEXT I
+    IF FOUND = 0 THEN   
+        IF TXT # '' THEN TXT := CR:NL
+        TXT := TXT : LINEOUT
+    END
+    WRITE TXT ON XMLDATAF, 'OP_USERS.TXT'
+    
+
+    
+    
+    XML.RESPONSE = XML.RESPONSE :AM: '<status>success</status>'
+    XML.RESPONSE = XML.RESPONSE :AM: '<message>Record updated successfully</message>'
+    XML.RESPONSE = XML.RESPONSE :AM: '<initials>' : INITIALS : '</initials>'
+    XML.RESPONSE = XML.RESPONSE :AM: '<name>' :   NAME : '</name>'
+    XML.RESPONSE = XML.RESPONSE :AM: '</response>'
+    
+    WRITE XML.RESPONSE ON XMLDATAF,OUT.KEY
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/':OUT.KEY,'',ERR)
+    RETURN
+ 
+                                                                     

@@ -1,0 +1,55 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+  OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+  OPEN 'LIID' TO LIIDF ELSE STOP 201,'LIID'
+  OPEN 'WO' TO WOF ELSE STOP 201,'WO'
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : AM:'<WorkOrder>' 
+
+*REM Create sample Work Order for testing
+READ WONUM FROM LIIDF,'WO' ELSE WONUM = 0
+WONUM = WONUM + 1
+WRITE WONUM ON LIIDF,'WO'
+
+*REM Build sample Work Order record
+WO.RECORD = ''
+WO.RECORD<1> = '2025-08-26'        ;* wo-date
+WO.RECORD<20> = '1'                ;* wo-type (Normal Prod)
+WO.RECORD<25> = 'Sample WO for testing search functionality'  ;* notes
+WO.RECORD<32> = 'TEST123'          ;* assy-no
+WO.RECORD<34> = '2025-08-30'       ;* schedule-date
+WO.RECORD<35> = '100'              ;* ord-qty
+WO.RECORD<36> = '95'               ;* yield
+WO.RECORD<104> = '2025-08-26'      ;* start-date
+
+*REM Write Work Order record
+WRITE WO.RECORD ON WOF, WONUM
+
+XML.RESPONSE = XML.RESPONSE : AM:'<status>SUCCESS</status>'
+XML.RESPONSE = XML.RESPONSE : AM:'<message>Sample Work Order created for testing</message>'
+XML.RESPONSE = XML.RESPONSE : AM:'<wo_id>' : WONUM : '</wo_id>'
+XML.RESPONSE = XML.RESPONSE : AM:'<data>'
+XML.RESPONSE = XML.RESPONSE : AM:'  <wo_date>2025-08-26</wo_date>'
+XML.RESPONSE = XML.RESPONSE : AM:'  <wo_type>1</wo_type>'
+XML.RESPONSE = XML.RESPONSE : AM:'  <start_date>2025-08-26</start_date>'
+XML.RESPONSE = XML.RESPONSE : AM:'  <notes>Sample WO for testing search functionality</notes>'
+XML.RESPONSE = XML.RESPONSE : AM:'  <assy_no>TEST123</assy_no>'
+XML.RESPONSE = XML.RESPONSE : AM:'  <schedule_date>2025-08-30</schedule_date>'
+XML.RESPONSE = XML.RESPONSE : AM:'  <yield>95</yield>'
+XML.RESPONSE = XML.RESPONSE : AM:'  <ord_qty>100</ord_qty>'
+XML.RESPONSE = XML.RESPONSE : AM:'</data>'
+XML.RESPONSE = XML.RESPONSE : AM:'</WorkOrder>'
+
+*REM Output the XML
+WRITE XML.RESPONSE ON XMLDATAF,'CREATE_SAMPLE_WO.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/CREATE_SAMPLE_WO.XML','',ERR)
+RETURN
+</pre>

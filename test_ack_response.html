@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test ACK Response</title>
+</head>
+<body>
+    <h3>Testing GET_PO.XML Response for PO 96450</h3>
+    <button onclick="testResponse('96450')">Test PO 96450</button>
+    <button onclick="testResponse('96540')">Test PO 96540</button>
+    <div id="results" style="margin-top: 20px;">
+        <pre id="xmlOutput" style="background: #f5f5f5; padding: 10px; border: 1px solid #ddd;"></pre>
+    </div>
+
+    <script>
+    function testResponse(poNumber) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'GET_PO.XML?PO_NUMBER=' + poNumber, true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                const output = document.getElementById('xmlOutput');
+                if (xhr.status === 200) {
+                    console.log('Full XML Response:', xhr.responseText);
+                    
+                    // Check for acknowledgments section
+                    const hasAck = xhr.responseText.includes('<acknowledgments>');
+                    console.log('Has acknowledgments section:', hasAck);
+                    
+                    // Extract acknowledgments section if it exists
+                    const ackMatch = xhr.responseText.match(/<acknowledgments>[\s\S]*?<\/acknowledgments>/);
+                    if (ackMatch) {
+                        console.log('Acknowledgments section:', ackMatch[0]);
+                        output.textContent = 'Acknowledgments found:\n' + ackMatch[0];
+                    } else {
+                        console.log('No acknowledgments section found');
+                        output.textContent = 'No acknowledgments section found in XML response';
+                    }
+                    
+                    // Also show full response
+                    console.log('Searching for field 49 data...');
+                    
+                } else {
+                    output.textContent = 'Error: ' + xhr.status + ' - ' + xhr.statusText;
+                }
+            }
+        };
+        xhr.send();
+    }
+    </script>
+</body>
+</html>

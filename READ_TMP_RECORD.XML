@@ -1,0 +1,61 @@
+<pre>
+PicLan-IP/BASIC ^ ^
+*
+* READ_TMP_RECORD.XML - Read a single record from TMP database
+* Used as workaround when GET_SO_TMP.XML parameter passing fails
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'TMP' TO TMPF ELSE STOP 201,'TMP'
+
+XVM = CHAR(253)
+XSM = CHAR(252)
+XAM = CHAR(254)
+
+PL_GETVAR TEMP_ID FROM 'temp_id' ELSE TEMP_ID = ''
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Read the TMP record
+READ TMP_REC FROM TMPF, TEMP_ID ELSE
+  XML_RESPONSE = '<?xml version="1.0" encoding="UTF-8"?><tmp_record><error>Record not found: ' : TEMP_ID : '</error></tmp_record>'
+  GOTO FINISH_OUTPUT
+END
+
+* Extract all fields from TMP record
+SO_NUMBER = TMP_REC<1>
+CUSTOMER_CODE = TMP_REC<2>
+SHIPTO_CODE = TMP_REC<3>
+BILLTO_CODE = TMP_REC<4>
+TIMESTAMP = TMP_REC<5>
+SHIP_VIA = TMP_REC<6>
+TERMS = TMP_REC<7>
+EMAIL = TMP_REC<8>
+HEADER_NOTES = TMP_REC<9>
+PART_NUMBERS = TMP_REC<32>
+DESCRIPTIONS = TMP_REC<33>
+LINE_QUANTITIES = TMP_REC<34>
+LINE_PRICES = TMP_REC<35>
+
+* Build XML response
+XML_RESPONSE = '<?xml version="1.0" encoding="UTF-8"?><tmp_record>'
+XML_RESPONSE := '<temp_id>' : TEMP_ID : '</temp_id>'
+XML_RESPONSE := '<so_number>' : SO_NUMBER : '</so_number>'
+XML_RESPONSE := '<customer_code>' : CUSTOMER_CODE : '</customer_code>'
+XML_RESPONSE := '<shipto_code>' : SHIPTO_CODE : '</shipto_code>'
+XML_RESPONSE := '<billto_code>' : BILLTO_CODE : '</billto_code>'
+XML_RESPONSE := '<ship_via>' : SHIP_VIA : '</ship_via>'
+XML_RESPONSE := '<terms>' : TERMS : '</terms>'
+XML_RESPONSE := '<email>' : EMAIL : '</email>'
+XML_RESPONSE := '<header_notes>' : HEADER_NOTES : '</header_notes>'
+XML_RESPONSE := '<part_numbers>' : PART_NUMBERS : '</part_numbers>'
+XML_RESPONSE := '<descriptions>' : DESCRIPTIONS : '</descriptions>'
+XML_RESPONSE := '<line_quantities>' : LINE_QUANTITIES : '</line_quantities>'
+XML_RESPONSE := '<line_prices>' : LINE_PRICES : '</line_prices>'
+XML_RESPONSE := '</tmp_record>'
+
+FINISH_OUTPUT:
+WRITE XML_RESPONSE ON XMLDATAF,'RESPONSE.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/RESPONSE.XML','',ERR)
+RETURN
+END
+</pre>

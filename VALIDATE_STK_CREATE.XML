@@ -1,0 +1,196 @@
+<pre>
+PicLan-IP/BASIC ^ ^
+*
+* VALIDATE_STK_CREATE.XML - Validation endpoint for stock transaction creation
+* Performs all validations before preview step
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+*
+ PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+    ERR = '' ; INITIALS = ''
+    CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+    RETURN
+ END
+*
+* Get parameters
+PL_GETVAR PARTNUM FROM 'PARTNUM' ELSE PARTNUM = ''
+PL_GETVAR QTY FROM 'QTY' ELSE QTY = 0
+PL_GETVAR MTLTYPE FROM 'MTLTYPE' ELSE MTLTYPE = ''
+PL_GETVAR REFERENCE FROM 'REFERENCE' ELSE REFERENCE = ''
+PL_GETVAR NOTES FROM 'NOTES' ELSE NOTES = ''
+PL_GETVAR WHBIN FROM 'WHBIN' ELSE WHBIN = ''
+PL_GETVAR YYMM FROM 'YYMM' ELSE YYMM = ''
+*
+* Open files
+OPEN '','INV' TO INVF ELSE
+  STATUS = 'error'
+  MESSAGE = 'CANNOT OPEN INV FILE'
+  GOTO SEND_RESPONSE
+END
+OPEN 'TABLE' TO TABLEF ELSE
+  STATUS = 'error'
+  MESSAGE = 'CANNOT OPEN TABLE FILE'
+  GOTO SEND_RESPONSE
+END
+OPEN 'PARTS' TO PARTSF ELSE
+  STATUS = 'error'
+  MESSAGE = 'CANNOT OPEN PARTS FILE'
+  GOTO SEND_RESPONSE
+END
+OPEN 'MTLTRANS' TO MTLTRANSF ELSE
+  STATUS = 'error'
+  MESSAGE = 'CANNOT OPEN MTLTRANS FILE'
+  GOTO SEND_RESPONSE
+END
+*
+* Initialize response
+RESPONSE = ''
+STATUS = 'success'
+MESSAGE = ''
+* Initialize optional stock info
+AVAILABLE_QTY = ''
+PROJECTED_BAL = ''
+*
+* Check for physical inventory flag
+READ FLG FROM TABLEF,'STOPIPAQ' ELSE FLG = ''
+IF FLG = 1 THEN
+  STATUS = 'error'
+  MESSAGE = 'PHYSICAL INVENTORY IN PROGRESS'
+  GOTO SEND_RESPONSE
+END
+*
+* Validate required fields
+IF PARTNUM = '' THEN
+  STATUS = 'error'
+  MESSAGE = 'PART NUMBER IS REQUIRED'
+  GOTO SEND_RESPONSE
+END
+*
+IF NOT(NUM(QTY)) THEN
+  STATUS = 'error'
+  MESSAGE = 'INVALID QTY - MUST BE NUMERIC'
+  GOTO SEND_RESPONSE
+END
+*
+IF QTY <= 0 THEN
+  STATUS = 'error'
+  MESSAGE = 'QTY MUST BE GREATER THAN ZERO'
+  GOTO SEND_RESPONSE
+END
+*
+IF MTLTYPE = '' THEN
+  STATUS = 'error'
+  MESSAGE = 'TRANSACTION TYPE IS REQUIRED'
+  GOTO SEND_RESPONSE
+END
+*
+* Validate YYMM format if provided
+IF YYMM NE '' THEN
+  IF NOT(NUM(YYMM)) OR LEN(YYMM) NE 4 THEN
+    STATUS = 'error'
+    MESSAGE = 'INVALID DATECODE YYMM - MUST BE 4 DIGITS'
+    GOTO SEND_RESPONSE
+  END
+END
+*
+* Validate part number exists
+READ PREC FROM PARTSF,PARTNUM ELSE PREC = ''
+IF PREC EQ '' THEN
+  STATUS = 'error'
+  MESSAGE = 'INVALID PART NUMBER - ':PARTNUM:' NOT FOUND IN PARTS FILE'
+  GOTO SEND_RESPONSE
+END
+*
+* Validate transaction type exists
+READ MTLTRANS FROM MTLTRANSF,MTLTYPE ELSE MTLTRANS = ''
+IF MTLTRANS EQ '' THEN
+  STATUS = 'error'
+  MESSAGE = 'INVALID TRANSACTION TYPE - ':MTLTYPE:' NOT FOUND'
+  GOTO SEND_RESPONSE
+END
+*
+* Get transaction direction (IN/OUT)
+INOUT = MTLTRANS<6>
+*
+* Validate warehouse bin if provided
+IF WHBIN NE '' THEN
+  WHBIN = OCONV(WHBIN,'MCU')
+  
+  * For OUT transactions, check if bin exists and has sufficient quantity
+  IF INOUT = 'OUT' THEN
+    READ INV FROM INVF,PARTNUM ELSE INV = ''
+    IF INV NE '' AND YYMM NE '' THEN
+      LOCATE(WHBIN:YYMM,INV<31>,1;HH) ELSE
+        STATUS = 'error'
+        MESSAGE = 'WAREHOUSE BIN ':WHBIN:YYMM:' DOES NOT EXIST FOR PART ':PARTNUM
+        GOTO SEND_RESPONSE
+      END
+      
+      CURRENT_BAL = INV<32,HH>
+      NEW_BAL = CURRENT_BAL - QTY
+      AVAILABLE_QTY = CURRENT_BAL
+      PROJECTED_BAL = NEW_BAL
+      IF NEW_BAL < 0 THEN
+        STATUS = 'error'
+        MESSAGE = 'INSUFFICIENT QUANTITY IN BIN ':WHBIN:' - AVAILABLE: ':CURRENT_BAL:' REQUESTED: ':QTY
+        GOTO SEND_RESPONSE
+      END
+    END
+  END
+END
+*
+*
+* If we get here, all validations passed
+* Prepare success response with validated data
+PART_DESC = PREC<2>  ; * Assuming description is in field 2
+TRANS_DESC = MTLTRANS<1>  ; * Transaction description
+TRANS_TYPE = MTLTRANS<2>  ; * Transaction type description
+*
+SEND_RESPONSE:
+*
+* Build XML response
+RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+RESPONSE = RESPONSE : AM : '<ValidationResult>'
+RESPONSE = RESPONSE : AM : '<status>':STATUS:'</status>'
+IF MESSAGE NE '' THEN
+  * Escape XML characters in message
+  ESC_MESSAGE = MESSAGE
+  ESC_MESSAGE = CHANGE(ESC_MESSAGE,'&','&amp;')
+  ESC_MESSAGE = CHANGE(ESC_MESSAGE,'<','&lt;')
+  ESC_MESSAGE = CHANGE(ESC_MESSAGE,'>','&gt;')
+  ESC_MESSAGE = CHANGE(ESC_MESSAGE,'"','&quot;')
+  RESPONSE = RESPONSE : AM : '<message>':ESC_MESSAGE:'</message>'
+END
+*
+IF STATUS = 'success' THEN
+  RESPONSE = RESPONSE : AM : '<ValidatedData>'
+  RESPONSE = RESPONSE : AM : '<partNumber>':PARTNUM:'</partNumber>'
+  RESPONSE = RESPONSE : AM : '<partDescription>':PART_DESC:'</partDescription>'
+  RESPONSE = RESPONSE : AM : '<quantity>':QTY:'</quantity>'
+  RESPONSE = RESPONSE : AM : '<transactionType>':MTLTYPE:'</transactionType>'
+  RESPONSE = RESPONSE : AM : '<transactionDescription>':TRANS_DESC:'</transactionDescription>'
+  RESPONSE = RESPONSE : AM : '<transactionDirection>':INOUT:'</transactionDirection>'
+  RESPONSE = RESPONSE : AM : '<reference>':REFERENCE:'</reference>'
+  RESPONSE = RESPONSE : AM : '<notes>':NOTES:'</notes>'
+  RESPONSE = RESPONSE : AM : '<warehouseBin>':WHBIN:'</warehouseBin>'
+  RESPONSE = RESPONSE : AM : '<dateCode>':YYMM:'</dateCode>'
+  RESPONSE = RESPONSE : AM : '<initials>':INITIALS:'</initials>'
+  IF AVAILABLE_QTY NE '' THEN
+    RESPONSE = RESPONSE : AM : '<availableQty>':AVAILABLE_QTY:'</availableQty>'
+  END
+  IF PROJECTED_BAL NE '' THEN
+    RESPONSE = RESPONSE : AM : '<projectedBalance>':PROJECTED_BAL:'</projectedBalance>'
+  END
+  RESPONSE = RESPONSE : AM : '</ValidatedData>'
+END
+*
+RESPONSE = RESPONSE : AM : '</ValidationResult>'
+*
+* Set content type and output response
+PL_ADD_HDR '"Content-Type: application/xml"'
+*
+WRITE RESPONSE ON XMLDATAF,'PREVIEW'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/PREVIEW','',ERR)
+RETURN
+</pre>

@@ -1,0 +1,133 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+* GET_PRICE.XML - Get price for part based on customer and quantity
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PRICE' TO PRICEF ELSE GOTO NO_PRICE_FILE
+
+* Define constants
+CRLF = CHAR(13):CHAR(10)
+
+* Get parameters from URL
+PL_GETVAR PART_NUMBER FROM 'PART_NUMBER' ELSE PART_NUMBER = ''
+PL_GETVAR CUSTOMER_NUMBER FROM 'CUSTOMER_NUMBER' ELSE CUSTOMER_NUMBER = ''
+PL_GETVAR QTY FROM 'QTY' ELSE QTY = 0
+
+PART_NUMBER = TRIM(PART_NUMBER)
+CUSTOMER_NUMBER = TRIM(CUSTOMER_NUMBER)
+QTY = TRIM(QTY)
+
+* Convert QTY to numeric
+QTY_NUM = QTY + 0
+
+* Add XML header
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>':CRLF
+XML.RESPONSE := '<price_info>':CRLF
+
+* Validate parameters
+IF PART_NUMBER = "" OR CUSTOMER_NUMBER = "" OR QTY_NUM <= 0 THEN
+  XML.RESPONSE := '<error>Missing required parameters: PART_NUMBER, CUSTOMER_NUMBER, QTY</error>':CRLF
+  XML.RESPONSE := '<status>error</status>':CRLF
+  XML.RESPONSE := '</price_info>':CRLF
+  WRITE XML.RESPONSE ON XMLDATAF,'PRICE_INFO.XML'
+  ERR = ''
+  CALL PLW.PAGE('/XMLDATA/PRICE_INFO.XML','',ERR)
+  RETURN
+END
+
+* Build price key: PART*CUSTOMER
+PRICE_KEY = PART_NUMBER:'*':CUSTOMER_NUMBER
+
+* Try to read PRICE record
+READ PRICE.RECORD FROM PRICEF, PRICE_KEY ELSE GOTO PRICE_NOT_FOUND
+
+* Extract price ranges from positions 6, 7, 8
+FROM_QTYS = PRICE.RECORD<6>        ; * Multivalue: from quantities
+TO_QTYS = PRICE.RECORD<7>          ; * Multivalue: to quantities
+PRICES = PRICE.RECORD<8>           ; * Multivalue: prices * 1000
+
+* Count how many ranges we have
+RANGE_COUNT = DCOUNT(FROM_QTYS, CHAR(253))
+IF RANGE_COUNT = 0 THEN GOTO NO_PRICE_RANGES
+
+* Find the matching price range
+FOUND_PRICE = 0
+MATCHED_RANGE = 0
+DONE = 0
+
+FOR I = 1 TO RANGE_COUNT
+  IF DONE = 0 THEN
+    FROM_QTY = FROM_QTYS<1,I>
+    TO_QTY = TO_QTYS<1,I>
+    PRICE_VAL = PRICES<1,I>
+    
+    * Convert to numeric
+    FROM_QTY_NUM = FROM_QTY + 0
+    TO_QTY_NUM = TO_QTY + 0
+    PRICE_VAL_NUM = PRICE_VAL + 0
+    
+    * Check if QTY falls within this range
+    IF QTY_NUM >= FROM_QTY_NUM AND QTY_NUM <= TO_QTY_NUM THEN
+      FOUND_PRICE = PRICE_VAL_NUM / 1000
+      MATCHED_RANGE = I
+      DONE = 1
+    END
+  END
+NEXT I
+
+* Build XML response
+IF FOUND_PRICE > 0 THEN
+  XML.RESPONSE := '<price_key>':PRICE_KEY:'</price_key>':CRLF
+  XML.RESPONSE := '<part_number>':PART_NUMBER:'</part_number>':CRLF
+  XML.RESPONSE := '<customer_number>':CUSTOMER_NUMBER:'</customer_number>':CRLF
+  XML.RESPONSE := '<quantity>':QTY_NUM:'</quantity>':CRLF
+  XML.RESPONSE := '<unit_price>':FOUND_PRICE:'</unit_price>':CRLF
+  XML.RESPONSE := '<matched_range>':MATCHED_RANGE:'</matched_range>':CRLF
+  XML.RESPONSE := '<status>found</status>':CRLF
+END ELSE
+  XML.RESPONSE := '<price_key>':PRICE_KEY:'</price_key>':CRLF
+  XML.RESPONSE := '<part_number>':PART_NUMBER:'</part_number>':CRLF
+  XML.RESPONSE := '<customer_number>':CUSTOMER_NUMBER:'</customer_number>':CRLF
+  XML.RESPONSE := '<quantity>':QTY_NUM:'</quantity>':CRLF
+  XML.RESPONSE := '<message>No price range matches the quantity ':QTY_NUM:'</message>':CRLF
+  XML.RESPONSE := '<status>no_match</status>':CRLF
+END
+GOTO OUTPUT
+
+PRICE_NOT_FOUND:
+* Price record doesn't exist for this PART*CUSTOMER combination
+XML.RESPONSE := '<price_key>':PRICE_KEY:'</price_key>':CRLF
+XML.RESPONSE := '<message>No price record found for ':PRICE_KEY:'</message>':CRLF
+XML.RESPONSE := '<status>not_found</status>':CRLF
+GOTO OUTPUT
+
+NO_PRICE_RANGES:
+* Record exists but has no price ranges defined
+XML.RESPONSE := '<price_key>':PRICE_KEY:'</price_key>':CRLF
+XML.RESPONSE := '<message>No price ranges defined for ':PRICE_KEY:'</message>':CRLF
+XML.RESPONSE := '<status>no_ranges</status>':CRLF
+GOTO OUTPUT
+
+NO_PRICE_FILE:
+* PRICE file doesn't exist
+XML.RESPONSE := '<error>Cannot open PRICE database</error>':CRLF
+XML.RESPONSE := '<status>error</status>':CRLF
+
+OUTPUT:
+* Complete XML response
+XML.RESPONSE := '</price_info>':CRLF
+
+* Output XML with unique filename to avoid cache
+TIMESTAMP = OCONV(DATE():'*':TIME(),'MCL')
+FILENAME = 'PRICE_' : TIMESTAMP : '.XML'
+WRITE XML.RESPONSE ON XMLDATAF,FILENAME
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/':FILENAME,'',ERR)
+RETURN
+
+</pre>

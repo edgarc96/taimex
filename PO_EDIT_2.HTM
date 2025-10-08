@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PO Editor Simplified</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .search-section { background: #f5f5f5; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
+        .line-items-section { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; }
+        .line-item { border: 1px solid #eee; margin: 10px 0; padding: 15px; border-radius: 5px; }
+        .line-item.selected { border-color: #007bff; background-color: #f8f9fa; }
+        .line-item-header { font-weight: bold; color: #333; margin-bottom: 10px; }
+        .acknowledgments { margin-top: 15px; }
+        .ack-entry { background: #e8f5e8; padding: 8px; margin: 5px 0; border-radius: 4px; }
+        input, select, textarea { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 10px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PO Editor Simplified v2.0</h1>
+        
+        <div class="search-section">
+            <h3>Search PO</h3>
+            <input type="text" id="poNumber" placeholder="Enter PO Number" value="96450">
+            <button onclick="searchPO()">Search</button>
+        </div>
+
+        <div id="poData" style="display: none;">
+            <h3>PO Information</h3>
+            <div id="poInfo"></div>
+            
+            <div class="line-items-section">
+                <h3>Line Items</h3>
+                <div id="lineItems"></div>
+            </div>
+
+            <div id="trackingSection" class="line-items-section" style="display: none; margin-top: 20px;">
+                <h3>Tracking Information - Line <span id="selectedLineNumber">-</span></h3>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 5px;">
+                    <h4>Acknowledgments</h4>
+                    <div id="acknowledgmentFields">
+                        <div style="margin: 10px 0;">
+                            <label>Date 1:</label> <input type="date" id="ackDate1">
+                            <label>Qty 1:</label> <input type="number" id="ackQty1">
+                        </div>
+                        <div style="margin: 10px 0;">
+                            <label>Date 2:</label> <input type="date" id="ackDate2">
+                            <label>Qty 2:</label> <input type="number" id="ackQty2">
+                        </div>
+                        <div style="margin: 10px 0;">
+                            <label>Date 3:</label> <input type="date" id="ackDate3">
+                            <label>Qty 3:</label> <input type="number" id="ackQty3">
+                        </div>
+                    </div>
+                    <button onclick="saveTracking()" style="margin-top: 15px;">Save Changes</button>
+                    <button onclick="closeTracking()" style="margin-top: 15px; background: #6c757d;">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="debugInfo" class="debug" style="display: none;"></div>
+    </div>
+
+    <script>
+        let currentPOData = null;
+        let lineItemsData = [];
+
+        function searchPO() {
+            const poNumber = document.getElementById('poNumber').value;
+            if (!poNumber) {
+                alert('Please enter a PO number');
+                return;
+            }
+
+            console.log('🔍 Searching for PO:', poNumber);
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'GET_PO2_PRODUCTION.XML', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    console.log('✅ Received response');
+                    processPOResponse(xhr.responseText);
+                }
+            };
+            
+            xhr.send(`PO_NUMBER=${encodeURIComponent(poNumber)}`);
+        }
+
+        function processPOResponse(xmlText) {
+            console.log('📄 Raw XML Response:', xmlText);
+            document.getElementById('debugInfo').innerHTML = `<strong>Raw XML:</strong><br>${xmlText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}`;
+            document.getElementById('debugInfo').style.display = 'block';
+
+            try {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+                const poElement = xmlDoc.querySelector('po');
+                
+                if (!poElement) {
+                    alert('PO not found');
+                    return;
+                }
+
+                // Extract basic PO info
+                currentPOData = {
+                    po_number: getTextContent(poElement, 'po_number'),
+                    po_date: getTextContent(poElement, 'po_date'),
+                    buyer: getTextContent(poElement, 'buyer'),
+                    vendor_number: getTextContent(poElement, 'vendor_number')
+                };
+
+                console.log('📋 Extracted PO Data:', currentPOData);
+
+                // Extract line items
+                const lineItemElements = poElement.querySelectorAll('line_item');
+                lineItemsData = [];
+
+                lineItemElements.forEach((lineItem, index) => {
+                    const item = {
+                        index: index,
+                        lineNumber: getTextContent(lineItem, 'line_item_code'),
+                        partNumber: getTextContent(lineItem, 'part_number'),
+                        description: getTextContent(lineItem, 'description'),
+                        quantity: getTextContent(lineItem, 'quantity'),
+                        unitPrice: getTextContent(lineItem, 'unit_price'),
+                        ackEntries: []
+                    };
+
+                    // Extract acknowledgment entries for this line item
+                    const ackElements = lineItem.querySelectorAll('ack_entry');
+                    ackElements.forEach(ackEntry => {
+                        const ackDate = getTextContent(ackEntry, 'ack_date');
+                        const ackQty = getTextContent(ackEntry, 'ack_qty');
+                        if (ackDate && ackQty) {
+                            item.ackEntries.push({
+                                date: ackDate,
+                                qty: ackQty,
+                                formattedDate: convertJulianToDate(ackDate)
+                            });
+                        }
+                    });
+
+                    console.log(`📦 Line Item ${index + 1}:`, item);
+                    lineItemsData.push(item);
+                });
+
+                displayPOData();
+
+            } catch (error) {
+                console.error('❌ Error parsing XML:', error);
+                alert('Error parsing PO data');
+            }
+        }
+
+        function getTextContent(element, tagName) {
+            const child = element.querySelector(tagName);
+            return child ? child.textContent.trim() : '';
+        }
+
+        function convertJulianToDate(julianStr) {
+            if (!julianStr || julianStr === '') return '';
+            
+            try {
+                const julian = parseInt(julianStr);
+                if (isNaN(julian)) return julianStr;
+                
+                // Convert Julian to regular date (simplified)
+                const baseDate = new Date('1968-01-01');
+                const targetDate = new Date(baseDate.getTime() + (julian - 1) * 24 * 60 * 60 * 1000);
+                
+                const year = targetDate.getFullYear();
+                const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+                const day = String(targetDate.getDate()).padStart(2, '0');
+                
+                return `${year}-${month}-${day}`;
+            } catch (error) {
+                console.error('Date conversion error:', error);
+                return julianStr;
+            }
+        }
+
+        function displayPOData() {
+            // Show PO info
+            const poInfoHtml = `
+                <p><strong>PO Number:</strong> ${currentPOData.po_number}</p>
+                <p><strong>Date:</strong> ${currentPOData.po_date}</p>
+                <p><strong>Buyer:</strong> ${currentPOData.buyer}</p>
+                <p><strong>Vendor:</strong> ${currentPOData.vendor_number}</p>
+            `;
+            document.getElementById('poInfo').innerHTML = poInfoHtml;
+
+            // Show line items
+            let lineItemsHtml = '';
+            lineItemsData.forEach((item, index) => {
+                let acknowledgementsHtml = '';
+                if (item.ackEntries.length > 0) {
+                    acknowledgementsHtml = '<div class="acknowledgments"><strong>Acknowledgments:</strong>';
+                    item.ackEntries.forEach(ack => {
+                        acknowledgementsHtml += `
+                            <div class="ack-entry">
+                                📅 ${ack.formattedDate} (Julian: ${ack.date}) - Qty: ${ack.qty}
+                            </div>
+                        `;
+                    });
+                    acknowledgementsHtml += '</div>';
+                } else {
+                    acknowledgementsHtml = '<div class="acknowledgments"><em>No acknowledgments</em></div>';
+                }
+
+                lineItemsHtml += `
+                    <div class="line-item" onclick="selectLineItem(${index})">
+                        <div class="line-item-header">
+                            Line ${item.lineNumber}: ${item.partNumber}
+                        </div>
+                        <p><strong>Description:</strong> ${item.description}</p>
+                        <p><strong>Quantity:</strong> ${item.quantity} | <strong>Unit Price:</strong> $${item.unitPrice}</p>
+                        ${acknowledgementsHtml}
+                        <button onclick="editTracking(${index}); event.stopPropagation();" style="margin-top: 10px; font-size: 12px; padding: 5px 10px;">
+                            ✏️ Edit Tracking
+                        </button>
+                    </div>
+                `;
+            });
+
+            document.getElementById('lineItems').innerHTML = lineItemsHtml;
+            document.getElementById('poData').style.display = 'block';
+
+            console.log('✅ PO Data displayed successfully');
+        }
+
+        function selectLineItem(index) {
+            // Remove previous selection
+            document.querySelectorAll('.line-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            // Add selection to clicked item
+            document.querySelectorAll('.line-item')[index].classList.add('selected');
+
+            console.log('📌 Selected line item:', index, lineItemsData[index]);
+        }
+
+        let currentEditingLineIndex = -1;
+
+        function editTracking(index) {
+            currentEditingLineIndex = index;
+            const item = lineItemsData[index];
+            
+            console.log('✏️ Editing tracking for line item:', index, item);
+            
+            // Show tracking section
+            document.getElementById('trackingSection').style.display = 'block';
+            document.getElementById('selectedLineNumber').textContent = item.lineNumber;
+            
+            // Clear all fields first
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`ackDate${i}`).value = '';
+                document.getElementById(`ackQty${i}`).value = '';
+            }
+            
+            // Populate with current acknowledgments
+            if (item.ackEntries && item.ackEntries.length > 0) {
+                item.ackEntries.forEach((ack, idx) => {
+                    if (idx < 3) {
+                        document.getElementById(`ackDate${idx + 1}`).value = ack.formattedDate;
+                        document.getElementById(`ackQty${idx + 1}`).value = ack.qty;
+                    }
+                });
+            }
+            
+            // Scroll to tracking section
+            document.getElementById('trackingSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function closeTracking() {
+            document.getElementById('trackingSection').style.display = 'none';
+            currentEditingLineIndex = -1;
+        }
+
+        function convertDateToJulian(dateStr) {
+            if (!dateStr) return '';
+            
+            try {
+                const date = new Date(dateStr + 'T00:00:00Z'); // Force UTC
+                const baseDate = new Date('1968-01-01T00:00:00Z');
+                const diffTime = date.getTime() - baseDate.getTime();
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return String(diffDays + 1); // Pick systems use 1-based indexing
+            } catch (error) {
+                console.error('Date to Julian conversion error:', error);
+                return '';
+            }
+        }
+
+        function saveTracking() {
+            if (currentEditingLineIndex < 0) {
+                alert('No line item selected for editing');
+                return;
+            }
+
+            console.log('💾 Saving tracking for line item:', currentEditingLineIndex);
+            
+            // Collect acknowledgment data
+            const ackData = [];
+            for (let i = 1; i <= 3; i++) {
+                const date = document.getElementById(`ackDate${i}`).value;
+                const qty = document.getElementById(`ackQty${i}`).value;
+                
+                if (date && qty) {
+                    const julianDate = convertDateToJulian(date);
+                    ackData.push(`${julianDate}*${qty}`);
+                    console.log(`📅 Ack ${i}: ${date} (${julianDate}) qty ${qty}`);
+                }
+            }
+            
+            // Prepare data for backend using URL-encoded format like the original
+            const postData = `po_number=${encodeURIComponent(currentPOData.po_number)}&ack_data=${encodeURIComponent(currentEditingLineIndex + 1 + ':' + ackData.join('\\'))}`;
+            
+            console.log('📤 Sending to backend:', {
+                po_number: currentPOData.po_number,
+                line_index: currentEditingLineIndex + 1,
+                data: ackData.join('\\'),
+                postData: postData
+            });
+            
+            // Send to UPDATE_PO2.XML
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'UPDATE_PO2.XML', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        console.log('✅ Save successful:', xhr.responseText);
+                        alert('Tracking data saved successfully!');
+                        closeTracking();
+                        // Refresh PO data
+                        searchPO();
+                    } else {
+                        console.error('❌ Save failed:', xhr.status, xhr.responseText);
+                        alert('Error saving data: ' + xhr.responseText);
+                    }
+                }
+            };
+            
+            xhr.send(postData);
+        }
+
+        // Auto-search on page load for testing
+        window.onload = function() {
+            console.log('🚀 PO Editor Simplified v2.0 loaded');
+            // Uncomment to auto-search
+            // setTimeout(searchPO, 1000);
+        };
+    </script>
+</body>
+</html>

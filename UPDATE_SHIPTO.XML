@@ -1,0 +1,88 @@
+<pre>
+PicLan-IP/BASIC ^ ^
+*
+* TAIMEX Ship-To Update - Write/Update shipto code in PO2 database
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO2' TO PO2F ELSE STOP 201,'PO2'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+* Get parameters from URL for updating
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = ''
+PL_GETVAR SHIPTO_CODE FROM 'SHIPTO_CODE' ELSE SHIPTO_CODE = ''
+PL_GETVAR SHIPTO_NAME FROM 'SHIPTO_NAME' ELSE SHIPTO_NAME = ''
+PL_GETVAR SHIPTO_ADDRESS1 FROM 'SHIPTO_ADDRESS1' ELSE SHIPTO_ADDRESS1 = ''
+PL_GETVAR SHIPTO_ADDRESS2 FROM 'SHIPTO_ADDRESS2' ELSE SHIPTO_ADDRESS2 = ''
+PL_GETVAR SHIPTO_CITY FROM 'SHIPTO_CITY' ELSE SHIPTO_CITY = ''
+PL_GETVAR SHIPTO_STATE FROM 'SHIPTO_STATE' ELSE SHIPTO_STATE = ''
+PL_GETVAR SHIPTO_ZIP FROM 'SHIPTO_ZIP' ELSE SHIPTO_ZIP = ''
+
+* Trim all input parameters
+PO_NUMBER = TRIM(PO_NUMBER)
+SHIPTO_CODE = TRIM(SHIPTO_CODE)
+SHIPTO_NAME = TRIM(SHIPTO_NAME)
+SHIPTO_ADDRESS1 = TRIM(SHIPTO_ADDRESS1)
+SHIPTO_ADDRESS2 = TRIM(SHIPTO_ADDRESS2)
+SHIPTO_CITY = TRIM(SHIPTO_CITY)
+SHIPTO_STATE = TRIM(SHIPTO_STATE)
+SHIPTO_ZIP = TRIM(SHIPTO_ZIP)
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM:'<update_result>'
+
+* Validate required parameters
+IF PO_NUMBER = '' THEN
+    XML.RESPONSE = XML.RESPONSE :XAM: '<status>ERROR</status>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<message>PO_NUMBER is required for update</message>'
+    GOTO DONE
+END
+
+IF SHIPTO_CODE = '' THEN
+    XML.RESPONSE = XML.RESPONSE :XAM: '<status>ERROR</status>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<message>SHIPTO_CODE is required for update</message>'
+    GOTO DONE
+END
+
+* Read existing PO record
+READ PO.RECORD FROM PO2F, PO_NUMBER ELSE
+    XML.RESPONSE = XML.RESPONSE :XAM: '<status>ERROR</status>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<message>PO record not found: ' : PO_NUMBER : '</message>'
+    GOTO DONE
+END
+
+* Update field 4 with the Ship-To code (based on actual PO2 database structure)
+PO.RECORD<4> = SHIPTO_CODE
+
+* Write the updated PO record back to the database
+WRITE PO.RECORD ON PO2F, PO_NUMBER
+
+* Success response
+XML.RESPONSE = XML.RESPONSE :XAM: '<status>SUCCESS</status>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<message>PO Ship-To code updated successfully</message>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<po_number>' : PO_NUMBER : '</po_number>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_code>' : SHIPTO_CODE : '</shipto_code>'
+
+* Echo back the updated values for confirmation
+XML.RESPONSE = XML.RESPONSE :XAM: '<updated_values>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<po_number>' : PO_NUMBER : '</po_number>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_code>' : SHIPTO_CODE : '</shipto_code>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<po_field_4>' : PO.RECORD<4> : '</po_field_4>'
+XML.RESPONSE = XML.RESPONSE :XAM: '</updated_values>'
+
+DONE:
+* Complete XML response
+XML.RESPONSE = XML.RESPONSE :XAM: '</update_result>'
+
+* Output the XML
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_SHIPTO.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_SHIPTO.XML','',ERR)
+RETURN
+</pre>

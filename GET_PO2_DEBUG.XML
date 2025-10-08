@@ -1,0 +1,48 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+
+* Define constants
+XAM = CHAR(10)
+
+* Get parameters from URL
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = ''
+PO_NUMBER = TRIM(PO_NUMBER)
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response with debug markers
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<!-- LINE 1: XML Declaration -->'
+XML.RESPONSE = XML.RESPONSE : XAM : '<purchaseorders>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<!-- LINE 2: Root element opened -->'
+XML.RESPONSE = XML.RESPONSE : XAM : '<po>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<!-- LINE 3: PO element opened -->'
+
+* Clean PO_NUMBER before using in XML with extra debug
+PO_NUMBER_CLEAN = PO_NUMBER
+IF PO_NUMBER_CLEAN = '' THEN PO_NUMBER_CLEAN = 'TEST123'
+CONVERT '&' TO '&amp;' IN PO_NUMBER_CLEAN
+CONVERT '<' TO '&lt;' IN PO_NUMBER_CLEAN
+CONVERT '>' TO '&gt;' IN PO_NUMBER_CLEAN
+
+XML.RESPONSE = XML.RESPONSE : XAM : '<!-- LINE 4: About to add PO number: [' : PO_NUMBER_CLEAN : '] -->'
+XML.RESPONSE = XML.RESPONSE : XAM : '<po_number>' : PO_NUMBER_CLEAN : '</po_number>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<!-- LINE 5: PO number added successfully -->'
+XML.RESPONSE = XML.RESPONSE : XAM : '<status>debug_test</status>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<!-- LINE 6: Status added -->'
+XML.RESPONSE = XML.RESPONSE : XAM : '</po>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<!-- LINE 7: PO element closed -->'
+XML.RESPONSE = XML.RESPONSE : XAM : '</purchaseorders>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<!-- LINE 8: Root element closed -->'
+
+DELETE XMLDATAF, 'GET_PO2_DEBUG.XML'
+WRITE XML.RESPONSE ON XMLDATAF, 'GET_PO2_DEBUG.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/GET_PO2_DEBUG.XML', '', ERR)
+RETURN
+
+</pre>

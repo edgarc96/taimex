@@ -1,0 +1,199 @@
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO' TO POF ELSE STOP 201,'PO'
+OPEN 'PARTS' TO PARTSF ELSE STOP 201,'PARTS'
+OPEN 'VENDPT' TO VENDPTF ELSE STOP 201,'VENDPT'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Get parameters
+PL_GETVAR PONO FROM 'PONO' ELSE PONO = ''
+PL_GETVAR LINE_DATA FROM 'LINE_DATA' ELSE LINE_DATA = ''
+PL_GETVAR ACTION FROM 'ACTION' ELSE ACTION = 'ADD'
+
+* Initialize response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<line_update_response>'
+
+IF PONO = '' THEN
+    XML.RESPONSE = XML.RESPONSE : XAM : '<status>ERROR</status>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<message>PO Number is required</message>'
+    GOTO FINISH
+END
+
+IF LINE_DATA = '' THEN
+    XML.RESPONSE = XML.RESPONSE : XAM : '<status>ERROR</status>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<message>Line data is required</message>'
+    GOTO FINISH
+END
+
+* Read PO record
+READ PO.RECORD FROM POF, PONO ELSE
+    XML.RESPONSE = XML.RESPONSE : XAM : '<status>ERROR</status>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<message>PO not found</message>'
+    GOTO FINISH
+END
+
+* Parse line data (JSON format expected)
+* LINE_DATA should contain: lineNumber, partNumber, description, quantity, unitPrice, etc.
+
+* Extract line data fields
+LINE_NUMBER = FIELD(LINE_DATA, '|', 1)
+PART_NUMBER = FIELD(LINE_DATA, '|', 2)
+DESCRIPTION = FIELD(LINE_DATA, '|', 3)
+QUANTITY = FIELD(LINE_DATA, '|', 4)
+UNIT_PRICE = FIELD(LINE_DATA, '|', 5)
+DOC_REV = FIELD(LINE_DATA, '|', 6)
+VEND_PT = FIELD(LINE_DATA, '|', 7)
+LINE_NOTES = FIELD(LINE_DATA, '|', 8)
+PROD_NOTES = FIELD(LINE_DATA, '|', 9)
+FIRST_ARTICLE = FIELD(LINE_DATA, '|', 10)
+GOVT_RATING = FIELD(LINE_DATA, '|', 11)
+GOVT_CONTRACT = FIELD(LINE_DATA, '|', 12)
+
+* Need dates/quantities (up to 5)
+NEED_DATA = FIELD(LINE_DATA, '|', 13)
+* Ack dates/quantities (up to 5)  
+ACK_DATA = FIELD(LINE_DATA, '|', 14)
+* Schedule dates/quantities (up to 5)
+SCHED_DATA = FIELD(LINE_DATA, '|', 15)
+* Receiving data
+RECV_DATA = FIELD(LINE_DATA, '|', 16)
+* VWHSE transfers
+VWHSE_DATA = FIELD(LINE_DATA, '|', 17)
+
+* Validation
+IF LINE_NUMBER = '' OR PART_NUMBER = '' OR DESCRIPTION = '' THEN
+    XML.RESPONSE = XML.RESPONSE : XAM : '<status>ERROR</status>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<message>Line Number, Part Number and Description are required</message>'
+    GOTO FINISH
+END
+
+IF NOT(NUM(QUANTITY)) OR NOT(NUM(UNIT_PRICE)) THEN
+    XML.RESPONSE = XML.RESPONSE : XAM : '<status>ERROR</status>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<message>Quantity and Unit Price must be numeric</message>'
+    GOTO FINISH
+END
+
+* Find or add line item
+LOCATE(LINE_NUMBER, PO.RECORD<31>, 1; LINE_POS) THEN
+    * Update existing line
+    ACTION = 'UPDATE'
+END ELSE
+    * Add new line
+    PO.RECORD<31, -1> = LINE_NUMBER
+    LINE_POS = DCOUNT(PO.RECORD<31>, @VM)
+    ACTION = 'ADD'
+END
+
+* Update PO record fields
+PO.RECORD<32, LINE_POS> = PART_NUMBER        ; * Part Number
+PO.RECORD<33, LINE_POS> = DESCRIPTION        ; * Description  
+PO.RECORD<35, LINE_POS> = QUANTITY           ; * Quantity
+PO.RECORD<36, LINE_POS> = UNIT_PRICE * 10000 ; * Price (stored as integer)
+PO.RECORD<61, LINE_POS> = DOC_REV            ; * Doc Rev
+PO.RECORD<56, LINE_POS> = VEND_PT            ; * Vendor Part Number
+
+* Convert notes to internal format
+CONVERT @AM TO @SVM IN LINE_NOTES
+PO.RECORD<40, LINE_POS> = LINE_NOTES         ; * Line Notes
+
+CONVERT @AM TO @SVM IN PROD_NOTES  
+PO.RECORD<73, LINE_POS> = PROD_NOTES         ; * Production Control Notes
+
+* First Article flag
+PO.RECORD<150, LINE_POS> = FIRST_ARTICLE     ; * First Article (Y/N)
+
+* Government fields
+PO.RECORD<123, LINE_POS> = GOVT_RATING       ; * Government Rating
+PO.RECORD<124, LINE_POS> = GOVT_CONTRACT     ; * Government Contract
+
+* Process Need Info (field 38)
+IF NEED_DATA NE '' THEN
+    NEED_ATTR = ''
+    FOR I = 1 TO DCOUNT(NEED_DATA, '^')
+        NEED_ENTRY = FIELD(NEED_DATA, '^', I)
+        NEED_DATE = FIELD(NEED_ENTRY, '~', 1)
+        NEED_QTY = FIELD(NEED_ENTRY, '~', 2)
+        IF NEED_DATE NE '' AND NEED_QTY NE '' THEN
+            IF NEED_ATTR NE '' THEN NEED_ATTR = NEED_ATTR : @SVM
+            NEED_ATTR = NEED_ATTR : ICONV(NEED_DATE, 'D-') : '*' : NEED_QTY
+        END
+    NEXT I
+    PO.RECORD<38, LINE_POS> = NEED_ATTR
+END
+
+* Process Acknowledgments (field 49)
+IF ACK_DATA NE '' THEN
+    ACK_ATTR = ''
+    FOR I = 1 TO DCOUNT(ACK_DATA, '^')
+        ACK_ENTRY = FIELD(ACK_DATA, '^', I)
+        ACK_DATE = FIELD(ACK_ENTRY, '~', 1)
+        ACK_QTY = FIELD(ACK_ENTRY, '~', 2)
+        IF ACK_DATE NE '' AND ACK_QTY NE '' THEN
+            IF ACK_ATTR NE '' THEN ACK_ATTR = ACK_ATTR : @SVM
+            ACK_ATTR = ACK_ATTR : ICONV(ACK_DATE, 'D-') : '*' : ACK_QTY
+        END
+    NEXT I
+    PO.RECORD<49, LINE_POS> = ACK_ATTR
+END
+
+* Process Schedules (field 34)
+IF SCHED_DATA NE '' THEN
+    SCHED_ATTR = ''
+    FOR I = 1 TO DCOUNT(SCHED_DATA, '^')
+        SCHED_ENTRY = FIELD(SCHED_DATA, '^', I)
+        SCHED_DATE = FIELD(SCHED_ENTRY, '~', 1)
+        SCHED_QTY = FIELD(SCHED_ENTRY, '~', 2)
+        SCHED_RS = FIELD(SCHED_ENTRY, '~', 3)
+        IF SCHED_DATE NE '' AND SCHED_QTY NE '' THEN
+            IF SCHED_ATTR NE '' THEN SCHED_ATTR = SCHED_ATTR : @SVM
+            SCHED_ATTR = SCHED_ATTR : ICONV(SCHED_DATE, 'D-') : '*' : SCHED_QTY
+            IF SCHED_RS NE '' THEN SCHED_ATTR = SCHED_ATTR : '*' : SCHED_RS
+        END
+    NEXT I
+    PO.RECORD<34, LINE_POS> = SCHED_ATTR
+END
+
+* Process VWHSE Transfers (field 92)
+IF VWHSE_DATA NE '' THEN
+    VWHSE_ATTR = ''
+    FOR I = 1 TO DCOUNT(VWHSE_DATA, '^')
+        VWHSE_ENTRY = FIELD(VWHSE_DATA, '^', I)
+        VWHSE_ID = FIELD(VWHSE_ENTRY, '~', 1)
+        VWHSE_QTY = FIELD(VWHSE_ENTRY, '~', 2)
+        IF VWHSE_ID NE '' AND VWHSE_QTY NE '' THEN
+            IF VWHSE_ATTR NE '' THEN VWHSE_ATTR = VWHSE_ATTR : @SVM
+            VWHSE_ATTR = VWHSE_ATTR : VWHSE_ID : '*' : VWHSE_QTY
+        END
+    NEXT I
+    PO.RECORD<92, LINE_POS> = VWHSE_ATTR
+END
+
+* Update timestamp and user
+PO.RECORD<83, LINE_POS> = DATE() : '*' : 'SYSTEM' : '*' : TIME()
+
+* Write updated PO record
+WRITE PO.RECORD ON POF, PONO
+
+* Success response
+XML.RESPONSE = XML.RESPONSE : XAM : '<status>SUCCESS</status>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<message>Line item ' : ACTION : 'ed successfully</message>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<line_number>' : LINE_NUMBER : '</line_number>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<action>' : ACTION : '</action>'
+
+FINISH:
+XML.RESPONSE = XML.RESPONSE : XAM : '</line_update_response>'
+
+* Output the XML
+WRITE XML.RESPONSE ON XMLDATAF, 'UPDATE_PO_LINES.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_PO_LINES.XML', '', ERR)
+RETURN

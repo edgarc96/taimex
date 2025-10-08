@@ -1,0 +1,282 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+* STEP BY STEP TEST - GET_PO2
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO2' TO PO2F ELSE STOP 201,'PO2'
+OPEN 'VENDOR' TO VENDORF ELSE STOP 201,'VENDOR'
+
+* Pick/BASIC separator constants
+XAM = CHAR(254)
+XVM = CHAR(253)  
+XSM = CHAR(252)
+
+* Initialize variables
+PO_NUMBER = ''
+XML.RESPONSE = ''
+CRLF = CHAR(13):CHAR(10)
+FIELD_VALUE = ''
+VENDOR_NUMBER_CLEAN = ''
+SHIPTO_CODE = ''
+JULIAN_DAY = ''
+FORMATTED_DATE = ''
+ACK_FIELD = ''
+FIRST_MULTIVALUE = ''
+ACK_DATE = ''
+ACK_QTY = ''
+
+* Get PO number parameter
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = ''
+PO_NUMBER = TRIM(PO_NUMBER)
+
+WRITE 'STEP TEST STARTED ':PO_NUMBER ON XMLDATAF,'DEBUG_STEP_START.TXT'
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>':CRLF
+XML.RESPONSE = XML.RESPONSE:'<purchaseorders>':CRLF:'<po>':CRLF
+
+* Simple validation
+IF PO_NUMBER = '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<error>No PO number provided</error></po></purchaseorders>'
+    GOTO FINISH_OUTPUT
+END
+
+* Try to read PO record
+READ PO.RECORD FROM PO2F, PO_NUMBER ELSE
+    XML.RESPONSE = XML.RESPONSE : '<error>PO not found</error></po></purchaseorders>'
+    GOTO FINISH_OUTPUT
+END
+
+WRITE 'PO RECORD READ OK' ON XMLDATAF,'DEBUG_STEP_READ.TXT'
+
+* Test CONVERT operation (potential problem area)
+CONVERT '&' TO '&amp;' IN PO.RECORD
+
+WRITE 'CONVERT SUCCESS' ON XMLDATAF,'DEBUG_STEP_CONVERT.TXT'
+
+* Extract and output basic PO fields using GOSUB
+FIELD_VALUE = PO_NUMBER
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<po_number>' : FIELD_VALUE : '</po_number>'
+
+FIELD_VALUE = PO.RECORD<1>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<po_date>' : FIELD_VALUE : '</po_date>'
+
+FIELD_VALUE = PO.RECORD<8>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<buyer>' : FIELD_VALUE : '</buyer>'
+
+WRITE 'BASIC FIELDS SUCCESS' ON XMLDATAF,'DEBUG_STEP_BASIC.TXT'
+
+* Test vendor field logic (complex field selection)
+FIELD_VALUE = PO.RECORD<7>
+IF FIELD_VALUE = '' THEN FIELD_VALUE = PO.RECORD<13>
+IF FIELD_VALUE = '' THEN FIELD_VALUE = PO.RECORD<14>
+IF FIELD_VALUE = '' THEN FIELD_VALUE = PO.RECORD<6>
+IF FIELD_VALUE = '' THEN FIELD_VALUE = PO.RECORD<12>
+GOSUB CLEAN_FIELD
+VENDOR_NUMBER_CLEAN = FIELD_VALUE
+XML.RESPONSE = XML.RESPONSE : '<vendor_number>' : FIELD_VALUE : '</vendor_number>'
+
+WRITE 'VENDOR FIELD SUCCESS' ON XMLDATAF,'DEBUG_STEP_VENDOR.TXT'
+
+* Test multivalue field operations (potential problem area)
+LINE_ITEMS_RAW = PO.RECORD<31>
+IF LINE_ITEMS_RAW <> '' THEN
+    LINE_COUNT = DCOUNT(LINE_ITEMS_RAW, XVM)
+    XML.RESPONSE = XML.RESPONSE : '<line_count>' : LINE_COUNT : '</line_count>'
+END ELSE
+    XML.RESPONSE = XML.RESPONSE : '<line_count>0</line_count>'
+END
+
+WRITE 'MULTIVALUE SUCCESS' ON XMLDATAF,'DEBUG_STEP_MULTIVALUE.TXT'
+
+* Test vendor record reading (potential problem area)
+READ VENDOR.RECORD FROM VENDORF, VENDOR_NUMBER_CLEAN ELSE VENDOR.RECORD = ''
+IF VENDOR.RECORD <> '' THEN
+    FIELD_VALUE = VENDOR.RECORD<1>
+    GOSUB CLEAN_FIELD
+    XML.RESPONSE = XML.RESPONSE : '<vendor_name>' : FIELD_VALUE : '</vendor_name>'
+END ELSE
+    XML.RESPONSE = XML.RESPONSE : '<vendor_name>NOT_FOUND</vendor_name>'
+END
+
+WRITE 'VENDOR READ SUCCESS' ON XMLDATAF,'DEBUG_STEP_VENDOR_READ.TXT'
+
+* Test ship-to logic (potential problem area)
+SHIPTO_CODE = ''
+IF SHIPTO_CODE = '' THEN SHIPTO_CODE = PO.RECORD<4>
+IF SHIPTO_CODE = '' THEN SHIPTO_CODE = PO.RECORD<2>
+IF SHIPTO_CODE = '' THEN SHIPTO_CODE = PO.RECORD<3>
+IF SHIPTO_CODE = '' THEN SHIPTO_CODE = PO.RECORD<6>
+
+IF SHIPTO_CODE <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<shipto_code>' : SHIPTO_CODE : '</shipto_code>'
+END ELSE
+    XML.RESPONSE = XML.RESPONSE : '<shipto_code>EMPTY</shipto_code>'
+END
+
+WRITE 'SHIPTO SUCCESS' ON XMLDATAF,'DEBUG_STEP_SHIPTO.TXT'
+
+* Test line items processing (potential problem area)
+LINE_ITEMS_RAW = PO.RECORD<31>
+PART_NUMBERS_RAW = PO.RECORD<32>
+DESCRIPTIONS_RAW = PO.RECORD<33>
+
+WRITE 'LINE ITEMS EXTRACTED' ON XMLDATAF,'DEBUG_STEP_LINEITEM_EXTRACT.TXT'
+
+XML.RESPONSE = XML.RESPONSE : '<line_items>'
+IF LINE_ITEMS_RAW <> '' THEN
+    LINE_COUNT = DCOUNT(LINE_ITEMS_RAW, XVM)
+    FOR LINE_INDEX = 1 TO LINE_COUNT
+        XML.RESPONSE = XML.RESPONSE : '<line_item>'
+        
+        * Line item code
+        FIELD_VALUE = FIELD(LINE_ITEMS_RAW, XVM, LINE_INDEX)
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<line_item_code>' : FIELD_VALUE : '</line_item_code>'
+        
+        * Part number
+        FIELD_VALUE = FIELD(PART_NUMBERS_RAW, XVM, LINE_INDEX)
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<part_number>' : FIELD_VALUE : '</part_number>'
+        
+        * Description
+        FIELD_VALUE = FIELD(DESCRIPTIONS_RAW, XVM, LINE_INDEX)
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<description>' : FIELD_VALUE : '</description>'
+        
+        XML.RESPONSE = XML.RESPONSE : '</line_item>'
+    NEXT LINE_INDEX
+END
+XML.RESPONSE = XML.RESPONSE : '</line_items>'
+
+WRITE 'LINE ITEMS PROCESSED' ON XMLDATAF,'DEBUG_STEP_LINEITEM_DONE.TXT'
+
+* Test Julian date conversion (potential problem area)
+JULIAN_DAY = '20994'
+GOSUB CONVERT_JULIAN_TO_DATE
+XML.RESPONSE = XML.RESPONSE : '<test_date>' : FORMATTED_DATE : '</test_date>'
+
+WRITE 'JULIAN CONVERSION SUCCESS' ON XMLDATAF,'DEBUG_STEP_JULIAN.TXT'
+
+* Test complex ship-to lookup (potential problem area)
+IF SHIPTO_CODE <> '' AND SHIPTO_CODE <> VENDOR_NUMBER_CLEAN THEN
+    READ SHIPTO.RECORD FROM VENDORF, SHIPTO_CODE ELSE SHIPTO.RECORD = ''
+    IF SHIPTO.RECORD <> '' THEN
+        FIELD_VALUE = SHIPTO.RECORD<1>
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<shipto_name>' : FIELD_VALUE : '</shipto_name>'
+    END ELSE
+        XML.RESPONSE = XML.RESPONSE : '<shipto_name>NOT_FOUND</shipto_name>'
+    END
+END ELSE
+    XML.RESPONSE = XML.RESPONSE : '<shipto_name>SAME_AS_VENDOR</shipto_name>'
+END
+
+WRITE 'SHIPTO LOOKUP SUCCESS' ON XMLDATAF,'DEBUG_STEP_SHIPTO_LOOKUP.TXT'
+
+* Test acknowledgments processing (most complex - potential problem area)
+ACK_FIELD = ''
+IF PO.RECORD<49> <> '' THEN
+    ACK_FIELD = PO.RECORD<49>
+END ELSE
+    IF PO.RECORD<38> <> '' THEN
+        ACK_FIELD = PO.RECORD<38>
+    END
+END
+
+WRITE 'ACK FIELD EXTRACTED' ON XMLDATAF,'DEBUG_STEP_ACK_EXTRACT.TXT'
+
+IF ACK_FIELD <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<acknowledgments>'
+    
+    * Parse multivalue/subvalue structure
+    FIRST_MULTIVALUE = FIELD(ACK_FIELD, XVM, 1)
+    IF FIRST_MULTIVALUE = '' OR FIRST_MULTIVALUE = ACK_FIELD THEN
+        FIRST_MULTIVALUE = FIELD(ACK_FIELD, XAM, 1)
+        IF FIRST_MULTIVALUE = '' OR FIRST_MULTIVALUE = ACK_FIELD THEN
+            FIRST_MULTIVALUE = FIELD(ACK_FIELD, '*', 1)
+            IF FIRST_MULTIVALUE = '' OR FIRST_MULTIVALUE = ACK_FIELD THEN
+                FIRST_MULTIVALUE = ACK_FIELD
+            END
+        END
+    END
+    
+    * Parse date*qty from FIRST_MULTIVALUE
+    IF INDEX(FIRST_MULTIVALUE, '*', 1) > 0 THEN
+        ACK_DATE = FIELD(FIRST_MULTIVALUE, '*', 1)
+        ACK_QTY = FIELD(FIRST_MULTIVALUE, '*', 2)
+    END ELSE
+        ACK_DATE = FIRST_MULTIVALUE
+        ACK_QTY = ''
+    END
+    
+    FIELD_VALUE = ACK_DATE
+    GOSUB CLEAN_FIELD
+    XML.RESPONSE = XML.RESPONSE : '<ack_date>' : FIELD_VALUE : '</ack_date>'
+    FIELD_VALUE = ACK_QTY
+    GOSUB CLEAN_FIELD
+    XML.RESPONSE = XML.RESPONSE : '<ack_qty>' : FIELD_VALUE : '</ack_qty>'
+    XML.RESPONSE = XML.RESPONSE : '</acknowledgments>'
+END ELSE
+    XML.RESPONSE = XML.RESPONSE : '<acknowledgments><ack_date></ack_date><ack_qty></ack_qty></acknowledgments>'
+END
+
+WRITE 'ACK PROCESSING SUCCESS' ON XMLDATAF,'DEBUG_STEP_ACK_DONE.TXT'
+
+XML.RESPONSE = XML.RESPONSE : '<status>step_test_success_v6</status>'
+GOTO FINISH_OUTPUT
+
+* Convert Julian date function
+CONVERT_JULIAN_TO_DATE:
+  FORMATTED_DATE = ''
+  IF JULIAN_DAY = '' OR JULIAN_DAY = '0' THEN RETURN
+  
+  * If already formatted with dashes, leave it
+  IF INDEX(JULIAN_DAY, '-', 1) > 0 THEN
+    FORMATTED_DATE = JULIAN_DAY
+    RETURN
+  END
+  
+  * Safe numeric check before OCONV
+  IF NUM(JULIAN_DAY) AND JULIAN_DAY <> 0 THEN
+    FORMATTED_DATE = OCONV(JULIAN_DAY, "D-YMD")
+  END ELSE
+    BEGIN CASE
+      CASE JULIAN_DAY = '20994'
+        FORMATTED_DATE = '2025-06-23'
+      CASE JULIAN_DAY = '20981'
+        FORMATTED_DATE = '2025-06-10'
+      CASE 1
+        FORMATTED_DATE = ''
+    END CASE
+  END
+  RETURN
+
+* Subroutine to clean field data
+CLEAN_FIELD:
+    FIELD_VALUE = TRIM(FIELD_VALUE)
+    IF FIELD_VALUE = '' THEN RETURN
+    * Replace subvalue separators with readable text
+    CONVERT XSM TO ' | ' IN FIELD_VALUE  
+    CONVERT XVM TO ' -- ' IN FIELD_VALUE
+    * Basic XML escaping
+    CONVERT '&' TO '&amp;' IN FIELD_VALUE
+    CONVERT '<' TO '&lt;' IN FIELD_VALUE
+    CONVERT '>' TO '&gt;' IN FIELD_VALUE
+    RETURN
+
+FINISH_OUTPUT:
+XML.RESPONSE = XML.RESPONSE:'</po>':CRLF:'</purchaseorders>':CRLF
+
+WRITE XML.RESPONSE ON XMLDATAF,'GET_PO2_STEP_BY_STEP.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/GET_PO2_STEP_BY_STEP.XML','',ERR)
+RETURN
+</pre>

@@ -1,0 +1,144 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+*
+* GET_PART_INFO.XML - Service to get part information for line item lookup
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO' TO POF ELSE STOP 201,'PO'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253) 
+XSM = CHAR(252)
+
+* Get parameters from URL
+PL_GETVAR PART_NUMBER FROM 'PART_NUMBER' ELSE PART_NUMBER = ''
+PL_GETVAR PART FROM 'PART' ELSE PART = PART_NUMBER
+
+PART = TRIM(PART)
+
+* Add XML header
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<parts>'
+
+* Validate parameter
+IF PART = "" THEN
+    XML.RESPONSE = XML.RESPONSE : XAM : '<error>Missing parameter: PART_NUMBER or PART</error>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '</parts>'
+    WRITE XML.RESPONSE ON XMLDATAF,'PART_INFO.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/PART_INFO.XML','',ERR)
+    RETURN
+END
+
+* Search through PO records for matching part number
+PART_FOUND = 0
+PART_DESC = ''
+VENDOR_PART = ''
+PART_PRICE = 0
+SCHEDULE_DATA = ''
+RECORDS_CHECKED = 0
+PARTS_FOUND_LIST = ''
+
+* Get list of PO record IDs
+SELECT POF TO PO_LIST
+LOOP
+    READNEXT PO_ID FROM PO_LIST ELSE GOTO FOUND_PART
+    READ PO.RECORD FROM POF, PO_ID ELSE CONTINUE
+    RECORDS_CHECKED = RECORDS_CHECKED + 1
+    
+    * Check field 32 for part numbers (multivalue handling)
+    IF PO.RECORD<32> <> '' THEN
+        * Get count of part numbers in multivalue field
+        PART_LINES = DCOUNT(PO.RECORD<32>, XVM)
+        FOR I = 1 TO PART_LINES
+            PO_PART_NUM = PO.RECORD<32, I>
+            * Add to debugging list (limit to first 10)
+            IF DCOUNT(PARTS_FOUND_LIST, ',') < 10 THEN
+                IF PARTS_FOUND_LIST <> '' THEN PARTS_FOUND_LIST = PARTS_FOUND_LIST : ','
+                PARTS_FOUND_LIST = PARTS_FOUND_LIST : PO_PART_NUM
+            END
+            
+            * Check for partial match
+            IF INDEX(PO_PART_NUM, PART, 1) > 0 THEN
+                * Found matching part number
+                PART_FOUND = 1
+                PART_DESC = PO.RECORD<33, I>        ; * Description (field 33, same position)
+                VENDOR_PART = PO.RECORD<56, I>      ; * Vendor part number (field 56, same position)
+                PART_PRICE_RAW = PO.RECORD<36, I>   ; * Price (field 36, same position)
+                SCHEDULE_DATA = PO.RECORD<34, I>    ; * Schedule date*qty (field 34, same position)
+                
+                * Convert price from internal format (integer) to decimal
+                IF PART_PRICE_RAW <> '' THEN
+                    PART_PRICE = PART_PRICE_RAW / 10000
+                END ELSE
+                    PART_PRICE = 0
+                END
+                
+                GOTO FOUND_PART  ; * Exit all loops
+            END
+        NEXT I
+    END
+    
+    * Limit search to reasonable number of records
+    IF RECORDS_CHECKED >= 10 THEN GOTO FOUND_PART
+REPEAT
+
+FOUND_PART:
+
+* Check if part was found
+IF PART_FOUND = 0 THEN
+    * Part not found - include debugging info
+    XML.RESPONSE = XML.RESPONSE : XAM : '<part>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<part_number></part_number>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<description></description>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<vendor_part_number></vendor_part_number>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<price></price>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<schedule_info></schedule_info>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<found>false</found>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<debug_search_term>' : PART : '</debug_search_term>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<debug_records_checked>' : RECORDS_CHECKED : '</debug_records_checked>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<debug_parts_found>' : PARTS_FOUND_LIST : '</debug_parts_found>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '</part>'
+    GOTO DONE
+END
+
+* Build XML response
+XML.RESPONSE = XML.RESPONSE : XAM : '<part>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<part_number>' : PART : '</part_number>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<description>' : PART_DESC : '</description>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<vendor_part_number>' : VENDOR_PART : '</vendor_part_number>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<price>' : PART_PRICE : '</price>'
+
+* Process schedule information (date*qty format)
+XML.RESPONSE = XML.RESPONSE : XAM : '<schedule_info>'
+IF SCHEDULE_DATA <> "" THEN
+    SCHED_LINES = DCOUNT(SCHEDULE_DATA, XVM)
+    FOR I = 1 TO SCHED_LINES
+        SCHED_LINE = SCHEDULE_DATA<I>
+        SCHED_PARTS = DCOUNT(SCHED_LINE, XSM)
+        XML.RESPONSE = XML.RESPONSE : XAM : '<schedule_entry>'
+        FOR J = 1 TO SCHED_PARTS
+            XML.RESPONSE = XML.RESPONSE : XAM : '<schedule_item>' : SCHED_LINE<1,1,J> : '</schedule_item>'
+        NEXT J
+        XML.RESPONSE = XML.RESPONSE : XAM : '</schedule_entry>'
+    NEXT I
+END
+XML.RESPONSE = XML.RESPONSE : XAM : '</schedule_info>'
+
+XML.RESPONSE = XML.RESPONSE : XAM : '<found>true</found>'
+XML.RESPONSE = XML.RESPONSE : XAM : '</part>'
+
+DONE:
+* Complete XML response
+XML.RESPONSE = XML.RESPONSE : XAM : '</parts>'
+
+* Output XML
+WRITE XML.RESPONSE ON XMLDATAF,'PART_INFO.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/PART_INFO.XML','',ERR)
+RETURN
+</PRE>

@@ -1,0 +1,76 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+  OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+ 
+*
+* REM Get parameters from URL
+PL_GETVAR CODE FROM 'CODE' ELSE CODE = ''
+
+CODE = TRIM(CODE)
+
+*
+*PL_ADD_HDR 'Set-Cookie: INIT=':INITIALS:'; domain=cde.com;'
+*        R.ERR = '302 MOVED TEMPORARILY'
+*        PL_ADD_HDR 'Location: /':MENU
+  
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : AM:'<TransactionTypes>' 
+
+*REM No validation needed - return all transaction types
+
+
+*REM Open MTLTRANS database file
+OPEN "MTLTRANS" TO MTLTRANS.FILE ELSE
+    XML.RESPONSE = XML.RESPONSE : AM:'<error>Cannot open MTLTRANS file</error>'
+    XML.RESPONSE = XML.RESPONSE : AM:'</TransactionTypes>'
+    WRITE XML.RESPONSE ON XMLDATAF,'PREVIEW'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/PREVIEW','',ERR)
+    RETURN
+END
+    
+*
+  
+
+* REM Select all records from MTLTRANS
+SL = \SSELECT MTLTRANS\
+EXECUTE SL
+
+10 READNEXT CODE THEN
+    READ STOCK.RECORD FROM MTLTRANS.FILE, CODE ELSE GOTO 10
+    
+    * Extract code and description
+    TRANS_CODE = CODE
+    TRANS_DESC = STOCK.RECORD<3>
+    TRANS_TYPE = STOCK.RECORD<6>
+    TRANS_REFERENCE = STOCK.RECORD<7>
+    TRANS_DATECODE = STOCK.RECORD<8>
+    TRANS_NOTES = STOCK.RECORD<9>
+    
+    * Emit transaction type record
+    XML.RESPONSE = XML.RESPONSE : AM: '<TransactionType>'
+    XML.RESPONSE = XML.RESPONSE : AM:   '<Code>' : TRANS_CODE : '</Code>'
+    XML.RESPONSE = XML.RESPONSE : AM:   '<Description>' : TRANS_DESC : '</Description>'
+    XML.RESPONSE = XML.RESPONSE : AM:   '<Type>' : TRANS_TYPE : '</Type>'
+    XML.RESPONSE = XML.RESPONSE : AM:   '<Reference>' : TRANS_REFERENCE : '</Reference>'
+    XML.RESPONSE = XML.RESPONSE : AM:   '<DateCode>' : TRANS_DATECODE : '</DateCode>'
+    XML.RESPONSE = XML.RESPONSE : AM:   '<Notes>' : TRANS_NOTES : '</Notes>'
+    XML.RESPONSE = XML.RESPONSE : AM: '</TransactionType>'
+    
+    GOTO 10
+END
+*REM Complete XML response
+XML.RESPONSE = XML.RESPONSE : AM: '</TransactionTypes>'
+
+*REM Output the XML
+WRITE XML.RESPONSE ON XMLDATAF,'PREVIEW'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/PREVIEW','',ERR)
+RETURN
+</pre>
+                                                                                                                                                                          

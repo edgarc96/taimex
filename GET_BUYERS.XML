@@ -1,0 +1,43 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+*
+* GET_BUYERS.XML - Simple BUYERS database reader
+*
+* Initialize variables
+BUYER_KEY = ''
+BUYERS_LIST = ''
+XML.RESPONSE = ''
+ERR = ''
+OUTFILE = ''
+XAM = CHAR(254)
+
+* Open files
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'BUYERS' TO BUYERSF ELSE STOP 201,'BUYERS'
+
+* Build XML header
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<buyers>'
+
+* Read all records from BUYERS file
+SELECT BUYERSF TO BUYERS_LIST
+LOOP
+    READNEXT BUYER_KEY FROM BUYERS_LIST ELSE EXIT
+    READ BUYERS.RECORD FROM BUYERSF, BUYER_KEY ELSE CONTINUE
+    
+    * Add buyer to XML
+    XML.RESPONSE = XML.RESPONSE : XAM : '<buyer>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<buyer_code>' : BUYER_KEY : '</buyer_code>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '</buyer>'
+REPEAT
+
+* Close XML
+XML.RESPONSE = XML.RESPONSE : XAM : '</buyers>'
+
+* Write and serve
+OUTFILE = 'GET_BUYERS.XML'
+WRITE XML.RESPONSE ON XMLDATAF, OUTFILE
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/' : OUTFILE, '', ERR)
+RETURN
+</PRE>

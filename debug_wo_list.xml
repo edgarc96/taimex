@@ -1,0 +1,52 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+  OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+  OPEN 'WO' TO WOF ELSE STOP 201,'WO'
+  OPEN 'LIID' TO LIIDF ELSE STOP 201,'LIID'
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : AM:'<WorkOrders>' 
+
+*REM List first 20 Work Order IDs to see what exists
+SELECT WOF
+COUNTER = 0
+LOOP
+    READNEXT WO.KEY ELSE EXIT
+    COUNTER = COUNTER + 1
+    IF COUNTER > 20 THEN EXIT
+    
+    READ WO.RECORD FROM WOF, WO.KEY ELSE
+        XML.RESPONSE = XML.RESPONSE : AM:'<wo><id>' : WO.KEY : '</id><status>READ_error</status></wo>'
+        CONTINUE
+    END
+    
+    WO_DATE = WO.RECORD<1>
+    WO_TYPE = WO.RECORD<20>
+    ASSY_NO = WO.RECORD<32>
+    
+    XML.RESPONSE = XML.RESPONSE : AM:'<wo>'
+    XML.RESPONSE = XML.RESPONSE : AM:'  <id>' : WO.KEY : '</id>'
+    XML.RESPONSE = XML.RESPONSE : AM:'  <wo_date>' : WO_DATE : '</wo_date>'
+    XML.RESPONSE = XML.RESPONSE : AM:'  <wo_type>' : WO_TYPE : '</wo_type>'
+    XML.RESPONSE = XML.RESPONSE : AM:'  <assy_no>' : ASSY_NO : '</assy_no>'
+    XML.RESPONSE = XML.RESPONSE : AM:'</wo>'
+REPEAT
+
+*REM Also check LIID counter
+READ WONUM FROM LIIDF,'WO' ELSE WONUM = 0
+XML.RESPONSE = XML.RESPONSE : AM:'<liid_counter>' : WONUM : '</liid_counter>'
+
+XML.RESPONSE = XML.RESPONSE : AM:'</WorkOrders>'
+
+*REM Output the XML
+WRITE XML.RESPONSE ON XMLDATAF,'DEBUG_WO_LIST.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/DEBUG_WO_LIST.XML','',ERR)
+RETURN
+</pre>

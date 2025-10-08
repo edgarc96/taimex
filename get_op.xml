@@ -1,0 +1,123 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+*
+* GET_OP.XML - Servicio para obtener datos de operadores/usuarios
+* Basado en getcust.xml pero adaptado para usuarios OP
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+*
+* Obtener parámetros de URL
+PL_GETVAR INITIALS FROM 'INITIALS' ELSE INITIALS = ''
+PL_GETVAR INI FROM 'INI' ELSE INI = ''
+PL_GETVAR OP FROM 'OP' ELSE OP = ''
+PL_GETVAR ID FROM 'ID' ELSE ID = ''
+PL_GETVAR SELECT FROM 'SELECT' ELSE SELECT = ''
+
+* Usar cualquier parámetro que venga
+IF INITIALS = '' THEN INITIALS = INI
+IF INITIALS = '' THEN INITIALS = OP
+INITIALS = TRIM(OCONV(INITIALS, "MCU"))
+ID = TRIM(OCONV(ID, "MCU"))
+SELECT = TRIM(OCONV(SELECT, "MCU"))
+
+* Modo listar todos
+LIST_ALL = (ID = 'ALL') OR (SELECT = 'ALL') OR (INITIALS = 'ALL') OR (INITIALS = '*')
+
+* Cabeceras HTTP (sin comillas)
+PL_ADD_HDR 'Content-Type: application/xml'
+PL_ADD_HDR 'Access-Control-Allow-Origin: *'
+PL_ADD_HDR 'Access-Control-Allow-Methods: GET, OPTIONS'
+PL_ADD_HDR 'Access-Control-Allow-Headers: Content-Type'
+
+* Inicializar separador y respuesta XML
+XAM = CHAR(254)
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<Users>'
+
+* Validar parámetros (solo si no es listar todos)
+IF (NOT LIST_ALL) AND (INITIALS = '') THEN
+    XML.RESPONSE = XML.RESPONSE : XAM : '<Error>Missing required parameter: INITIALS</Error>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '</Users>'
+    WRITE XML.RESPONSE ON XMLDATAF, 'GET_OP_ERROR.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/GET_OP_ERROR.XML', '', ERR)
+    RETURN
+END
+
+* Buscar usuario dinámicamente
+NAME = ''
+
+* Leer archivo dinámico OP_USERS.TXT (creado por SYNC_USERS.XML)
+USERDATA = ''
+READ USERDATA FROM XMLDATAF, 'OP_USERS.TXT' ELSE
+   IF LIST_ALL THEN GOTO DONE
+   GOTO USER_NOT_FOUND
+END
+
+* Procesar archivo dinámico línea por línea
+NL = CHAR(10)
+CR = CHAR(13)
+CONVERT CR:NL TO XAM IN USERDATA
+CONVERT NL TO XAM IN USERDATA
+LINES = DCOUNT(USERDATA, XAM)
+
+FOR I = 1 TO LINES
+   LINE = TRIM(USERDATA<I>)
+   IF I = 1 THEN
+      * Quitar BOM UTF-8 si existe
+      IF LINE[1,3] = CHAR(239):CHAR(187):CHAR(191) THEN LINE = LINE[4, LEN(LINE)-3]
+   END
+   IF LINE # '' AND INDEX(LINE, '|', 1) THEN
+      USER_INI = TRIM(FIELD(LINE, '|', 1))
+      USER_NAM = TRIM(FIELD(LINE, '|', 2))
+      IF LIST_ALL THEN
+         GOSUB ADD_USER_TO_XML
+      END ELSE
+         IF OCONV(USER_INI, "MCU") = INITIALS THEN
+            NAME = USER_NAM
+            GOTO BUILD_XML
+         END
+      END
+   END
+NEXT I
+
+* Si estamos en modo lista, ya agregamos todos
+IF LIST_ALL THEN GOTO DONE
+
+* Si no se encuentra individual
+USER_NOT_FOUND:
+IF NAME = '' THEN NAME = 'Desconocido'
+
+BUILD_XML:
+* Construir respuesta XML (usuario individual)
+XML.RESPONSE = XML.RESPONSE : XAM : '  <User>'
+XML.RESPONSE = XML.RESPONSE : XAM : '    <Initials>' : INITIALS : '</Initials>'
+XML.RESPONSE = XML.RESPONSE : XAM : '    <Name><![CDATA[' : NAME : ']]></Name>'
+XML.RESPONSE = XML.RESPONSE : XAM : '    <Active>1</Active>'
+XML.RESPONSE = XML.RESPONSE : XAM : '  </User>'
+
+DONE:
+* Completar respuesta XML
+XML.RESPONSE = XML.RESPONSE : XAM : '</Users>'
+
+* Escribir y servir XML
+IF LIST_ALL THEN
+   OUTFILE = 'GET_OP_ALL.XML'
+END ELSE
+   OUTFILE = 'GET_OP_' : INITIALS : '.XML'
+END
+WRITE XML.RESPONSE ON XMLDATAF, OUTFILE
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/' : OUTFILE, '', ERR)
+RETURN
+
+* Subrutina para agregar usuario cuando LIST_ALL
+ADD_USER_TO_XML:
+   XML.RESPONSE = XML.RESPONSE : XAM : '  <User>'
+   XML.RESPONSE = XML.RESPONSE : XAM : '    <Initials>' : OCONV(USER_INI, "MCU") : '</Initials>'
+   XML.RESPONSE = XML.RESPONSE : XAM : '    <Name><![CDATA[' : USER_NAM : ']]></Name>'
+   XML.RESPONSE = XML.RESPONSE : XAM : '    <Active>1</Active>'
+   XML.RESPONSE = XML.RESPONSE : XAM : '  </User>'
+RETURN
+</PRE>
+     

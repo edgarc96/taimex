@@ -1,0 +1,120 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO' TO POF ELSE STOP 201,'PO'
+OPEN 'VENDOR' TO VENDORF ELSE STOP 201,'VENDOR'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+* Get search parameters from URL
+PL_GETVAR SEARCH_PO_NUMBER FROM 'PO_NUMBER' ELSE SEARCH_PO_NUMBER = ''
+PL_GETVAR SEARCH_VENDOR_CODE FROM 'VENDOR_CODE' ELSE SEARCH_VENDOR_CODE = ''
+PL_GETVAR SEARCH_STATUS FROM 'STATUS' ELSE SEARCH_STATUS = ''
+
+SEARCH_PO_NUMBER = TRIM(SEARCH_PO_NUMBER)
+SEARCH_VENDOR_CODE = TRIM(SEARCH_VENDOR_CODE)
+SEARCH_STATUS = TRIM(SEARCH_STATUS)
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM:'<search_results>' 
+
+*REM Read PO records
+SL = \SSELECT PO\
+EXECUTE SL
+
+RESULT_COUNT = 0
+
+10 READNEXT PO_ID THEN
+    READ PO.RECORD FROM POF, PO_ID ELSE
+        GOTO 10
+    END
+
+    * Apply search filters
+    MATCH_FOUND = 1
+    
+    * Filter by PO Number if specified
+    IF SEARCH_PO_NUMBER <> "" THEN
+        IF INDEX(PO_ID, SEARCH_PO_NUMBER, 1) = 0 THEN MATCH_FOUND = 0
+    END
+    
+    * Filter by Vendor Code if specified
+    IF SEARCH_VENDOR_CODE <> "" AND MATCH_FOUND = 1 THEN
+        VENDOR_NUMBER = PO.RECORD<2>
+        IF INDEX(VENDOR_NUMBER, SEARCH_VENDOR_CODE, 1) = 0 THEN MATCH_FOUND = 0
+    END
+    
+    * Filter by Status if specified
+    IF SEARCH_STATUS <> "" AND MATCH_FOUND = 1 THEN
+        PO_STATUS = PO.RECORD<15>
+        IF PO_STATUS <> SEARCH_STATUS THEN MATCH_FOUND = 0
+    END
+    
+    * If no match, continue to next record
+    IF MATCH_FOUND = 0 THEN GOTO 10
+    
+    * Build result record
+    XML.RESPONSE = XML.RESPONSE :XAM: '<po_result>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<po_number>' : PO_ID : '</po_number>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<po_date>' : PO.RECORD<1> : '</po_date>'
+    
+    * Get vendor information
+    VENDOR_NUMBER = PO.RECORD<2>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_code>' : VENDOR_NUMBER : '</vendor_code>'
+    
+    READ VENDOR.RECORD FROM VENDORF, VENDOR_NUMBER ELSE
+        XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_name>Unknown Vendor</vendor_name>'
+        GOTO VENDOR_DONE
+    END
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_name>' : VENDOR.RECORD<1> : '</vendor_name>'
+    
+    VENDOR_DONE:
+    
+    * Get first description line
+    DESCRIPTION = ''
+    IF PO.RECORD<33> <> '' THEN
+        DESCRIPTION = PO.RECORD<33,1>
+    END
+    XML.RESPONSE = XML.RESPONSE :XAM: '<description>' : DESCRIPTION : '</description>'
+    
+    * Status
+    PO_STATUS = PO.RECORD<15>
+    IF PO_STATUS = '' THEN PO_STATUS = 'OPEN'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<status>' : PO_STATUS : '</status>'
+    
+    * Calculate total (price * quantity if available)
+    PO_PRICE = PO.RECORD<36>
+    IF PO_PRICE = '' THEN PO_PRICE = '0.00'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<total>' : PO_PRICE : '</total>'
+    
+    XML.RESPONSE = XML.RESPONSE :XAM: '</po_result>'
+    
+    RESULT_COUNT = RESULT_COUNT + 1
+    
+    * Limit results to prevent overwhelming response
+    IF RESULT_COUNT >= 50 THEN GOTO DONE
+    
+    GOTO 10
+END
+
+DONE:
+*REM Add result count
+XML.RESPONSE = XML.RESPONSE :XAM: '<result_count>' : RESULT_COUNT : '</result_count>'
+
+*REM Complete XML response
+XML.RESPONSE = XML.RESPONSE :XAM: '</search_results>'
+ 
+*REM Output the XML
+    WRITE XML.RESPONSE ON XMLDATAF,'SEARCH_PO.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/SEARCH_PO.XML','',ERR)
+    RETURN
+</pre>

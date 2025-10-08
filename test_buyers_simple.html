@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Buyers Simple - NO EXTERNAL IPs</title>
+</head>
+<body>
+    <h1>Simple Buyers Test - Local Only</h1>
+    
+    <div>
+        <label>Buyer Initials:</label>
+        <input type="text" id="initials" placeholder="Enter initials (e.g., EC)" onkeyup="testAutoFill(this.value)">
+    </div>
+    
+    <div>
+        <label>Buyer Name:</label>
+        <input type="text" id="name" readonly>
+    </div>
+    
+    <div id="log"></div>
+    
+    <script>
+        async function testAutoFill(initials) {
+            const log = document.getElementById('log');
+            const nameInput = document.getElementById('name');
+            
+            if (!initials || initials.length < 1) {
+                nameInput.value = '';
+                log.innerHTML = '';
+                return;
+            }
+            
+            try {
+                log.innerHTML = `<p>🔍 Testing with initials: ${initials}</p>`;
+                log.innerHTML += `<p>📡 Requesting: GET_BUYERS.XML?INITIALS=${initials}</p>`;
+                
+                // Use RELATIVE URL only - no external IPs
+                const response = await fetch(`GET_BUYERS.XML?INITIALS=${encodeURIComponent(initials)}`, {
+                    cache: 'no-cache',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+                
+                log.innerHTML += `<p>📡 Response status: ${response.status}</p>`;
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const xmlText = await response.text();
+                log.innerHTML += `<p>📄 XML Response:</p><pre style="background:#f5f5f5;padding:10px;max-height:200px;overflow:auto;">${xmlText}</pre>`;
+                
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+                
+                const buyerName = xmlDoc.querySelector('buyer_name')?.textContent;
+                const buyerCode = xmlDoc.querySelector('buyer_code')?.textContent;
+                
+                if (buyerName && buyerName.trim()) {
+                    nameInput.value = buyerName.trim();
+                    nameInput.style.background = '#d4edda';
+                    log.innerHTML += `<p>✅ Found: ${buyerName} (Code: ${buyerCode})</p>`;
+                } else {
+                    nameInput.value = '';
+                    nameInput.style.background = '#f8d7da';
+                    log.innerHTML += `<p>⚠️ No name found for: ${initials}</p>`;
+                }
+                
+            } catch (error) {
+                log.innerHTML += `<p>❌ Error: ${error.message}</p>`;
+                nameInput.value = '';
+                nameInput.style.background = '#fef2f2';
+            }
+        }
+    </script>
+</body>
+</html>

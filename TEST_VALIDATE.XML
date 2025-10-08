@@ -1,0 +1,20 @@
+<pre>
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+*
+PL_GETVAR PARTNUM FROM 'PARTNUM' ELSE PARTNUM = ''
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+*
+RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+RESPONSE = RESPONSE : AM : '<ValidationResult>'
+RESPONSE = RESPONSE : AM : '<status>success</status>'
+RESPONSE = RESPONSE : AM : '<message>Test OK - PARTNUM: ':PARTNUM:'</message>'
+RESPONSE = RESPONSE : AM : '</ValidationResult>'
+*
+WRITE RESPONSE ON XMLDATAF,'PREVIEW'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/PREVIEW','',ERR)
+RETURN
+</pre>

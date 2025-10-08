@@ -1,0 +1,39 @@
+PicLan-IP/BASIC ^ ^
+*REM DEBUG version to check POST data reception
+
+*REM Open required files
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+
+*REM Set content type
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize response
+XML.RESPONSE = '<?xml version="1.0"?><debug_response>'
+
+*REM Try different methods to get POST data
+*REM Method 1: PL_GETVAR
+PL_GETVAR PO_NUM_TEST FROM 'po_number' ELSE PO_NUM_TEST = 'NOT_FOUND'
+PL_GETVAR PO_DATE_TEST FROM 'po_date' ELSE PO_DATE_TEST = 'NOT_FOUND'
+
+*REM Add debug info
+XML.RESPONSE = XML.RESPONSE : '<method1_pl_getvar>'
+XML.RESPONSE = XML.RESPONSE : '<po_number>' : PO_NUM_TEST : '</po_number>'
+XML.RESPONSE = XML.RESPONSE : '<po_date>' : PO_DATE_TEST : '</po_date>'
+XML.RESPONSE = XML.RESPONSE : '</method1_pl_getvar>'
+
+*REM Method 2: Try all common parameter names
+PL_GETVAR VENDOR_TEST FROM 'vendor_code' ELSE VENDOR_TEST = 'NOT_FOUND'
+PL_GETVAR SHIPTO_TEST FROM 'shipto_code' ELSE SHIPTO_TEST = 'NOT_FOUND'
+
+XML.RESPONSE = XML.RESPONSE : '<method2_more_params>'
+XML.RESPONSE = XML.RESPONSE : '<vendor_code>' : VENDOR_TEST : '</vendor_code>'
+XML.RESPONSE = XML.RESPONSE : '<shipto_code>' : SHIPTO_TEST : '</shipto_code>'
+XML.RESPONSE = XML.RESPONSE : '</method2_more_params>'
+
+XML.RESPONSE = XML.RESPONSE : '</debug_response>'
+
+*REM Output response
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_PO_DEBUG.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_PO_DEBUG.XML','',ERR)
+RETURN

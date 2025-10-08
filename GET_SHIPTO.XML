@@ -1,0 +1,209 @@
+PicLan-IP/BASIC ^ ^
+*
+* TAIMEX Ship-To Search - Based on GET_PO.XML structure
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'VENDOR' TO VENDORF ELSE STOP 201,'VENDOR'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+* Get parameters from URL
+PL_GETVAR SEARCH FROM 'SEARCH' ELSE SEARCH = ''
+PL_GETVAR SHIPTO_CODE FROM 'SHIPTO_CODE' ELSE SHIPTO_CODE = ''
+SEARCH = TRIM(SEARCH)
+SHIPTO_CODE = TRIM(SHIPTO_CODE)
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM:'<shiptos>'
+
+* Initialize counters
+COUNT = 0
+MAX_RECORDS = 50
+
+* Handle exact shipto code lookup first
+IF SHIPTO_CODE <> '' THEN
+    READ VENDOR.RECORD FROM VENDORF, SHIPTO_CODE ELSE
+        XML.RESPONSE = XML.RESPONSE :XAM: '<error>Shipto record not found: ' : SHIPTO_CODE : '</error>'
+        GOTO DONE
+    END
+    VENDOR_ID = SHIPTO_CODE
+    * Initialize all variables needed for PROCESS_SHIPTO
+    ADDRESS1 = ''
+    ADDRESS2 = ''
+    CITY_PART = ''
+    STATE_PART = ''
+    ZIP_PART = ''
+    ADDRESS_FIELD = ''
+    ADDRESS_COUNT = 0
+    CITYLINE = ''
+    POSCOM = 0
+    REST = ''
+    GOTO PROCESS_SHIPTO
+END
+
+* Search mode - scan VENDOR records for ship-to data  
+IF SEARCH <> '' THEN
+    SEARCH_UPPER = OCONV(SEARCH, 'MCU')
+END
+
+SL = 'SSELECT VENDOR'
+EXECUTE SL
+
+10 READNEXT VENDOR_ID THEN
+    READ VENDOR.RECORD FROM VENDORF, VENDOR_ID ELSE
+        GOTO 10
+    END
+    
+    * Skip empty records
+    IF VENDOR.RECORD<1> = '' AND VENDOR.RECORD<2> = '' AND VENDOR.RECORD<3> = '' THEN
+        GOTO 10
+    END
+    
+    * If search term provided, filter by vendor ID or name
+    IF SEARCH <> '' THEN
+        VENDOR_NAME_UP = ''
+        VENDOR_ID_UP = ''
+        IF VENDOR.RECORD<1> <> '' THEN VENDOR_NAME_UP = OCONV(VENDOR.RECORD<1>, 'MCU')
+        IF VENDOR_ID <> '' THEN VENDOR_ID_UP = OCONV(VENDOR_ID, 'MCU')
+        IF INDEX(VENDOR_NAME_UP, SEARCH_UPPER, 1) = 0 AND INDEX(VENDOR_ID_UP, SEARCH_UPPER, 1) = 0 THEN
+            GOTO 10
+        END
+    END
+    
+PROCESS_SHIPTO:
+    * Initialize all local variables for this section
+    ADDRESS_FIELD = ''
+    ADDRESS1 = ''
+    ADDRESS2 = ''
+    ADDRESS_COUNT = 0
+    CITYLINE = ''
+    CITY_PART = ''
+    STATE_PART = ''
+    ZIP_PART = ''
+    POSCOM = 0
+    REST = ''
+    
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto>'
+    
+    * SHIPTO NUMBER - Use the VENDOR_ID
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_number>' : VENDOR_ID : '</shipto_number>'
+    
+    * SHIPTO NAME <1>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_name>' : VENDOR.RECORD<1> : '</shipto_name>'
+    
+    * SHIPTO ADDRESS - Parse field 2 which contains multivalue address (XVM separator)
+    * Format: "C/O DEPT WEIGHTS & MEASURES" XVM "306 LIBERTY ST"
+    ADDRESS_FIELD = VENDOR.RECORD<2>
+    ADDRESS_COUNT = DCOUNT(ADDRESS_FIELD, XVM)
+    
+    * Convert XVM to regular delimiters for field extraction
+    CONVERT XVM TO @AM IN ADDRESS_FIELD
+    
+    IF ADDRESS_COUNT >= 1 THEN
+        ADDRESS1 = ADDRESS_FIELD<1>
+        * Remove control characters first
+        FOR I = 0 TO 31
+            CONVERT CHAR(I) TO '' IN ADDRESS1
+        NEXT I
+        * XML escape special characters - remove problematic chars
+        CONVERT '&<>"' : CHAR(39) TO '' IN ADDRESS1
+    END ELSE
+        ADDRESS1 = ''
+    END
+    
+    IF ADDRESS_COUNT >= 2 THEN
+        ADDRESS2 = ADDRESS_FIELD<2>
+        * Remove control characters first
+        FOR I = 0 TO 31
+            CONVERT CHAR(I) TO '' IN ADDRESS2
+        NEXT I
+        * XML escape - Manual string replacement for multi-character entities
+        TEMP_ADDR = ''
+        FOR I = 1 TO LEN(ADDRESS2)
+            CHAR_VAL = ADDRESS2[I,1]
+            IF CHAR_VAL = '&' THEN
+                TEMP_ADDR = TEMP_ADDR : '&amp;'
+            END ELSE
+                IF CHAR_VAL = '<' THEN
+                    TEMP_ADDR = TEMP_ADDR : '&lt;'
+                END ELSE
+                    IF CHAR_VAL = '>' THEN
+                        TEMP_ADDR = TEMP_ADDR : '&gt;'
+                    END ELSE
+                        IF CHAR_VAL = '"' THEN
+                            TEMP_ADDR = TEMP_ADDR : '&quot;'
+                        END ELSE
+                            IF CHAR_VAL = CHAR(39) THEN
+                                TEMP_ADDR = TEMP_ADDR : '&apos;'
+                            END ELSE
+                                TEMP_ADDR = TEMP_ADDR : CHAR_VAL
+                            END
+                        END
+                    END
+                END
+            END
+        NEXT I
+        ADDRESS2 = TEMP_ADDR
+    END ELSE
+        ADDRESS2 = ''
+    END
+    
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_address1>' : ADDRESS1 : '</shipto_address1>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_address2>' : ADDRESS2 : '</shipto_address2>'
+    
+    * SHIPTO CITY/STATE/ZIP - Parse field 3 format "NEW BEDFORD, MA 02740"
+    CITYLINE = VENDOR.RECORD<3>
+    CITY_PART = CITYLINE
+    STATE_PART = ''
+    ZIP_PART = ''
+    
+    * Parse "NEW BEDFORD, MA 02740" format
+    POSCOM = INDEX(CITYLINE, ',', 1)
+    IF POSCOM > 0 THEN
+        CITY_PART = TRIM(CITYLINE[1,POSCOM-1])
+        REST = TRIM(CITYLINE[POSCOM+1,999])
+        * REST now contains "MA 02740"
+        STATE_PART = FIELD(REST, ' ', 1)
+        ZIP_PART = FIELD(REST, ' ', 2)
+    END
+    
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_city>' : CITY_PART : '</shipto_city>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_state>' : STATE_PART : '</shipto_state>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_zip>' : ZIP_PART : '</shipto_zip>'
+    
+    
+    * SOURCE - Indicate this comes from VENDOR database
+    XML.RESPONSE = XML.RESPONSE :XAM: '<source>VENDOR</source>'
+    
+    XML.RESPONSE = XML.RESPONSE :XAM: '</shipto>'
+    
+    * Handle exact lookup vs search differently
+    IF SHIPTO_CODE <> '' THEN
+        * Exact lookup - we're done after one record
+        GOTO DONE
+    END
+    
+    COUNT = COUNT + 1
+    IF COUNT >= MAX_RECORDS THEN
+        GOTO DONE
+    END
+    
+    GOTO 10
+END
+
+DONE:
+* Complete XML response
+XML.RESPONSE = XML.RESPONSE :XAM: '</shiptos>'
+
+* Output the XML
+WRITE XML.RESPONSE ON XMLDATAF,'GET_SHIPTO.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/GET_SHIPTO.XML','',ERR)
+RETURN
+

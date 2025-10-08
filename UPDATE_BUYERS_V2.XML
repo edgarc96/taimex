@@ -1,0 +1,41 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+*
+PL_GETVAR BUYER_INITIALS FROM 'INITIALS' ELSE BUYER_INITIALS = ''
+BUYER_INITIALS = TRIM(BUYER_INITIALS)
+BUYER_INITIALS = OCONV(BUYER_INITIALS, "MCU")
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+OUT.KEY = 'UPD_BUYERS_V2.XML'
+*
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : AM : '<response>'
+*
+IF BUYER_INITIALS = "" THEN
+    XML.RESPONSE = XML.RESPONSE : AM : '<status>error</status>'
+    XML.RESPONSE = XML.RESPONSE : AM : '<success>false</success>'
+    XML.RESPONSE = XML.RESPONSE : AM : '<message>Missing INITIALS parameter</message>'
+    XML.RESPONSE = XML.RESPONSE : AM : '<error>INITIALS is required</error>'
+    XML.RESPONSE = XML.RESPONSE : AM : '</response>'
+    WRITE XML.RESPONSE ON XMLDATAF,OUT.KEY
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/':OUT.KEY,'',ERR)
+    STOP
+END
+*
+* Try to write to BUYERS file (create if needed)
+OPEN 'BUYERS' TO BUYERSF ELSE EXECUTE 'CREATE-FILE BUYERS' ; OPEN 'BUYERS' TO BUYERSF ELSE STOP 201,'BUYERS'
+WRITE BUYER_INITIALS ON BUYERSF, BUYER_INITIALS
+*
+XML.RESPONSE = XML.RESPONSE : AM : '<status>success</status>'
+XML.RESPONSE = XML.RESPONSE : AM : '<success>true</success>'
+XML.RESPONSE = XML.RESPONSE : AM : '<message>Buyer initials saved successfully</message>'
+XML.RESPONSE = XML.RESPONSE : AM : '<initials>' : BUYER_INITIALS : '</initials>'
+XML.RESPONSE = XML.RESPONSE : AM : '</response>'
+WRITE XML.RESPONSE ON XMLDATAF,OUT.KEY
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/':OUT.KEY,'',ERR)
+STOP
+</PRE>

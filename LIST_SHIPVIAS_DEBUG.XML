@@ -1,0 +1,42 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+*
+* LIST_SHIPVIAS_DEBUG.XML - Debug script to list all SHIPVIAS records
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'SHIPVIAS' TO SHIPVIASF ELSE STOP 201,'SHIPVIAS'
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : '<debug_shipvias_list>'
+
+* Get all records from SHIPVIAS
+SL = \SSELECT SHIPVIAS\
+EXECUTE SL
+
+RECORD_COUNT = 0
+10 READNEXT SHIPVIA_ID THEN
+    READ SHIPVIA.RECORD FROM SHIPVIASF, SHIPVIA_ID ELSE
+        GOTO 10
+    END
+    
+    RECORD_COUNT = RECORD_COUNT + 1
+    
+    XML.RESPONSE = XML.RESPONSE : '<shipvia_record>'
+    XML.RESPONSE = XML.RESPONSE : '<key>' : SHIPVIA_ID : '</key>'
+    XML.RESPONSE = XML.RESPONSE : '<field1_name>' : SHIPVIA.RECORD<1> : '</field1_name>'
+    XML.RESPONSE = XML.RESPONSE : '<field2_desc>' : SHIPVIA.RECORD<2> : '</field2_desc>'
+    XML.RESPONSE = XML.RESPONSE : '</shipvia_record>'
+    
+    GOTO 10
+END
+
+XML.RESPONSE = XML.RESPONSE : '<total_records>' : RECORD_COUNT : '</total_records>'
+XML.RESPONSE = XML.RESPONSE : '</debug_shipvias_list>'
+
+WRITE XML.RESPONSE ON XMLDATAF,'LIST_SHIPVIAS_DEBUG.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/LIST_SHIPVIAS_DEBUG.XML','',ERR)
+RETURN
+</PRE>

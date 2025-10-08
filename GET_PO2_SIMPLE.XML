@@ -1,0 +1,32 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+
+* Define constants
+XAM = CHAR(10)
+
+* Get parameters from URL
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = ''
+PO_NUMBER = TRIM(PO_NUMBER)
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<purchaseorders>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<po>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<po_number>96540</po_number>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<status>test</status>'
+XML.RESPONSE = XML.RESPONSE : XAM : '</po>'
+XML.RESPONSE = XML.RESPONSE : XAM : '</purchaseorders>'
+
+DELETE XMLDATAF, 'GET_PO2_SIMPLE.XML'
+WRITE XML.RESPONSE ON XMLDATAF, 'GET_PO2_SIMPLE.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/GET_PO2_SIMPLE.XML', '', ERR)
+RETURN
+
+</pre>

@@ -1,0 +1,135 @@
+<pre>
+PicLan-IP/BASIC ^ ^
+*
+* UPDATE_PARTS.XML - Update/Create parts in PARTS database
+* Maps form fields to specific PARTS database positions
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+*
+ PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+    ERR = '' ; INITIALS = ''
+    CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+    RETURN
+ END
+*
+* Get parameters from form
+PL_GETVAR PARTNUM FROM 'PARTNUM' ELSE PARTNUM = ''
+PL_GETVAR DESCRIPTION FROM 'DESCRIPTION' ELSE DESCRIPTION = ''
+PL_GETVAR PRODUCT_TIME FROM 'PRODUCT_TIME' ELSE PRODUCT_TIME = ''
+PL_GETVAR PART_STATUS FROM 'STATUS' ELSE PART_STATUS = ''
+* Debug: Log the received STATUS parameter
+WRITE 'DEBUG: Received STATUS parameter = [':PART_STATUS:']' ON XMLDATAF,'DEBUG_STATUS'
+PL_GETVAR LEADTIME FROM 'LEADTIME' ELSE LEADTIME = ''
+PL_GETVAR SAFETYSTOCK FROM 'SAFETYSTOCK' ELSE SAFETYSTOCK = ''
+PL_GETVAR UM FROM 'UM' ELSE UM = ''
+PL_GETVAR SUPPLIER_NUMBER FROM 'SUPPLIER_NUMBER' ELSE SUPPLIER_NUMBER = ''
+PL_GETVAR COMMODITY_CODE FROM 'COMMODITY_CODE' ELSE COMMODITY_CODE = ''
+PL_GETVAR PO_DESCRIPTION FROM 'PO_DESCRIPTION' ELSE PO_DESCRIPTION = ''
+PL_GETVAR ACTION FROM 'ACTION' ELSE ACTION = 'UPSERT'
+*
+* Open PARTS database
+OPEN 'PARTS' TO PARTSF ELSE
+  STATUS = 'error'
+  MESSAGE = 'CANNOT OPEN PARTS FILE'
+  GOTO SEND_RESPONSE
+END
+*
+* Initialize response
+STATUS = 'success'
+MESSAGE = ''
+*
+* Validate required fields
+IF PARTNUM = '' THEN
+  STATUS = 'error'
+  MESSAGE = 'PART NUMBER IS REQUIRED'
+  GOTO SEND_RESPONSE
+END
+*
+* Convert part number to uppercase for consistency
+PARTNUM = OCONV(PARTNUM,'MCU')
+*
+* Handle DELETE action
+IF ACTION = 'DELETE' THEN
+  DELETE PARTSF,PARTNUM
+  MESSAGE = 'PART ':PARTNUM:' DELETED SUCCESSFULLY'
+  GOTO SEND_RESPONSE
+END
+*
+* Read existing record or create new one
+READ PART_REC FROM PARTSF,PARTNUM ELSE PART_REC = ''
+*
+* Map form fields to PARTS database positions:
+* Field 0: Part Number (key) - not stored in record
+* Field 1: Part Description
+* Field 3: Product Time
+* Field 6: Lead Time
+* Field 7: Commodity Code
+* Field 12: Safety Stock
+* Field 19: Supplier Number
+* Field 21: PO Description
+* Field 24: UM (Unit of Measure)
+*
+IF DESCRIPTION NE '' THEN PART_REC<1> = DESCRIPTION
+IF PRODUCT_TIME NE '' THEN PART_REC<3> = PRODUCT_TIME
+IF LEADTIME NE '' THEN PART_REC<6> = LEADTIME
+IF COMMODITY_CODE NE '' THEN PART_REC<7> = COMMODITY_CODE
+IF SAFETYSTOCK NE '' THEN PART_REC<12> = SAFETYSTOCK
+IF SUPPLIER_NUMBER NE '' THEN PART_REC<19> = SUPPLIER_NUMBER
+IF PO_DESCRIPTION NE '' THEN PART_REC<21> = PO_DESCRIPTION
+IF UM NE '' THEN PART_REC<24> = UM
+* Persist part status in an unused field slot (30) - always save, even if empty
+PART_REC<30> = PART_STATUS
+* Debug: Log what we're saving
+WRITE 'DEBUG: Saving STATUS = [':PART_STATUS:'] to field 30' ON XMLDATAF,'DEBUG_SAVE_STATUS'
+*
+* Add audit trail fields
+PART_REC<99> = DATE():'*':TIME():'*':INITIALS  ; * Last modified
+*
+* Write record to PARTS database
+WRITE PART_REC ON PARTSF,PARTNUM
+*
+MESSAGE = 'PART ':PARTNUM:' UPDATED SUCCESSFULLY'
+*
+SEND_RESPONSE:
+*
+* Build XML response
+RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+RESPONSE = RESPONSE : AM : '<PartUpdateResult>'
+RESPONSE = RESPONSE : AM : '<status>':STATUS:'</status>'
+IF MESSAGE NE '' THEN
+  * Escape XML characters in message
+  ESC_MESSAGE = MESSAGE
+  ESC_MESSAGE = CHANGE(ESC_MESSAGE,'&','&amp;')
+  ESC_MESSAGE = CHANGE(ESC_MESSAGE,'<','&lt;')
+  ESC_MESSAGE = CHANGE(ESC_MESSAGE,'>','&gt;')
+  ESC_MESSAGE = CHANGE(ESC_MESSAGE,'"','&quot;')
+  RESPONSE = RESPONSE : AM : '<message>':ESC_MESSAGE:'</message>'
+END
+*
+IF STATUS = 'success' THEN
+  RESPONSE = RESPONSE : AM : '<PartData>'
+  RESPONSE = RESPONSE : AM : '<partNumber>':PARTNUM:'</partNumber>'
+  RESPONSE = RESPONSE : AM : '<description>':PART_REC<1>:'</description>'
+  RESPONSE = RESPONSE : AM : '<productTime>':PART_REC<3>:'</productTime>'
+  RESPONSE = RESPONSE : AM : '<leadTime>':PART_REC<6>:'</leadTime>'
+  RESPONSE = RESPONSE : AM : '<commodityCode>':PART_REC<7>:'</commodityCode>'
+  RESPONSE = RESPONSE : AM : '<safetyStock>':PART_REC<12>:'</safetyStock>'
+  RESPONSE = RESPONSE : AM : '<supplierNumber>':PART_REC<19>:'</supplierNumber>'
+  RESPONSE = RESPONSE : AM : '<poDescription>':PART_REC<21>:'</poDescription>'
+  RESPONSE = RESPONSE : AM : '<um>':PART_REC<24>:'</um>'
+  RESPONSE = RESPONSE : AM : '<partStatus>':PART_REC<30>:'</partStatus>'
+  RESPONSE = RESPONSE : AM : '<lastModified>':PART_REC<99>:'</lastModified>'
+  RESPONSE = RESPONSE : AM : '<modifiedBy>':INITIALS:'</modifiedBy>'
+  RESPONSE = RESPONSE : AM : '</PartData>'
+END
+*
+RESPONSE = RESPONSE : AM : '</PartUpdateResult>'
+*
+* Set content type and output response
+PL_ADD_HDR '"Content-Type: application/xml"'
+*
+WRITE RESPONSE ON XMLDATAF,'PARTS_UPDATE_RESPONSE'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/PARTS_UPDATE_RESPONSE','',ERR)
+RETURN
+</pre>

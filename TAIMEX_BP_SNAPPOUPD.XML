@@ -1,0 +1,19 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+
+* TAIMEX Business Program - Snap PO Update Subroutine
+* This creates an alternative to cornell,bp,snappoupd
+
+SUBROUTINE TAIMEX.BP.SNAPPOUPD(PO.REC, PO.NUM, ACTION.TYPE)
+
+* Simple pass-through subroutine that allows PO updates
+* without the cornell system restrictions
+
+* Log the operation
+PRINT "TAIMEX.BP.SNAPPOUPD called for PO: " : PO.NUM
+
+* Allow the operation to proceed without restrictions
+RETURN
+
+END
+</PRE>

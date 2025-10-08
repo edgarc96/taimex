@@ -1,0 +1,19 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+PL_GETVAR PO_NUMBER FROM 'po_number' ELSE PO_NUMBER = ''
+
+XML.RESPONSE = '<?xml version="1.0"?><update_response>'
+XML.RESPONSE = XML.RESPONSE : '<test>SUCCESS</test>'
+XML.RESPONSE = XML.RESPONSE : '<po_received>' : PO_NUMBER : '</po_received>'
+XML.RESPONSE = XML.RESPONSE : '</update_response>'
+
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_PO_SIMPLE.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_PO_SIMPLE.XML','',ERR)
+RETURN
+</PRE>

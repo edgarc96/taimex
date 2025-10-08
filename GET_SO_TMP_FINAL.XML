@@ -1,0 +1,153 @@
+<pre>
+PicLan-IP/BASIC ^ ^
+*
+* GET_SO_TMP.XML - Retrieve Sales Orders from TMP database
+* Shows all "Save for Later" drafts for the current user
+* Based on GET_SO.XML structure
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'TMP' TO TMPF ELSE STOP 201,'TMP'
+
+XVM = CHAR(253)
+XSM = CHAR(252)
+XAM = CHAR(254)
+
+PL_GETVAR USER_FILTER FROM 'user_initials' ELSE USER_FILTER = ''
+PL_GETVAR TEMP_ID_FILTER FROM 'temp_id' ELSE TEMP_ID_FILTER = ''
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* DEBUG: Add parameters to response for troubleshooting
+DEBUG_INFO = '<!-- DEBUG: USER_FILTER=[' : USER_FILTER : '] TEMP_ID_FILTER=[' : TEMP_ID_FILTER : '] -->'
+
+* Check if requesting specific temp_id (detailed view)
+IF TEMP_ID_FILTER <> '' THEN
+  GOSUB GET_TEMP_DETAIL
+  GOTO FINISH_OUTPUT
+END
+
+* Start XML response for list view
+XML_RESPONSE = '<?xml version="1.0" encoding="UTF-8"?><tmp_list>' : DEBUG_INFO
+
+* Select all records from TMP that start with 'so*'
+SELECT TMPF
+DONE = 0
+LOOP
+  READNEXT TEMP_ID ELSE DONE = 1
+UNTIL DONE DO
+  * Only process SO records (start with 'so*')
+  IF TEMP_ID[1, 3] = 'so*' THEN
+    * If user filter is set, check if ID matches
+    INCLUDE_RECORD = 1
+    IF USER_FILTER <> '' THEN
+      * Check if temp_id contains user initials (case insensitive)
+      * Convert both to uppercase for comparison
+      TEMP_ID_UPPER = TEMP_ID
+      CONVERT 'abcdefghijklmnopqrstuvwxyz' TO 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' IN TEMP_ID_UPPER
+      USER_FILTER_UPPER = USER_FILTER
+      CONVERT 'abcdefghijklmnopqrstuvwxyz' TO 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' IN USER_FILTER_UPPER
+      
+      IF INDEX(TEMP_ID_UPPER, USER_FILTER_UPPER, 1) = 0 THEN
+        INCLUDE_RECORD = 0
+      END
+    END
+    
+    IF INCLUDE_RECORD THEN
+      READ TMP_REC FROM TMPF, TEMP_ID ELSE
+        CONTINUE
+      END
+      
+      * Extract fields from TMP record
+      SO_NUMBER = TMP_REC<1>
+      CUSTOMER_CODE = TMP_REC<2>
+      SHIPTO_CODE = TMP_REC<3>
+      TIMESTAMP = TMP_REC<5>
+      
+      * Parse timestamp (date\time format)
+      SAVE_DATE = FIELD(TIMESTAMP, XSM, 1)
+      SAVE_TIME = FIELD(TIMESTAMP, XSM, 2)
+      
+      * Convert Julian date to display format
+      SAVE_DATE_DISPLAY = ''
+      IF SAVE_DATE <> '' AND NUM(SAVE_DATE) THEN
+        SAVE_DATE_DISPLAY = OCONV(SAVE_DATE, 'D2/MDY[2,2,4]')
+      END
+      
+      * Convert time to display format
+      SAVE_TIME_DISPLAY = ''
+      IF SAVE_TIME <> '' AND NUM(SAVE_TIME) THEN
+        SAVE_TIME_DISPLAY = OCONV(SAVE_TIME, 'MT')
+      END
+      
+      * Get part numbers count for line items
+      PART_NUMBERS = TMP_REC<32>
+      NUM_ITEMS = 0
+      IF PART_NUMBERS <> '' THEN
+        NUM_ITEMS = DCOUNT(PART_NUMBERS, XVM)
+      END
+      
+      * Output XML for this record
+      XML_RESPONSE := '<temp_so>'
+      XML_RESPONSE := '<temp_id>' : TEMP_ID : '</temp_id>'
+      XML_RESPONSE := '<so_number>' : SO_NUMBER : '</so_number>'
+      XML_RESPONSE := '<customer_code>' : CUSTOMER_CODE : '</customer_code>'
+      XML_RESPONSE := '<shipto_code>' : SHIPTO_CODE : '</shipto_code>'
+      XML_RESPONSE := '<save_date>' : SAVE_DATE_DISPLAY : '</save_date>'
+      XML_RESPONSE := '<save_time>' : SAVE_TIME_DISPLAY : '</save_time>'
+      XML_RESPONSE := '<num_items>' : NUM_ITEMS : '</num_items>'
+      XML_RESPONSE := '</temp_so>'
+    END
+  END
+REPEAT
+
+* Close selection list
+CLEARSELECT
+
+XML_RESPONSE := '</tmp_list>'
+
+FINISH_OUTPUT:
+WRITE XML_RESPONSE ON XMLDATAF,'RESPONSE.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/RESPONSE.XML','',ERR)
+RETURN
+
+GET_TEMP_DETAIL:
+* Get detailed information for a specific temp_id
+READ TMP_REC FROM TMPF, TEMP_ID_FILTER ELSE
+  XML_RESPONSE = '<?xml version="1.0" encoding="UTF-8"?><tmp_record><error>Record not found</error></tmp_record>'
+  RETURN
+END
+
+* Extract all fields from TMP record (matching SAVE_SO_TMP.XML structure)
+SO_NUMBER = TMP_REC<1>
+CUSTOMER_CODE = TMP_REC<2>
+SHIPTO_CODE = TMP_REC<3>
+BILLTO_CODE = TMP_REC<4>
+TIMESTAMP = TMP_REC<5>
+SHIP_VIA = TMP_REC<6>
+TERMS = TMP_REC<7>
+EMAIL = TMP_REC<8>
+HEADER_NOTES = TMP_REC<9>
+PART_NUMBERS = TMP_REC<32>
+DESCRIPTIONS = TMP_REC<33>
+LINE_QUANTITIES = TMP_REC<34>
+LINE_PRICES = TMP_REC<35>
+
+* Build detailed XML response
+XML_RESPONSE = '<?xml version="1.0" encoding="UTF-8"?><tmp_record>'
+XML_RESPONSE := '<temp_id>' : TEMP_ID_FILTER : '</temp_id>'
+XML_RESPONSE := '<so_number>' : SO_NUMBER : '</so_number>'
+XML_RESPONSE := '<customer_code>' : CUSTOMER_CODE : '</customer_code>'
+XML_RESPONSE := '<shipto_code>' : SHIPTO_CODE : '</shipto_code>'
+XML_RESPONSE := '<billto_code>' : BILLTO_CODE : '</billto_code>'
+XML_RESPONSE := '<ship_via>' : SHIP_VIA : '</ship_via>'
+XML_RESPONSE := '<terms>' : TERMS : '</terms>'
+XML_RESPONSE := '<email>' : EMAIL : '</email>'
+XML_RESPONSE := '<header_notes>' : HEADER_NOTES : '</header_notes>'
+XML_RESPONSE := '<part_numbers>' : PART_NUMBERS : '</part_numbers>'
+XML_RESPONSE := '<descriptions>' : DESCRIPTIONS : '</descriptions>'
+XML_RESPONSE := '<line_quantities>' : LINE_QUANTITIES : '</line_quantities>'
+XML_RESPONSE := '<line_prices>' : LINE_PRICES : '</line_prices>'
+XML_RESPONSE := '</tmp_record>'
+RETURN
+END
+</pre>

@@ -1,0 +1,198 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+
+INCLUDE PLBASIC BP.INCLUDES PLW.INCLUDES
+
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'mtltrans' TO MTLTRANSF ELSE 
+  * If mtltrans doesn't exist, create it
+  EXECUTE 'CREATE-FILE mtltrans'
+  OPEN 'mtltrans' TO MTLTRANSF ELSE STOP 201,'mtltrans'
+END
+
+CRX = CHAR(13)
+NLX = CHAR(10)
+
+* Get parameters (use PL_GETVAR for compatibility)
+PL_GETVAR CODE FROM 'CODE' ELSE CODE = ''
+PL_GETVAR DESCRIPTION FROM 'DESCRIPTION' ELSE DESCRIPTION = ''
+PL_GETVAR DESC_ALT FROM 'DESC' ELSE DESC_ALT = ''
+IF DESCRIPTION = '' AND DESC_ALT # '' THEN DESCRIPTION = DESC_ALT
+PL_GETVAR INITIALS FROM 'INITIALS' ELSE INITIALS = ''
+PL_GETVAR OPERS FROM 'OPERS' ELSE OPERS = ''
+PL_GETVAR NAME FROM 'NAME' ELSE NAME = ''
+PL_GETVAR STATUS FROM 'STATUS' ELSE STATUS = ''
+PL_GETVAR TYPE_IN FROM 'TYPE' ELSE TYPE_IN = ''
+PL_GETVAR DATE_VALUE FROM 'DATE' ELSE DATE_VALUE = ''
+PL_GETVAR TIME_VALUE FROM 'TIME' ELSE TIME_VALUE = ''
+
+CODE = TRIM(CODE)
+DESCRIPTION = TRIM(DESCRIPTION)
+IF INITIALS = '' AND OPERS # '' THEN INITIALS = OPERS
+INITIALS = OCONV(TRIM(INITIALS), "MCU")
+NAME = TRIM(NAME)
+IF STATUS = '' AND TYPE_IN # '' THEN STATUS = TYPE_IN
+STATUS = OCONV(TRIM(STATUS), "MCU")
+IF STATUS # 'OUT' AND STATUS # 'DELETE' THEN STATUS = 'IN'
+DATE_VALUE = TRIM(DATE_VALUE)
+TIME_VALUE = TRIM(TIME_VALUE)
+
+* Default date/time if not provided
+IF DATE_VALUE = '' THEN DATE_VALUE = OCONV(DATE(), "D2/")
+IF TIME_VALUE = '' THEN TIME_VALUE = OCONV(TIME(), "MTS")
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>' : @AM
+XML.RESPONSE = XML.RESPONSE : '<response>' : @AM
+
+* Debug: Log all received parameters
+XML.RESPONSE = XML.RESPONSE : '<debug>Received params: CODE=' : CODE : ' DESC=' : DESCRIPTION : ' INITIALS=' : INITIALS : ' STATUS=' : STATUS : '</debug>' : @AM
+
+* Validate parameters (allow DELETE with missing DESCRIPTION)
+IF STATUS = 'DELETE' THEN DELETE_MODE = 1 ELSE DELETE_MODE = 0
+IF CODE = "" OR (DELETE_MODE = 0 AND DESCRIPTION = "") OR (DELETE_MODE = 0 AND INITIALS = "") THEN
+    XML.RESPONSE = XML.RESPONSE : '<status>error</status>' : @AM
+    XML.RESPONSE = XML.RESPONSE : '<message>Missing required parameters: CODE=' : CODE : ' DESC=' : DESCRIPTION : ' INITIALS=' : INITIALS : ' STATUS=' : STATUS : '</message>' : @AM
+    XML.RESPONSE = XML.RESPONSE : '</response>' : @AM
+    * Append error to log
+    LOG_LINE = OCONV(DATE(), "D2/") : ' ' : OCONV(TIME(), "MTS") : ' | ERROR | CODE=' : CODE : ' | DESC=' : DESCRIPTION : ' | INIT=' : INITIALS : ' | MSG=Missing CODE/DESCRIPTION'
+    LOGTXT = ''
+    READ LOGTXT FROM XMLDATAF, 'UPD_STOCKS.LOG' ELSE LOGTXT = ''
+    TMPLOG = LOGTXT
+    CONVERT CRX:NLX TO @AM IN TMPLOG
+    CONVERT NLX TO @AM IN TMPLOG
+    IF TMPLOG # '' THEN
+        TMPLOG< DCOUNT(TMPLOG, @AM) + 1 > = LOG_LINE
+    END ELSE
+        TMPLOG<1> = LOG_LINE
+    END
+    CONVERT @AM TO NLX IN TMPLOG
+    WRITE TMPLOG ON XMLDATAF, 'UPD_STOCKS.LOG'
+    WRITE XML.RESPONSE ON XMLDATAF,'UPD_STOCKS_ERR.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/UPD_STOCKS_ERR.XML','',ERR)
+    RETURN
+END
+
+* Use CODE as record key (align with GET_STOCKS2)
+RECORD_KEY = CODE
+
+* Read existing record or create new one
+READ RECORD FROM MTLTRANSF, RECORD_KEY ELSE RECORD = ''
+
+BEGIN CASE
+    CASE STATUS = 'DELETE'
+        * Remove user initials from <7> (multivalue list)
+        FOUND_POS = 0
+        USER_COUNT = DCOUNT(RECORD<7>, @VM)
+        FOR I = 1 TO USER_COUNT
+            IF RECORD<7,I> = INITIALS THEN
+                FOUND_POS = I
+                BREAK
+            END
+        NEXT I
+        IF FOUND_POS > 0 THEN
+            DEL RECORD<7,FOUND_POS>
+            IF DCOUNT(RECORD<7>, @VM) = 0 THEN
+                DELETE MTLTRANSF, RECORD_KEY
+                XML.RESPONSE = XML.RESPONSE : '<debug>Deleted entire record: ' : RECORD_KEY : '</debug>' : @AM
+            END ELSE
+                WRITE RECORD ON MTLTRANSF, RECORD_KEY
+                XML.RESPONSE = XML.RESPONSE : '<debug>Removed user from record: ' : RECORD_KEY : '</debug>' : @AM
+            END
+        END ELSE
+            XML.RESPONSE = XML.RESPONSE : '<debug>User not found for deletion: ' : INITIALS : '</debug>' : @AM
+        END
+    CASE 1
+        * Set description and type - only update description if record is new
+        IF RECORD = '' THEN
+            RECORD<3> = DESCRIPTION        ; * Field 3: Description (new record only)
+        END
+        RECORD<6> = STATUS                 ; * Field 6: Type/Status (IN/OUT)
+        
+        * Ensure initials exist once in multivalue list at <7>
+        EXISTS = 0
+        USER_COUNT = DCOUNT(RECORD<7>, @VM)
+        FOR I = 1 TO USER_COUNT
+            IF RECORD<7,I> = INITIALS THEN EXISTS = 1 ; BREAK
+        NEXT I
+        IF EXISTS = 0 THEN
+            IF USER_COUNT = 0 THEN
+                RECORD<7,1> = INITIALS
+            END ELSE
+                RECORD<7, USER_COUNT + 1> = INITIALS
+            END
+        END
+        WRITE RECORD ON MTLTRANSF, RECORD_KEY
+        XML.RESPONSE = XML.RESPONSE : '<debug>Record written with key: ' : RECORD_KEY : '</debug>' : @AM
+END CASE
+
+* Success response (align to GET_STOCKS2 structure)
+READ RECORD FROM MTLTRANSF, RECORD_KEY ELSE RECORD = ''
+TYPE_OUT = STATUS
+IF STATUS = 'DELETE' AND RECORD # '' THEN TYPE_OUT = RECORD<6>
+
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>' : @AM
+XML.RESPONSE = XML.RESPONSE : '<stocktrans>' : @AM
+XML.RESPONSE = XML.RESPONSE : '<status>success</status>' : @AM
+XML.RESPONSE = XML.RESPONSE : '<stock>' : @AM
+XML.RESPONSE = XML.RESPONSE : '<code>' : CODE : '</code>' : @AM
+XML.RESPONSE = XML.RESPONSE : '<description>' : RECORD<3> : '</description>' : @AM
+XML.RESPONSE = XML.RESPONSE : '<type>' : TYPE_OUT : '</type>' : @AM
+XML.RESPONSE = XML.RESPONSE : '<opers>' : @AM
+USER_COUNT = DCOUNT(RECORD<7>, @VM)
+FOR I = 1 TO USER_COUNT
+    UIN = RECORD<7,I>
+    USERNAME = OCONV(UIN, 'TOPERS;X;;1')
+    XML.RESPONSE = XML.RESPONSE : '<user>' : UIN : '</user>' : @AM
+    XML.RESPONSE = XML.RESPONSE : '<user_name>' : USERNAME : '</user_name>' : @AM
+NEXT I
+XML.RESPONSE = XML.RESPONSE : '</opers>' : @AM
+XML.RESPONSE = XML.RESPONSE : '</stock>' : @AM
+XML.RESPONSE = XML.RESPONSE : '</stocktrans>' : @AM
+
+* Append success to log
+LOG_LINE = OCONV(DATE(), "D2/") : ' ' : OCONV(TIME(), "MTS") : ' | SUCCESS | KEY=' : RECORD_KEY : ' | CODE=' : CODE : ' | DESC=' : DESCRIPTION : ' | STATUS=' : STATUS : ' | INIT=' : INITIALS : ' | NAME=' : NAME
+LOGTXT = ''
+READ LOGTXT FROM XMLDATAF, 'UPD_STOCKS.LOG' ELSE LOGTXT = ''
+TMPLOG = LOGTXT
+CONVERT CRX:NLX TO @AM IN TMPLOG
+CONVERT NLX TO @AM IN TMPLOG
+IF TMPLOG # '' THEN
+    TMPLOG< DCOUNT(TMPLOG, @AM) + 1 > = LOG_LINE
+END ELSE
+    TMPLOG<1> = LOG_LINE
+END
+CONVERT @AM TO NLX IN TMPLOG
+WRITE TMPLOG ON XMLDATAF, 'UPD_STOCKS.LOG'
+
+* Output the XML
+WRITE XML.RESPONSE ON XMLDATAF,'UPD_STOCKS_SUCCESS.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPD_STOCKS_SUCCESS.XML','',ERR)
+RETURN
+ 
+XML_ESCAPE:
+  XOUT = ''
+  LX = LEN(XIN)
+  FOR JJ = 1 TO LX
+      CC = XIN[JJ,1]
+      VV = SEQ(CC)
+      IF VV = 38 THEN
+          XOUT := CHAR(38) : 'amp;'
+      END ELSE IF VV = 60 THEN
+          XOUT := CHAR(38) : 'lt;'
+      END ELSE IF VV = 62 THEN
+          XOUT := CHAR(38) : 'gt;'
+      END ELSE IF VV = 34 THEN
+          XOUT := CHAR(38) : 'quot;'
+      END ELSE IF VV = 39 THEN
+          XOUT := CHAR(38) : 'apos;'
+      END ELSE
+          XOUT := CC
+      END
+  NEXT JJ
+  RETURN
+</PRE>

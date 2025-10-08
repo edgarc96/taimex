@@ -1,0 +1,93 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+  OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+ 
+*
+* REM Get parameters from URL
+PL_GETVAR CODE FROM 'CODE' ELSE CODE = ''
+
+CODE = TRIM(CODE)
+
+*
+*PL_ADD_HDR 'Set-Cookie: INIT=':INITIALS:'; domain=cde.com;'
+*        R.ERR = '302 MOVED TEMPORARILY'
+*        PL_ADD_HDR 'Location: /':MENU
+  
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : AM:'<stocktrans>' 
+
+*REM Validate parameters
+*IF CODE = "" THEN
+*    XML.RESPONSE = XML.RESPONSE :AM: '<error>Missing required parameter: CODE</error>'
+ *   XML.RESPONSE = XML.RESPONSE :AM: '</stock>'
+ *   WRITE XML.RESPONSE ON XMLDATAF,CODE:'.XML'
+ *   ERR = ''
+ *   CALL PLW.PAGE('/XMLDATA/':CODE:'.XML','',ERR)
+ *   RETURN
+*END
+
+
+*REM Open database files
+OPEN "MTLTRANS" TO MTLTRANS.FILE ELSE
+    XML.RESPONSE = XML.RESPONSE : AM:'<error>Cannot open MTLTRANS file</error>'
+    XML.RESPONSE = XML.RESPONSE : AM:'</stock>'
+    WRITE XML.RESPONSE ON XMLDATAF,CODE:'.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/':CODE:'.XML','',ERR)
+    RETURN
+END
+    
+*
+  
+
+* REM Read customer record
+PRINT "ID=": CODE
+  SL = \SSELECT MTLTRANS\
+  EXECUTE SL
+PRINT
+10 READNEXT CODE THEN
+  
+
+    READ STOCK.RECORD FROM MTLTRANS.FILE, CODE ELSE
+     XML.RESPONSE = XML.RESPONSE :AM: '<error>MTL TRANS not found: ' : CODE : '</error>'
+     XML.RESPONSE = XML.RESPONSE :AM:'</code>'
+     WRITE XML.RESPONSE ON XMLDATAF,CODE:'.XML'
+     ERR  = ''
+     CALL PLW.PAGE('/XMLDATA/':'.XML','',ERR)
+     RETURN
+    END
+
+ 
+  XML.RESPONSE = XML.RESPONSE :AM: '<stock>' ; * Emit record header
+ 
+ 
+  XML.RESPONSE = XML.RESPONSE :AM: '<code>' : CODE : '</code>'
+  XML.RESPONSE = XML.RESPONSE :AM: '<description>':STOCK.RECORD<3>:'</description>'
+  XML.RESPONSE = XML.RESPONSE :AM: '<type>': STOCK.RECORD<6>:'</type>'
+  XML.RESPONSE = XML.RESPONSE :AM: '<opers>'
+  LINES = DCOUNT(STOCK.RECORD<7>,VM)
+  FOR I = 1 TO LINES     
+      XML.RESPONSE = XML.RESPONSE :AM: '<user>' : STOCK.RECORD<7,I> : '</user>'
+      USERNAME = OCONV(STOCK.RECORD<7,I>,'TOPERS;X;;1')
+      XML.RESPONSE = XML.RESPONSE :AM: '<user_name>' : USERNAME: '</user_name>'
+  NEXT I
+  XML.RESPONSE = XML.RESPONSE :AM: '</opers>'
+  XML.RESPONSE = XML.RESPONSE :AM: '</stock>'
+  GOTO 10
+ END
+DONE:
+*REM Complete XML response
+XML.RESPONSE = XML.RESPONSE :AM: '</stocktrans>'
+ 
+*REM Output the XML
+    WRITE XML.RESPONSE ON XMLDATAF,'MTLTRANS.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/MTLTRANS.XML','',ERR)
+    RETURN
+</pre>
+                                                                                                                                                                          

@@ -1,0 +1,123 @@
+<pre>
+PicLan-IP/BASIC ^ ^
+*
+* CREATE_STK_TRANSACTION.XML - Creates stock transaction after validation
+* Based on your Pick BASIC code but adapted for XML endpoint
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+*
+ PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+    ERR = '' ; INITIALS = ''
+    CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+    RETURN
+ END
+*
+* Get parameters
+PL_GETVAR PARTNUM FROM 'PARTNUM' ELSE PARTNUM = ''
+PL_GETVAR QTY FROM 'QTY' ELSE QTY = 0
+PL_GETVAR MTLTYPE FROM 'MTLTYPE' ELSE MTLTYPE = ''
+PL_GETVAR REFERENCE FROM 'REFERENCE' ELSE REFERENCE = ''
+PL_GETVAR NOTES FROM 'NOTES' ELSE NOTES = ''
+PL_GETVAR WHBIN FROM 'WHBIN' ELSE WHBIN = ''
+PL_GETVAR YYMM FROM 'YYMM' ELSE YYMM = ''
+*
+* Open files
+OPEN '','INV' TO INVF ELSE
+  STATUS = 'error'
+  MESSAGE = 'CANNOT OPEN INV FILE'
+  GOTO SEND_RESPONSE
+END
+OPEN 'LIID' TO LIIDF ELSE
+  STATUS = 'error'
+  MESSAGE = 'CANNOT OPEN LIID FILE'
+  GOTO SEND_RESPONSE
+END
+OPEN 'MTLTRANS' TO MTLTRANSF ELSE
+  STATUS = 'error'
+  MESSAGE = 'CANNOT OPEN MTLTRANS FILE'
+  GOTO SEND_RESPONSE
+END
+OPEN 'STOCK' TO STOCKF ELSE
+  STATUS = 'error'
+  MESSAGE = 'CANNOT OPEN STOCK FILE'
+  GOTO SEND_RESPONSE
+END
+*
+* Initialize response
+STATUS = 'success'
+MESSAGE = ''
+STOCK_ID = ''
+*
+* Read transaction type details
+READ MTLTRANS FROM MTLTRANSF,MTLTYPE ELSE MTLTRANS = ''
+IF MTLTRANS EQ '' THEN
+  STATUS = 'error'
+  MESSAGE = 'TRANSACTION TYPE NOT FOUND'
+  GOTO SEND_RESPONSE
+END
+*
+INOUT = MTLTRANS<6>
+WHBIN = OCONV(WHBIN,'MCU')
+*
+* Build stock record (based on your STK structure)
+STK = ''
+STK<1> = DATE()                           ; * Transaction date
+STK<2> = MTLTYPE:REFERENCE               ; * Type + Reference
+STK<3> = OCONV(PARTNUM,'MCU')            ; * Part number (uppercase)
+STK<4> = QTY                             ; * Quantity
+STK<5> = QTY                             ; * Quantity (duplicate field)
+STK<6> = MTLTRANS<1>                     ; * Transaction description
+STK<7> = MTLTRANS<2>                     ; * Transaction type description
+STK<9> = NOTES                           ; * Notes
+STK<10> = DATE():'*':INITIALS:'*':TIME() ; * Date*Initials*Time
+STK<12> = '1'                            ; * Status flag
+STK<26> = WHBIN:YYMM                     ; * Warehouse bin + date code
+*
+* Get next LIID (stock ID)
+READVU LIID FROM LIIDF,'STOCK',1 ELSE LIID = 0
+LIID = LIID + 1
+WRITEVU LIID ON LIIDF,'STOCK',1
+RELEASE LIIDF,'STOCK'
+STOCK_ID = LIID
+*
+* Write stock record to STOCK database
+WRITE STK ON STOCKF,LIID
+*
+* Execute STOCKER program (as in your original code)
+SL = 'SELECT STOCK "':LIID:'"'
+EXECUTE SL
+DATA "M"
+EXECUTE "STOCKER"
+*
+*
+SEND_RESPONSE:
+*
+* Build XML response
+RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+RESPONSE = RESPONSE : AM : '<CreateStockResult>'
+RESPONSE = RESPONSE : AM : '<status>':STATUS:'</status>'
+IF MESSAGE NE '' THEN
+  RESPONSE = RESPONSE : AM : '<message>':MESSAGE:'</message>'
+END
+*
+IF STATUS = 'success' THEN
+  RESPONSE = RESPONSE : AM : '<stockId>':STOCK_ID:'</stockId>'
+  RESPONSE = RESPONSE : AM : '<partNumber>':PARTNUM:'</partNumber>'
+  RESPONSE = RESPONSE : AM : '<quantity>':QTY:'</quantity>'
+  RESPONSE = RESPONSE : AM : '<transactionType>':MTLTYPE:'</transactionType>'
+  RESPONSE = RESPONSE : AM : '<direction>':INOUT:'</direction>'
+  RESPONSE = RESPONSE : AM : '<createdBy>':INITIALS:'</createdBy>'
+  RESPONSE = RESPONSE : AM : '<createdDate>':DATE():'</createdDate>'
+  RESPONSE = RESPONSE : AM : '<createdTime>':TIME():'</createdTime>'
+END
+*
+RESPONSE = RESPONSE : AM : '</CreateStockResult>'
+*
+* Set content type and output response
+PL_ADD_HDR '"Content-Type: application/xml"'
+*
+WRITE RESPONSE ON XMLDATAF,'STOCK_CREATE_RESPONSE'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/STOCK_CREATE_RESPONSE','',ERR)
+RETURN
+</pre>

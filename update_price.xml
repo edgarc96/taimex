@@ -1,0 +1,178 @@
+<pre>
+
+    PicLan-IP/BASIC ^ ^
+    *
+      OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+      OPEN 'PRICE' TO PRICEF ELSE STOP 201,'PRICE'
+    *
+    * REM Get parameters from URL
+    PL_GETVAR ID FROM 'ID' ELSE ID = ''
+    PL_GETVAR  PART_NUMBER FROM 'PART_NUMBER' ELSE PART_NUMBER = ''
+    PL_GETVAR  CUSTOMER_NAME FROM 'CUSTOMER' ELSE CUSTOMER_NAME = ''
+    PL_GETVAR  PART_DESC FROM 'PART_DESC' ELSE PART_DESC = ''
+    PL_GETVAR  NOTES FROM 'NOTES' ELSE NOTES = ''
+    PL_GETVAR  DATE_VALUE FROM 'DATE' ELSE DATE_VALUE = ''
+    PL_GETVAR  PRICE_RANGES FROM 'PRICE_RANGES' ELSE PRICE_RANGES = ''
+    ID = TRIM(ID)
+    PART_NUMBER = TRIM(PART_NUMBER)
+    CUSTOMER_NAME = TRIM(CUSTOMER_NAME)
+    PART_DESC = TRIM(PART_DESC)
+    NOTES = TRIM(NOTES)
+    DATE_VALUE = TRIM(DATE_VALUE)
+    PRICE_RANGES = TRIM(PRICE_RANGES)
+    *
+    *PLW.HEADER 'Content-Type: application/xml'
+    PRINT "ENTERING TO UPDATE_CUST"
+    *REM Initialize XML response
+    XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+    XML.RESPONSE = XML.RESPONSE : AM:'<response>'
+    
+    *REM Validate parameters
+    IF ID = "" OR PART_NUMBER = "" THEN
+        XML.RESPONSE = XML.RESPONSE :AM: '<status>error</status>'
+        XML.RESPONSE = XML.RESPONSE :AM: '<message>Missing required parameters: ID and PART_NUMBER</message>'
+        XML.RESPONSE = XML.RESPONSE :AM: '</response>'
+        WRITE XML.RESPONSE ON XMLDATAF,ID:PART_NUMBER:'.XML'
+        ERR = ''
+        CALL PLW.PAGE(ID:PART_NUMBER:'.XML','',ERR)
+        RETURN
+    END
+    
+    *REM Open database files
+    OPEN "CUSTOMER" TO CUSTOMER.FILE ELSE
+        XML.RESPONSE = XML.RESPONSE : AM:'<status>error</status>'
+        XML.RESPONSE = XML.RESPONSE : AM:'<message>Cannot open CUSTOMER file</message>'
+        XML.RESPONSE = XML.RESPONSE : AM:'</response>'
+        WRITE XML.RESPONSE ON XMLDATAF,ID:PART_NUMBER:'.XML'
+        ERR = ''
+        CALL PLW.PAGE(ID:PART_NUMBER:'.XML','',ERR)
+        RETURN
+    END
+        
+    OPEN "PARTS" TO PARTS.FILE ELSE
+        XML.RESPONSE = XML.RESPONSE :AM: '<status>error</status>'
+        XML.RESPONSE = XML.RESPONSE :AM: '<message>Cannot open PARTS file</message>'
+        XML.RESPONSE = XML.RESPONSE :AM: '</response>'
+        WRITE XML.RESPONSE ON XMLDATAF,ID:PART_NUMBER:'.XML'
+        ERR = ''
+        CALL PLW.PAGE(ID:PART_NUMBER:'.XML','',ERR)
+        RETURN
+    END
+    
+    OPEN "PRICE" TO PRICE.FILE ELSE
+        XML.RESPONSE = XML.RESPONSE :AM: '<status>error</status>'
+        XML.RESPONSE = XML.RESPONSE :AM: '<message>Cannot open PRICE file</message>'
+        XML.RESPONSE = XML.RESPONSE :AM: '</response>'
+        WRITE XML.RESPONSE ON XMLDATAF,ID:PART_NUMBER:'.XML'
+        ERR = ''
+        CALL PLW.PAGE(ID:PART_NUMBER:'.XML','',ERR)
+        RETURN
+    END
+    
+    * REM Read/Create customer record
+    CUST.RECORD = ""
+    READ CUST.RECORD FROM CUSTOMER.FILE, ID ELSE
+        * Crear nuevo registro si no existe
+        CUST.RECORD = ""
+    END
+    
+    * REM Update customer fields if provided (based on getcust.xml field mapping)
+    IF CUSTOMER_NAME <> "" THEN
+        CUST.RECORD<1> = CUSTOMER_NAME
+    END
+    IF NOTES <> "" THEN
+        CUST.RECORD<26> = NOTES  
+    END
+    IF DATE_VALUE <> "" THEN
+        * Convert date and store in field 16
+        CONVERTED.DATE = ICONV(DATE_VALUE,'D2-')
+        CUST.RECORD<16> = CONVERTED.DATE:'*'
+    END
+    
+    * REM Write customer record
+    *WRITE CUST.RECORD TO CUSTOMER.FILE, ID
+    
+    * REM Read/Create part record
+    PART.RECORD = ""
+    READ PART.RECORD FROM PARTS.FILE, PART_NUMBER ELSE
+        * Crear nuevo registro si no existe
+        PART.RECORD = ""
+    END
+    
+    * REM Update part description if provided
+    IF PART_DESC <> "" THEN
+        PART.RECORD<1> = PART_DESC
+    END
+    
+    * REM Write part record
+    *WRITE PART.RECORD TO PARTS.FILE, PART_NUMBER
+    
+    * REM Process PRICE RANGES if provided (based on getcust.xml structure)
+    IF PRICE_RANGES <> "" THEN
+        * Expected format: "fromQty1,toQty1,price1|fromQty2,toQty2,price2|..."
+        PRICE.KEY = PART_NUMBER:'*':ID
+        
+    
+        
+        * Create new price record
+        READ NEW.PRICE.RECORD FROM PRICEF,PRICE.KEY ELSE NEW.PRICE.RECORD = ''
+       *
+        NEW.PRICE.RECORD<6> = ''
+        NEW.PRICE.RECORD<7> = ''
+        NEW.PRICE.RECORD<8> = ''
+        
+        * Split ranges by pipe character
+        TEMP.RANGES = PRICE_RANGES
+        CONVERT "|" TO AM IN TEMP.RANGES
+        RANGE.COUNT = DCOUNT(TEMP.RANGES, AM)
+        
+        FOR I = 1 TO RANGE.COUNT
+            SINGLE.RANGE = TEMP.RANGES<I>
+            IF SINGLE.RANGE <> "" THEN
+                * Split single range by comma
+                TEMP.RANGE = SINGLE.RANGE
+                CONVERT "," TO AM IN TEMP.RANGE
+                
+                FROM.QTY = TEMP.RANGE<1>
+                TO.QTY = TEMP.RANGE<2>
+                PRICE.VALUE = TEMP.RANGE<3>
+                
+                * Debug: Add to XML response for troubleshooting
+                XML.RESPONSE = XML.RESPONSE :AM: '<debug>Processing range ' : I : ': ' : FROM.QTY : ',' : TO.QTY : ',' : PRICE.VALUE : '</debug>'
+                
+                IF FROM.QTY <> "" AND TO.QTY <> "" AND PRICE.VALUE <> "" THEN
+                    * Store in fields 6, 7, 8 as seen in getcust.xml
+                    NEW.PRICE.RECORD<6,I> = FROM.QTY
+                    NEW.PRICE.RECORD<7,I> = TO.QTY
+                    * Store price * 1000 as seen in getcust.xml (price is divided by 1000 on read)
+                    NEW.PRICE.RECORD<8,I> = PRICE.VALUE * 1000
+                    XML.RESPONSE = XML.RESPONSE :AM: '<debug>Stored range ' : I : ' successfully</debug>'
+                END ELSE
+                    XML.RESPONSE = XML.RESPONSE :AM: '<debug>Skipped empty range ' : I : '</debug>'
+                END
+            END
+        NEXT I
+        
+        * Write the complete price record
+        IF NEW.PRICE.RECORD <> "" THEN
+            WRITE NEW.PRICE.RECORD TO PRICEF, PRICE.KEY
+            XML.RESPONSE = XML.RESPONSE :AM: '<debug>Price record written with key: ' : PRICE.KEY : '</debug>'
+        END ELSE
+            XML.RESPONSE = XML.RESPONSE :AM: '<debug>No price record to write</debug>'
+        END
+    END
+    
+    * REM Success response
+    XML.RESPONSE = XML.RESPONSE :AM: '<status>success</status>'
+    XML.RESPONSE = XML.RESPONSE :AM: '<message>Record updated successfully</message>'
+    XML.RESPONSE = XML.RESPONSE :AM: '<customerNumber>' : ID : '</customerNumber>'
+    XML.RESPONSE = XML.RESPONSE :AM: '<partNumber>' : PART_NUMBER : '</partNumber>'
+    XML.RESPONSE = XML.RESPONSE :AM: '</response>'
+    
+    * REM Output the XML
+    WRITE XML.RESPONSE ON XMLDATAF,'W':ID:PART_NUMBER:'.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/W':ID:PART_NUMBER:'.XML','',ERR)
+    RETURN
+ </pre>
+                                                                

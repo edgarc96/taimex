@@ -1,0 +1,3727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TAIMEX</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>*{margin:0;padding:0;box-sizing:border-box}html,body{min-height:100vh;overflow:auto;width:100%}body{font-family:Inter,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;background:linear-gradient(135deg,#f1f5f9 0%,#e2e8f0 100%);color:#334155;width:100%}.container{width:100%;min-height:100vh;background:#fff;display:flex;flex-direction:column;overflow:visible}.header{background:linear-gradient(135deg,#1e293b 0%,#1e3a8a 100%);color:#fff;padding:12px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(30,41,59,.25);position:relative;z-index:100;width:100%}.header-left{display:flex;align-items:center;gap:20px;position:relative;z-index:1}.logo-section img{height:40px;width:auto;object-fit:contain;filter:brightness(1.05)}.title-section{text-align:right;position:relative;z-index:1}.title-row{display:flex;align-items:center;justify-content:flex-end;gap:15px}.welcome-user{white-space:nowrap}.welcome-user span{color:#cbd5e1;font-size:.8em;font-weight:400}.welcome-user strong{color:#3b82f6;margin-left:4px;font-weight:600}.title-section h2{font-size:.95em;margin:0;font-weight:500;color:#cbd5e1;letter-spacing:.3px}.title-section p{font-size:.75em;margin:2px 0 0 0;color:#a2a8ba;font-weight:400}.hamburger-menu{background:none;border:none;color:#fff;font-size:1.2em;cursor:pointer;padding:8px;border-radius:6px;transition:background-color .2s ease}.hamburger-menu:hover{background-color:rgba(255,255,255,.12)}.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;width:100%}.sidebar{position:fixed;top:0;left:-300px;width:300px;height:100vh;background:rgba(255,255,255,.08);backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);color:#fff;transition:left .2s ease;z-index:2000;box-shadow:2px 0 12px rgba(0,0,0,.35)}.sidebar.active{left:0}.sidebar-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.55);opacity:0;visibility:hidden;transition:all .25s ease;z-index:1500;pointer-events:none}.sidebar-overlay.active{opacity:1;visibility:visible;pointer-events:auto}.sidebar-content{padding:24px}.sidebar-header{padding:20px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.05)}.sidebar-header h3{font-size:1.2em;color:#fff;margin:0}.sidebar-menu{list-style:none;padding:0;margin:0}.sidebar-menu li{margin-bottom:8px}.sidebar-menu a{display:block;padding:12px 16px;color:#f3f4f6;text-decoration:none;border-radius:8px;transition:all .2s ease;font-weight:500}.sidebar-menu a:hover{background-color:rgba(30,64,175,.1);color:#fff}.sidebar-menu a.active{background-color:rgba(30,64,175,.2);color:#93c5fd}.sidebar-menu a i{margin-right:12px;width:20px;text-align:center}.tab-navigation{background:#fff;border-bottom:1px solid #e2e8f0;width:100%}.tab-buttons{display:flex;flex-wrap:wrap;width:100%}.tab-button{background:none;border:none;padding:12px 20px;color:#64748b;font-weight:500;cursor:pointer;transition:all .3s ease;border-bottom:3px solid transparent;display:flex;align-items:center;gap:8px}.tab-button:hover{color:#1e40af;background:rgba(30,64,175,.05)}.tab-button.active{color:#1e40af;background:rgba(30,64,175,.1);border-bottom-color:#1e40af;font-weight:600}.tab-content{flex:1;overflow:hidden;width:100%}.tab-pane{display:none;height:100%;overflow-y:auto;padding:16px 20px;background:#f8fafc;width:100%}.tab-pane.active{display:block}.form-container{background:rgba(255,255,255,.9);border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 8px 32px rgba(0,0,0,.1);width:100%;max-width:none}.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:16px;width:100%;max-width:none}.form-group{display:flex;flex-direction:column}.form-group label{font-weight:600;color:#374151;margin-bottom:8px}.form-group input,.form-group select,.form-group textarea{padding:10px 12px;border:2px solid #e5e7eb;border-radius:8px;transition:.2s;width:100%}.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:#3b82f6}.btn{padding:12px 24px;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:8px}.btn-primary{background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);color:white}.btn-secondary{background:#6b7280;color:white}.form-actions{display:flex;gap:12px;margin-top:20px}.search-container{margin-bottom:12px;width:100%}.search-container input{width:100%;padding:10px 12px;border:2px solid #e5e7eb;border-radius:8px}.excel-grid-wrapper{background:rgba(255,255,255,.95);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.1);overflow:hidden;flex:1;display:flex;flex-direction:column;min-height:0;width:100%}.grid-toolbar{background:#f8f9fa;padding:12px 20px;border-bottom:1px solid #dee2e6;display:flex;align-items:center;justify-content:space-between;width:100%}.results-count{background:rgba(59,130,246,0.1);padding:4px 12px;border-radius:20px;font-size:.85em;color:#64748b}.excel-grid-container{flex:1;overflow-y:auto;overflow-x:auto;border:1px solid #dee2e6;border-radius:0 0 12px 12px;background:#fff;position:relative;min-height:250px;height:calc(100vh - 240px);width:100%}.excel-grid-container::-webkit-scrollbar{width:12px}.excel-grid-container::-webkit-scrollbar-track{background:#f1f3f4;border-radius:6px}.excel-grid-container::-webkit-scrollbar-thumb{background:linear-gradient(135deg,#2a5298 0%,#1e3c72 100%);border-radius:6px;border:2px solid #f1f3f4}.excel-grid-container::-webkit-scrollbar-thumb:hover{background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%)}table.excel-grid-premium{width:100%;border-collapse:collapse;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;font-size:11px;background:#fff;min-width:100%;border:1px solid #dee2e6}.excel-header{background:linear-gradient(135deg,#2a5298 0%,#1e3c72 100%);color:white;padding:8px 12px;font-weight:600;text-align:left;border-right:1px solid #1e3c72;position:sticky;top:0;z-index:10;cursor:pointer;user-select:none;transition:all .2s ease;font-size:11px}.excel-header:hover{background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%)}.excel-header.sorted{background:linear-gradient(135deg,#2a5298 0%,#1e3c72 100%)}.header-content{display:flex;align-items:center;justify-content:space-between;gap:8px}.sort-icon{opacity:.7;font-size:12px;transition:opacity .2s ease}.excel-header:hover .sort-icon{opacity:1}.resize-handle{position:absolute;right:0;top:0;bottom:0;width:4px;cursor:col-resize;background:rgba(255,255,255,.2);opacity:0;transition:opacity .2s ease}.excel-header:hover .resize-handle{opacity:1}.excel-row{transition:all .2s ease;cursor:pointer}.excel-row:nth-child(even){background:#fafafa}.excel-row:hover{background:#eef2ff}.excel-row.selected{background:#dbeafe}.filter-row th{background:#f1f5f9;position:sticky;top:36px;z-index:5}.filter-cell{padding:6px 8px;border-bottom:1px solid #e5e7eb}.filter-input{width:100%;padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px}.toolbar-right{display:flex;gap:8px}.grid-btn{background:#e2e8f0;color:#1e293b;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:6px}.grid-btn:hover{filter:brightness(.95)}.excel-cell{padding:8px 10px;border-bottom:1px solid #e5e7eb}.excel-cell.readonly{opacity:.85}.cell-content{display:flex;align-items:center;gap:6px}.action-buttons{display:flex;align-items:center;justify-content:center;gap:8px}.btn-sm{border:none;padding:6px 8px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}.btn-edit{background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);color:#fff}.btn-delete{background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%);color:#fff}.actions-header{min-width:120px} .notification-container{position:fixed;top:20px;right:20px;z-index:10000;pointer-events:none} .notification{background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#fff;padding:16px 24px;border-radius:12px;box-shadow:0 10px 25px rgba(16,185,129,.3);display:flex;align-items:center;gap:12px;font-weight:500;font-size:14px;min-width:300px;transform:translateX(400px);opacity:0;transition:all .4s cubic-bezier(0.175,0.885,0.32,1.275);border-left:4px solid #34d399;backdrop-filter:blur(10px)} .notification.show{transform:translateX(0);opacity:1} .notification.hide{transform:translateX(400px);opacity:0} .notification-icon{background:rgba(255,255,255,.2);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:16px;animation:pulse 2s infinite} .notification-content{flex:1} .notification-title{font-weight:600;margin-bottom:2px} .notification-message{font-size:13px;opacity:.9} @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}} .notification.bounce{animation:slideInBounce .6s cubic-bezier(0.175,0.885,0.32,1.275)} @keyframes slideInBounce{0%{transform:translateX(400px) scale(.8);opacity:0}60%{transform:translateX(-10px) scale(1.02);opacity:1}100%{transform:translateX(0) scale(1);opacity:1}} .notification.error{background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%);box-shadow:0 10px 25px rgba(239,68,68,.3);border-left:4px solid #f87171} .notification.warning{background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);box-shadow:0 10px 25px rgba(245,158,11,.3);border-left:4px solid #fbbf24} .notification.info{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);box-shadow:0 10px 25px rgba(59,130,246,.3);border-left:4px solid #60a5fa} .notification.loading{background:linear-gradient(135deg,#10b981 0%,#059669 100%);box-shadow:0 10px 25px rgba(16,185,129,.3);border-left:4px solid #34d399} .notification.loading .notification-icon i{animation:spin 1s linear infinite} @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}</style>
+</head>
+<body>
+  <script>
+    (function(){
+      function showErr(msg){
+        try {
+          var el = document.getElementById('__preview_error_overlay');
+          if(!el){
+            el = document.createElement('div');
+            el.id='__preview_error_overlay';
+            el.style.cssText='position:fixed;top:0;left:0;right:0;z-index:999999;background:#b91c1c;color:#fff;padding:10px 14px;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;box-shadow:0 2px 8px rgba(0,0,0,.35)';
+            document.body.appendChild(el);
+          }
+          el.textContent = '[Preview Error] ' + msg;
+        } catch(_){}
+      }
+      window.addEventListener('error', function(e){
+        try{ showErr(e.message + (e.lineno?(" @"+e.lineno+":"+(e.colno||0)):"") ); }catch(_){}
+      });
+      window.addEventListener('unhandledrejection', function(e){
+        try{ showErr('Promise rejection: ' + (e.reason && (e.reason.stack||e.reason.message||String(e.reason)))); }catch(_){}}
+      );
+    })();
+  </script>
+  <style>
+    html, body { min-height: 100vh; width: 100%; overflow: auto; overscroll-behavior: auto; }
+    /* Allow natural page size and scrolling; avoid forced scaling that crops content */
+    .container { min-height: 100vh; }
+  </style>
+  <script>
+    (function(){
+      function prevent(e){ try{ e.preventDefault(); }catch(_){ } }
+      function blockKeys(e){
+        try{
+          if(e.ctrlKey||e.metaKey||e.altKey) return;
+          var t=e.target;
+          if(t && (t.tagName==='INPUT' || t.tagName==='TEXTAREA' || t.isContentEditable)) return;
+          var keys=['Space','ArrowDown','ArrowUp','ArrowLeft','ArrowRight','PageDown','PageUp','Home','End'];
+          if(keys.indexOf(e.code)>=0) e.preventDefault();
+        }catch(_){ }
+      }
+      function disableScroll(){
+        try{
+          document.documentElement.style.overflow='hidden';
+          document.body.style.overflow='hidden';
+          document.documentElement.style.overscrollBehavior='none';
+          document.body.style.overscrollBehavior='none';
+          window.addEventListener('wheel', prevent, {passive:false});
+          window.addEventListener('touchmove', prevent, {passive:false});
+          window.addEventListener('keydown', blockKeys, {capture:true});
+        }catch(_){}
+      }
+      function fit(){
+        try{
+          var root=document.querySelector('.container');
+          if(!root) return;
+          root.style.transform='none';
+          root.style.width=''; root.style.height='';
+          var w=root.scrollWidth||root.offsetWidth||window.innerWidth;
+          var h=root.scrollHeight||root.offsetHeight||window.innerHeight;
+          var scale=Math.min(window.innerWidth/(w||1), window.innerHeight/(h||1), 1);
+          root.style.transformOrigin='top left';
+          root.style.transform='scale('+scale+')';
+          root.style.width=w+'px';
+          root.style.height=h+'px';
+        }catch(_){}
+      }
+      function setup(){
+        // Disable preview auto-fit to prevent page being cropped
+        try{
+          document.documentElement.style.overflow='';
+          document.body.style.overflow='';
+          document.documentElement.style.overscrollBehavior='';
+          document.body.style.overscrollBehavior='';
+          var root=document.querySelector('.container');
+          if(root){
+            root.style.transform='';
+            root.style.width='';
+            root.style.height='';
+          }
+        }catch(_){ }
+      }
+      if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', setup);
+      else setup();
+    })();
+  </script>
+  <div class="sidebar-overlay" onclick="toggleSidebar(false)"></div>
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3>Menu</h3>
+    </div>
+    <div class="sidebar-content">
+      <ul class="sidebar-menu">
+                <li><a href="#" class="active">Customer Search</a></li>
+                <li><a href="#">Sales Orders</a></li>
+                <li><a href="#">Reports</a></li>
+                <li><a href="#">Customer Management</a></li>
+                <li><a href="#">Settings</a></li>
+                <li><a href="#">Help</a></li>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="header">
+      <div class="header-left">
+        <button class="hamburger-menu" onclick="toggleSidebar()">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX" onerror="this.onerror=null;this.src='http://54.189.226.145/uploads/assets/images/taimex_logo.png';">
+        </div>
+      </div>
+      <div class="title-section">
+        <div class="title-row">
+          <div class="welcome-user">
+            <span>Welcome</span>
+            <strong>Admin User</strong>
+          </div>
+          <div>
+            <h2>TAIMEX</h2>
+            <p>Stock Transactions - User Management System</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="main-content">
+      <div class="tab-navigation">
+        <div class="tab-buttons">
+        <button type="button" class="tab-button active" data-tab-index="0" onclick="return switchTab(0)">
+          <i class="fas fa-user-plus"></i>Data Capture
+        </button>
+        <button type="button" class="tab-button " data-tab-index="1" onclick="return switchTab(1)">
+          <i class="fas fa-users-cog"></i>Search & View
+        </button>
+        </div>
+      </div>
+      <div class="tab-content">
+<div class="tab-pane active" id="tab-0"><div class="form-container"><h3 style="margin-bottom:24px; color:#1e293b;">Data Capture</h3><style>.form-group.required>label::after{content:" *";color:#ef4444;margin-left:4px}.info-alert{display:flex;gap:10px;align-items:flex-start;background:#eff6ff;border-left:4px solid #3b82f6;padding:12px 16px;border-radius:8px;color:#1e3a8a;margin-bottom:16px}.info-alert i{color:#3b82f6;margin-top:2px}.tab-pane .form-container{max-width:none;width:100%;margin:0;padding:20px 40px;display:flex;flex-direction:column;align-items:center}.form-grid{display:flex;flex-direction:column;gap:16px;max-width:500px;width:100%}.form-group{width:100%}</style><div class="info-alert"><i class="fas fa-info-circle"></i><div><strong>Important:</strong> Fields marked with <span style="color:#ef4444;">*</span> are required. If applicable, both parts of the part number are required for exact searches.</div></div><form class="form-grid" onsubmit="return false;" onkeydown="handleFormKeyDown(event)">            <div class="form-group required">
+                <label>Transaction Code</label>
+                <input type="text" placeholder="Enter transaction code" name="code" required aria-required="true" id="codeInput"></input>
+              </div>
+            <div class="form-group required">
+                <label>Description</label>
+                <input type="text" placeholder="Enter description" name="description" required aria-required="true" id="descriptionInput"></input>
+              </div>
+            <div class="form-group required">
+                <label>Type</label>
+                <select name="type" required aria-required="true" id="typeInput" onchange="handleTypeChange()">
+                  <option value="">Select type</option>
+                  <option value="IN">IN</option>
+                  <option value="OUT">OUT</option>
+                </select>
+                <div style="margin-top: 6px; font-size: 12px; color: #6b7280;">
+                  Please hit Enter to continue (opens Transaction Authorization)
+                </div>
+              </div></form>
+
+  <!-- Inline Authorization Helper Container -->
+  <div id="authorizationHelperContainer" class="authorization-section" style="display: none;">
+    <h4 style="margin: 0 0 12px 0; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+      <i class="fas fa-shield-alt"></i>
+      Transaction Authorization
+    </h4>
+    
+    <!-- Context header - shows user info when editing, code/desc when adding -->
+    <div id="authHelperContext" style="margin-bottom: 12px; font-size: 13px; color: #6b7280;">
+      <strong>Code:</strong> <span id="authHelperCode"></span> — <strong>Description:</strong> <span id="authHelperDescription"></span>
+    </div>
+    
+    <div style="background: #f8fafc; border-radius: 8px; padding: 16px; border: 1px solid #e5e7eb;">
+      <!-- Default mode: Add new user -->
+      <div id="authHelperAddMode" style="display: flex; gap: 12px; align-items: end; margin-bottom: 12px;">
+        <div style="flex: 1;">
+          <label for="authHelperInitials" style="display: block; font-weight: 600; color: #374151; margin-bottom: 4px; font-size: 13px;">
+            Authorized Initials <span style="color: #ef4444;">*</span>
+          </label>
+          <input type="text" id="authHelperInitials" name="initials" required 
+                 placeholder="INITIALS" 
+                 oninput="this.value=this.value.toUpperCase(); resolveAuthUserName(this.value)"
+                 onkeydown="handleAuthHelperKeyDown(event)"
+                 style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px;">
+        </div>
+        <div style="flex: 1;">
+          <label for="authDisplayName" style="display: block; font-weight: 600; color: #374151; margin-bottom: 4px; font-size: 13px;">Name</label>
+          <input type="text" id="authDisplayName" placeholder="Full name" readonly 
+                 style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #f9fafb;">
+        </div>
+        <button type="button" class="btn btn-primary" onclick="return addAuthToBuffer()" title="Add to list"
+                style="padding: 8px 16px; height: 36px; background: #1d4ed8; border: none; border-radius: 6px; color: white; font-size: 14px; font-weight: 500; cursor: pointer;">
+          <i class="fas fa-plus"></i> Add
+        </button>
+      </div>
+      
+      
+      <!-- Legend hint for Enter key -->
+      <div style="margin: -4px 0 8px 0; font-size: 12px; color: #6b7280;">
+        Please hit Enter to continue
+      </div>
+      
+      <div id="authHelperResolved" class="auth-resolved-name" style="display: none; margin-bottom: 8px; font-size: 12px;"></div>
+      <div id="authHelperBufferList" class="auth-buffer-list"></div>
+    </div>
+    
+    <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px;">
+      <button type="button" class="btn btn-secondary" onclick="return handleClear()"
+              style="padding: 8px 16px; background: #9ca3af; border: none; border-radius: 6px; color: white; font-size: 13px; cursor: pointer;">
+        <i class="fas fa-undo"></i> Clear
+      </button>
+      <button type="button" class="btn btn-secondary" onclick="closeAuthHelper()"
+              style="padding: 8px 16px; background: #6b7280; border: none; border-radius: 6px; color: white; font-size: 13px; cursor: pointer;">
+        <i class="fas fa-times"></i> Close
+      </button>
+      <button type="button" class="btn btn-danger" onclick="return deleteAllAuthorization()"
+              style="padding: 8px 16px; background: #dc2626; border: none; border-radius: 6px; color: white; font-size: 13px; cursor: pointer;">
+        <i class="fas fa-trash"></i> Delete All
+      </button>
+      <button type="button" class="btn btn-primary" onclick="saveAuthorization()"
+              style="padding: 8px 16px; background: #1d4ed8; border: none; border-radius: 6px; color: white; font-size: 13px; cursor: pointer;">
+        <i class="fas fa-save"></i> Save Authorization
+      </button>
+    </div>
+  </div>
+
+ </div></div><div class="tab-pane " id="tab-1"><div class="form-container"><h3 style="margin-bottom:24px; color:#1e293b;">Search & View</h3><div class="info-alert"><i class="fas fa-info-circle"></i><div><strong>Tip:</strong> You can search by text and filter by column. Click headers to sort. If applicable, both parts of the part number are required for exact searches.</div></div><div class="search-container"><input type="text" id="searchInput" placeholder="Search..." oninput="return handleSearch(this.value)"></div><div class="excel-grid-wrapper">  <div class="grid-toolbar">    <div class="toolbar-left"><span class="results-count"><i class="fas fa-database"></i> <span id="recordsCount">0 records shown</span></span></div>    <div class="toolbar-right">      <button type="button" class="grid-btn" onclick="return exportToCSV()"><i class="fas fa-download"></i> Export CSV</button>      <button type="button" class="grid-btn" onclick="return clearFilters()"><i class="fas fa-times"></i> Clear Filters</button>      <button type="button" class="grid-btn" onclick="return manualCleanupLocalStorage()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;"><i class="fas fa-broom"></i> Clear Cache</button>    </div>  </div>  <div class="excel-grid-container">    <table class="excel-grid-premium">      <thead>        <tr>              <th class="excel-header" onclick="return sortAuthTable(0)">
+                  <div class="header-content">
+                    <i class="fas fa-code"></i> Code 
+                    <i class="fas fa-sort sort-icon"></i>
+                  </div>
+                  <span class="resize-handle"></span>
+                </th>
+              <th class="excel-header" onclick="return sortAuthTable(1)">
+                  <div class="header-content">
+                    <i class="fas fa-file-text"></i> Description 
+                    <i class="fas fa-sort sort-icon"></i>
+                  </div>
+                  <span class="resize-handle"></span>
+                </th>
+              <th class="excel-header" onclick="return sortAuthTable(2)">
+                  <div class="header-content">
+                    <i class="fas fa-exchange-alt"></i> Type 
+                    <i class="fas fa-sort sort-icon"></i>
+                  </div>
+                  <span class="resize-handle"></span>
+                </th>
+              <th class="excel-header actions-header">
+                  <div class="header-content">
+                    <i class="fas fa-cogs"></i> Actions
+                  </div>
+                </th></tr>        <tr class="filter-row">              <th class="filter-cell">
+                  <input type="text" class="filter-input" placeholder="Filter Code..." id="authFilterCode" oninput="renderAuthGrid()">
+                </th>
+              <th class="filter-cell">
+                  <input type="text" class="filter-input" placeholder="Filter Description..." id="authFilterDescription" oninput="renderAuthGrid()">
+                </th>
+              <th class="filter-cell">
+                  <select id="authFilterType" class="filter-input" onchange="renderAuthGrid()">
+                    <option value="">All Types</option>
+                    <option value="IN">IN</option>
+                    <option value="OUT">OUT</option>
+                  </select>
+                </th>
+              <th class="filter-cell"></th></tr>      </thead>      <tbody id="recordsTableBody"></tbody>    </table>  </div></div>
+
+ 
+ </div></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="notification-container" id="notificationContainer"></div>
+  
+  <script>
+    var __schemaFields = [{"label":"Code","name":"code","type":"text","placeholder":"code"},{"label":"Description","name":"description","type":"text","placeholder":"Description"},{"label":"Type","name":"type","type":"select","placeholder":"Select type"}];
+    var __displayFields = [{"label":"Code","name":"code","type":"text","placeholder":"code"},{"label":"Description","name":"description","type":"text","placeholder":"Description"},{"label":"Type","name":"type","type":"select","placeholder":"Select type"}];
+    
+    // --- Sidebar controls (fix ReferenceError: toggleSidebar is not defined) ---
+    function toggleSidebar(force) {
+      try {
+        var sidebar = document.getElementById('sidebar');
+        var overlay = document.querySelector('.sidebar-overlay');
+        if (!sidebar || !overlay) return false;
+
+        // Determine current open state using the CSS class actually used by the stylesheet (.active)
+        var isOpen = sidebar.classList.contains('active');
+
+        // Compute the desired new state
+        var open = (typeof force === 'boolean') ? force : !isOpen;
+
+        // Toggle classes that CSS expects
+        sidebar.classList.toggle('active', open);
+        overlay.classList.toggle('active', open);
+
+        return open;
+      } catch (e) {
+        console.warn('toggleSidebar error:', e);
+        return false;
+      }
+    }
+
+    // Close sidebar on ESC
+    (function(){
+      try {
+        document.addEventListener('keydown', function(ev){
+          if (ev.key === 'Escape') toggleSidebar(false);
+        });
+      } catch(_){}
+    })();
+
+// Notification system
+ function initializeNotifications() {
+  var c = document.getElementById("notificationContainer");
+  if (!c) {
+    c = document.createElement("div");
+    c.className = "notification-container";
+    c.id = "notificationContainer";
+    document.body.appendChild(c);
+  }
+}
+
+var loadingNotification = null;
+
+function showSuccessNotification(title, message) {
+  initializeNotifications();
+  var container = document.getElementById("notificationContainer");
+  var notification = document.createElement("div");
+  notification.className = "notification";
+  notification.innerHTML = '<div class="notification-icon"><i class="fas fa-check"></i></div><div class="notification-content"><div class="notification-title">' + (title || "Success") + '</div>' + (message ? '<div class="notification-message">' + message + '</div>' : '') + '</div>';
+  container.appendChild(notification);
+  setTimeout(function() { notification.classList.add("show", "bounce"); }, 100);
+  setTimeout(function() {
+    notification.classList.remove("show");
+    notification.classList.add("hide");
+    setTimeout(function() {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 400);
+  }, 4000);
+}
+
+// Error notification variant used across the app
+function showErrorNotification(title, message) {
+  try {
+    initializeNotifications();
+    var container = document.getElementById("notificationContainer");
+    var notification = document.createElement("div");
+    notification.className = "notification error";
+    notification.innerHTML = '<div class="notification-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="notification-content"><div class="notification-title">' + (title || "Error") + '</div>' + (message ? '<div class="notification-message">' + message + '</div>' : '') + '</div>';
+    container.appendChild(notification);
+    setTimeout(function() { notification.classList.add("show", "bounce"); }, 100);
+    setTimeout(function() {
+      notification.classList.remove("show");
+      notification.classList.add("hide");
+      setTimeout(function() {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 400);
+    }, 4000);
+  } catch (e) { console.error('showErrorNotification error:', e); }
+}
+
+// --- OP_EDIT Users cache and resolver + remote XML fetch ---
+var __OP_USERS_KEY = 'opUsers';
+
+function _loadRecs() {
+  // SERVER-ONLY: Load records directly from server, no localStorage
+  var records = window.__serverRecords || [];
+  console.log('📊 _loadRecs called, found', records.length, 'records');
+  console.log('📋 Sample records:', records.slice(0, 3));
+  if (!records.length) {
+    console.warn('No server records available. Attempting to load from server...');
+    // Try to load from server if cache is empty
+    if (typeof loadAllRecordsFromPicLan === 'function') {
+      loadAllRecordsFromPicLan();
+    }
+  }
+  return records;
+}
+
+function _saveOpUsers(list) {
+  try { localStorage.setItem(__OP_USERS_KEY, JSON.stringify(list || [])); }
+  catch (e) { console.error('_saveOpUsers error:', e); }
+}
+
+function __toTitleCaseName(s) {
+  try {
+    s = String(s == null ? '' : s);
+    if (!s) return '';
+    return s.split(' ').map(function(part){
+      part = part.toLowerCase();
+      return part.charAt(0).toUpperCase() + part.slice(1);
+    }).join(' ');
+  } catch (_) { return String(s == null ? '' : s); }
+}
+
+function _resolveUserName(initials) {
+  try {
+    var key = String(initials || '').trim().toUpperCase();
+    if (!key) return '';
+    var rec = (__ramOpUsers && __ramOpUsers[key]) || null;
+    var nm = rec && rec.name ? String(rec.name).trim() : '';
+    return __toTitleCaseName(nm);
+  } catch (e) { console.error('_resolveUserName error:', e); return ''; }
+}
+window._resolveUserName = _resolveUserName;
+
+// Simple fetch cache to avoid thrashing the server
+var __opFetchCache = { inflight: {}, last: {} };
+window.__opFetchCache = __opFetchCache;
+
+// In-memory users cache (server-sourced, no localStorage)
+var __ramOpUsers = {};
+window.__ramOpUsers = __ramOpUsers;
+
+function __parseOpUsersXML(xmlText) {
+  try {
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(xmlText || '', 'application/xml');
+    if (doc.getElementsByTagName('parsererror').length) {
+      console.warn('__parseOpUsersXML: non-XML or invalid XML received');
+      return [];
+    }
+    var users = [];
+    var nodes = doc.getElementsByTagName('User');
+    if (!nodes || !nodes.length) {
+      try { nodes = doc.querySelectorAll('User, OP, Operator, Row, RECORD, Record, row, user'); } catch (_) {}
+    }
+    if (!nodes || !nodes.length) {
+      // Try single-record payload
+      if (doc && doc.documentElement) nodes = [doc.documentElement];
+    }
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      var g = function(tag){ var el = n.getElementsByTagName(tag)[0]; return el ? (el.textContent || '').trim() : ''; };
+      var ini = g('Initials') || g('INITIALS') || g('Ini') || g('INI');
+      if (!ini) continue;
+      var name = g('Name') || g('NAME');
+      if (!name) {
+        var fn = g('FirstName') || g('FIRSTNAME') || g('First_Name');
+        var ln = g('LastName') || g('LASTNAME') || g('Last_Name');
+        name = (fn + ' ' + ln).trim();
+      }
+      // Tratar 'Desconocido' o vacío como no-encontrado (no inventar nombre)
+      if (/^desconocido$/i.test(name || '')) name = '';
+      var activeTxt = g('Active') || g('ACTIVE');
+      var active = /^(1|true|yes|y)$/i.test(activeTxt || '');
+      users.push({ initials: String(ini).toUpperCase(), name: (name || '').trim(), active: active });
+    }
+    return users;
+  } catch (e) { console.warn('__parseOpUsersXML error:', e); return []; }
+ }
+
+function __mergeOpUsers(fetched) {
+  try {
+    if (!Array.isArray(fetched) || !fetched.length) return _loadOpUsers();
+    var cur = _loadOpUsers();
+    for (var i = 0; i < fetched.length; i++) {
+      var fu = fetched[i] || {};
+      var ini = String(fu.initials || '').trim().toLowerCase();
+      if (!ini) continue;
+      var idx = -1;
+      for (var j = 0; j < cur.length; j++) {
+        var cu = cur[j] || {};
+        if (String(cu.initials || '').trim().toLowerCase() === ini) { idx = j; break; }
+      }
+      if (idx >= 0) {
+        // Update name/active if provided
+        if (fu.name) cur[idx].name = fu.name;
+        if (typeof fu.active === 'boolean') cur[idx].active = fu.active;
+      } else {
+        cur.push({ initials: fu.initials, name: fu.name || fu.initials, active: !!fu.active });
+      }
+    }
+    _saveOpUsers(cur);
+    return cur;
+  } catch (e) { console.error('__mergeOpUsers error:', e); return _loadOpUsers(); }
+}
+
+// Server-only merge into in-memory cache
+function __mergeOpUsersToRam(fetched) {
+  try {
+    if (!Array.isArray(fetched) || !fetched.length) return __ramOpUsers;
+    for (var i = 0; i < fetched.length; i++) {
+      var fu = fetched[i] || {};
+      var key = String(fu.initials || '').trim().toUpperCase();
+      if (!key) continue;
+      // No forzar nombre a las iniciales: si no hay nombre, dejar vacío
+      var name = (fu.name && String(fu.name).trim()) || '';
+      var active = typeof fu.active === 'boolean' ? fu.active : true;
+      __ramOpUsers[key] = { initials: key, name: name, active: active };
+    }
+    return __ramOpUsers;
+  } catch (e) { console.error('__mergeOpUsersToRam error:', e); return __ramOpUsers; }
+}
+
+ function fetchOpUser(initials) {
+  var ini = String(initials || '').trim();
+  if (!ini) return Promise.resolve([]);
+  var key = String(ini).toUpperCase();
+  if (key.length !== 2) return Promise.resolve([]);
+  // De-duplicate inflight requests
+  if (__opFetchCache.inflight[key]) return __opFetchCache.inflight[key];
+
+  var defaultBaseUrls = [
+    'http://54.189.226.145/get_opdata.xml'
+  ];
+  var baseUrls = (window.GET_OP_BASE_URLS && Array.isArray(window.GET_OP_BASE_URLS) && window.GET_OP_BASE_URLS.length)
+    ? window.GET_OP_BASE_URLS
+    : defaultBaseUrls;
+  var paramNames = ['INITIALS'];
+
+  // Sin fallback local: siempre depender del servidor
+
+  function attempt(baseIdx, paramIdx) {
+    // Exhausted all base URLs - no local fallback
+    if (baseIdx >= baseUrls.length) {
+      return Promise.resolve([]); // soft-fail with empty list
+    }
+    var baseUrl = baseUrls[baseIdx];
+    // Exhausted all param names for this base URL -> move to next base URL
+    if (paramIdx >= paramNames.length) {
+      return attempt(baseIdx + 1, 0);
+    }
+    var pname = paramNames[paramIdx];
+    var url = baseUrl + '?' + pname + '=' + encodeURIComponent(key) + '&_=' + Date.now();
+    try { console.debug('get_opdata.xml request:', url); } catch(_){ }
+    return fetch(url, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: {
+        'Accept': 'application/xml,text/xml;q=0.9,*/*;q=0.8',
+        'Pragma': 'no-cache',
+        'Cache-Control': 'no-store'
+      }
+    })
+    .then(function(res){
+      if (!res.ok) throw new Error('HTTP ' + res.status + ' (' + pname + ')');
+      return res.text();
+    })
+    .then(function(txt){
+      try { console.debug('get_opdata.xml raw [' + pname + ']:', (txt || '').slice(0, 200)); } catch(_){ }
+      var list = __parseOpUsersXML(txt);
+      __mergeOpUsersToRam(list);
+      // Si la respuesta está vacía, probar siguiente parámetro
+      if (!Array.isArray(list) || list.length === 0) {
+        return attempt(baseIdx, paramIdx + 1);
+      }
+      // Tenemos algún resultado; devolverlo aunque no coincida exactamente
+      return list;
+    })
+    .catch(function(err){
+      console.warn('fetchOpUser attempt error:', (err && err.message) ? err.message : err);
+      // Intentar siguiente parámetro; si se agotan, pasamos al siguiente base URL
+      if (paramIdx + 1 < paramNames.length) {
+        return attempt(baseIdx, paramIdx + 1);
+      }
+      return attempt(baseIdx + 1, 0);
+    });
+  }
+
+  var p = attempt(0, 0)
+    .finally(function(){ try { delete __opFetchCache.inflight[key]; } catch (_) {} });
+
+  __opFetchCache.inflight[key] = p;
+  return p;
+  }
+window.fetchOpUser = fetchOpUser;
+
+  // Fetch all users using attempts similar to Price Edit (ALL selectors)
+  function fetchAllOpUsers(){
+    var attempts = (window.GET_OP_ALL_URLS && Array.isArray(window.GET_OP_ALL_URLS) && window.GET_OP_ALL_URLS.length)
+      ? window.GET_OP_ALL_URLS
+      : [
+          'http://54.189.226.145/get_opdata.xml?ID=ALL',
+          'http://54.189.226.145/get_opdata.xml?SELECT=ALL',
+          'http://54.189.226.145/get_opdata.xml?INITIALS=ALL',
+          'http://54.189.226.145/get_opdata.xml?INITIALS=*'
+        ];
+    function attempt(i){
+      if (i >= attempts.length) return Promise.resolve([]);
+      var url = attempts[i] + '&_=' + Date.now();
+      try { console.debug('get_opdata.xml ALL request:', url); } catch(_){ }
+      return fetch(url, {
+        method: 'GET',
+        cache: 'no-store',
+        headers: {
+          'Accept': 'application/xml,text/xml;q=0.9,*/*;q=0.8',
+          'Pragma': 'no-cache',
+          'Cache-Control': 'no-store'
+        }
+      })
+      .then(function(res){ if (!res.ok) throw new Error('HTTP ' + res.status); return res.text(); })
+      .then(function(txt){
+        try { console.debug('get_opdata.xml ALL raw:', (txt||'').slice(0,200)); } catch(_){ }
+        var list = __parseOpUsersXML(txt);
+        if (Array.isArray(list) && list.length) {
+          __mergeOpUsersToRam(list);
+          return list;
+        }
+        return attempt(i+1);
+      })
+      .catch(function(err){ console.warn('fetchAllOpUsers attempt error:', err && err.message ? err.message : err); return attempt(i+1); });
+    }
+    return attempt(0);
+  }
+  window.fetchAllOpUsers = fetchAllOpUsers;
+
+// Data management functions
+function _storageKey() {
+  return ("taimex_records_" + (document.title || "sistema").toLowerCase().replace(/[^a-zA-Z0-9]/g, "_")).slice(0, 120);
+}
+
+function _loadRecs() {
+  try {
+    // SERVER-ONLY: Load from server cache, not localStorage
+    var records = window.__serverRecords || [];
+    console.log('📊 _loadRecs called, found', records.length, 'records in server cache');
+    console.log('📋 Sample records:', records.slice(0, 3));
+    
+    // Records from server are already normalized, just return them
+    return records;
+  } catch (e) {
+    console.error('_loadRecs error:', e);
+    return [];
+  }
+}
+
+function _saveRecs(list) {
+  // SERVER-ONLY: Update server records cache, no localStorage
+  window.__serverRecords = Array.isArray(list) ? list : [];
+  console.log('💾 _saveRecs called, updated cache:', window.__serverRecords.length, 'records');
+  console.log('📋 Sample saved records:', window.__serverRecords.slice(0, 3));
+}
+
+function _collect() {
+  var data = {};
+  var c = document.querySelector("#tab-0 .form-grid");
+  (__schemaFields || []).forEach(function(f) {
+    var el = c && c.querySelector("[name='" + f.name + "']");
+    data[f.name] = el ? el.value : "";
+  });
+  return data;
+}
+
+// Tab switching functionality
+function switchTab(index) {
+  console.log("switchTab called with index:", index);
+  try {
+    var buttons = document.querySelectorAll(".tab-button");
+    var panes = document.querySelectorAll(".tab-pane");
+    console.log("Found buttons:", buttons.length, "panes:", panes.length);
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].classList.toggle("active", i === index);
+    }
+    for (var i = 0; i < panes.length; i++) {
+      panes[i].classList.toggle("active", i === index);
+    }
+    try {
+      renderGrid("");
+      updateSortUI();
+      renderAuthGrid();
+    } catch (e) {
+      console.error("Error in switchTab rendering:", e);
+    }
+  } catch (e) {
+    console.error("Error in switchTab:", e);
+  }
+  return false;
+}
+window.switchTab = switchTab;
+
+// --- Added: keyboard handlers and modal helpers to avoid ReferenceErrors ---
+function handleFormKeyDown(ev) {
+  try {
+    ev = ev || window.event;
+    var key = ev.key || ev.code || '';
+    if (key === 'Enter') {
+      if (ev.preventDefault) ev.preventDefault();
+      // First update inline helper to detect existing users, then open
+      try { 
+        var codeEl = document.getElementById('codeInput');
+        var descEl = document.getElementById('descriptionInput');
+        var typeEl = document.getElementById('typeInput');
+        var code = codeEl ? codeEl.value : '';
+        var desc = descEl ? descEl.value : '';
+        var type = typeEl ? typeEl.value : '';
+        if (code && desc && type) {
+          updateInlineHelperFor(code, desc, type);
+        } else {
+          openAuthForCurrentForm();
+        }
+      } catch(_){ 
+        try { openAuthForCurrentForm(); } catch(__){ }
+      }
+      return false;
+    }
+    if (key === 'Escape') {
+      if (ev.preventDefault) ev.preventDefault();
+      try { handleClear(); } catch(_){ }
+      return false;
+    }
+  } catch (e) { console.error('handleFormKeyDown error:', e); }
+  return true;
+}
+window.handleFormKeyDown = handleFormKeyDown;
+
+function openAuthForCurrentForm() {
+  try {
+    // 1) Leer valores del formulario
+    var codeEl = document.getElementById('codeInput');
+    var descEl = document.getElementById('descriptionInput');
+    var typeEl = document.getElementById('typeInput');
+    var code = codeEl ? (codeEl.value || '').trim() : '';
+    var desc = descEl ? (descEl.value || '').trim() : '';
+    var type = typeEl ? (typeEl.value || '').trim() : '';
+
+    if (!code || !desc || !type) {
+      showErrorNotification('Required Fields', 'Please complete Code, Description, and Type before continuing.');
+      return false;
+    }
+
+    // Set current txn context for saveAuthorization
+    try {
+      window.__currentTxnType = type;
+      window.__currentTxnSrc = 'STOCKTRANS_EDIT.HTM';
+      window.__currentCode = code;
+      window.__currentDescription = desc;
+    } catch (_) {}
+
+    // Show inline helper container and initialize buffer
+    var helperContainer = document.getElementById('authorizationHelperContainer');
+    if (helperContainer) {
+      helperContainer.style.display = 'block';
+      
+      // Set transaction context in helper
+      var codeSpan = document.getElementById('authHelperCode');
+      var descSpan = document.getElementById('authHelperDescription');
+      if (codeSpan) codeSpan.textContent = code;
+      if (descSpan) descSpan.textContent = desc;
+      
+      var addMode = document.getElementById('authHelperAddMode');
+      
+      // Check if we have existing users to load
+      var hasExistingUsers = Array.isArray(window.__editingUsers) && window.__editingUsers.length > 0;
+      
+      if (hasExistingUsers) {
+        // Edit mode: load existing users into buffer for chip display
+        try {
+          // Initialize buffer with existing users
+          window.__authBuffer = [];
+          console.log('🔍 Loading existing users:', window.__editingUsers);
+          for (var i = 0; i < window.__editingUsers.length; i++) {
+            var user = window.__editingUsers[i];
+            console.log('🔍 Processing user', i, ':', user);
+            if (user && user.initials) {
+              var bufferUser = {
+                initials: user.initials,
+                name: user.name || ''
+              };
+              console.log('🔍 Adding to buffer:', bufferUser);
+              window.__authBuffer.push(bufferUser);
+            }
+          }
+          console.log('🔍 Final buffer:', window.__authBuffer);
+          var existingInfo = 'Existing users loaded: ' + window.__editingUsers.map(function(u) { 
+            return u.name ? (u.initials + ' — ' + u.name) : u.initials; 
+          }).join(', ');
+          console.log(existingInfo);
+          renderAuthBuffer();
+        } catch(_) {}
+      } else {
+        // Fresh add mode
+        initAuthBuffer();
+      }
+      
+      // Always show Add Mode (no more Edit Mode)
+      if (addMode) addMode.style.display = 'flex';
+      
+      // Ensure Add Mode is shown and Edit Mode is hidden
+      // Hide top Save button while helper is open
+      try {
+        var topSaveBtn = document.querySelector('.form-actions .btn.btn-primary[onclick*="handleSave"]');
+        if (topSaveBtn) topSaveBtn.style.display = 'none';
+      } catch(_){}
+    }
+
+  } catch (e) {
+    console.error('openAuthForCurrentForm error:', e);
+  }
+  return false;
+}
+window.openAuthForCurrentForm = openAuthForCurrentForm;
+
+// Used by the auth modal input onchange="resolveUserName(this.value)"
+function resolveUserName(v) {
+  try {
+    var name = _resolveUserName(v);
+    var box = document.getElementById('resolvedUserName');
+    if (box) {
+      box.textContent = name ? ('User: ' + name) : 'User not found';
+      box.style.display = 'block';
+    }
+    return name || '';
+  } catch (e) {
+    console.error('resolveUserName error:', e);
+    return '';
+  }
+}
+window.resolveUserName = resolveUserName;
+
+// Handle Enter/Escape inside the auth modal initials input
+function handleAuthHelperKeyDown(ev) {
+  try {
+    ev = ev || window.event;
+    var key = ev.key || ev.code || '';
+    if (key === 'Enter') {
+      if (ev.preventDefault) ev.preventDefault();
+      try {
+        var iniEl = document.getElementById('authHelperInitials');
+        var hasVal = iniEl && String(iniEl.value || '').trim() !== '';
+        if (hasVal) { addAuthToBuffer(); }
+        else { saveAuthorization(); }
+      } catch (_) { try { saveAuthorization(); } catch(__) {} }
+      return false;
+    }
+    if (key === 'Escape') {
+      if (ev.preventDefault) ev.preventDefault();
+      try { closeAuthHelper(); } catch (_) {}
+      return false;
+    }
+  } catch (e) { console.error('handleAuthHelperKeyDown error:', e); }
+  return true;
+}
+window.handleAuthHelperKeyDown = handleAuthHelperKeyDown;
+
+// Minimal helpers so the modal can close/save without throwing
+
+// --- Multi-add buffer helpers for Authorization modal ---
+function initAuthBuffer() {
+  try {
+    window.__authBuffer = [];
+    renderAuthBuffer();
+  } catch (e) { console.error('initAuthBuffer error:', e); }
+  return false;
+}
+
+function renderAuthBuffer() {
+  try {
+    var list = Array.isArray(window.__authBuffer) ? window.__authBuffer : [];
+    
+    // In edit mode, also include existing users from __editingUsers
+    var isEditMode = Array.isArray(window.__editingUsers) && window.__editingUsers.length > 0;
+    
+    if (isEditMode) {
+      console.log('🔍 Edit mode detected, merging existing users:', window.__editingUsers);
+      // Merge existing users with buffer, avoiding duplicates
+      var existingInitials = list.map(function(u) { return u.initials; });
+      for (var j = 0; j < window.__editingUsers.length; j++) {
+        var existingUser = window.__editingUsers[j];
+        if (existingUser && existingUser.initials && existingInitials.indexOf(existingUser.initials) === -1) {
+          list.push(existingUser);
+        }
+      }
+    }
+    
+    var host = document.getElementById('authHelperBufferList');
+    if (!host) { console.log('authHelperBufferList not found'); return false; }
+    if (!list.length) { host.innerHTML = ''; host.style.display = 'none'; return false; }
+    // Build chips with DOM to avoid any escaping issues
+    while (host.firstChild) host.removeChild(host.firstChild);
+    console.log('🔍 Rendering', list.length, 'users in buffer (DOM):', list);
+    for (var i = 0; i < list.length; i++) {
+      (function(idx){
+        var it = list[idx] || {};
+        console.log('🔍 Rendering user', idx, ':', it);
+        var displayText = it.name ? (it.initials + ' — ' + it.name) : (it.initials || '');
+        console.log('🔍 Display text:', displayText);
+
+        var bubble = document.createElement('div');
+        bubble.className = 'user-bubble';
+
+        var icon = document.createElement('i');
+        icon.className = 'fas fa-user';
+        bubble.appendChild(icon);
+
+        var span = document.createElement('span');
+        span.style.fontWeight = '600';
+        span.textContent = displayText; // safe text insertion
+        bubble.appendChild(span);
+
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = '×';
+        btn.addEventListener('click', function(){ return removeAuthFromBuffer(idx); });
+        bubble.appendChild(btn);
+
+        host.appendChild(bubble);
+      })(i);
+    }
+    host.style.display = 'flex';
+    console.log('🔍 Chips rendered (DOM), host display:', host.style.display);
+  } catch (e) { console.error('renderAuthBuffer error:', e); }
+  return false;
+}
+
+function addAuthToBuffer() {
+  try {
+    var iniEl = document.getElementById('authHelperInitials');
+    var resolvedDiv = document.getElementById('authResolvedName') || document.getElementById('authHelperResolved');
+    var nameInput = document.getElementById('authDisplayName');
+    var ini = iniEl && iniEl.value ? String(iniEl.value).trim().toUpperCase() : '';
+    if (!ini || ini.length < 2) { alert('Enter exactly 2 initials'); if (iniEl) iniEl.focus(); return false; }
+
+    var name = _resolveUserName(ini);
+    if (!name) {
+      // Attempt server fetch then re-resolve
+      if (resolvedDiv) { resolvedDiv.textContent = 'Searching on server...'; resolvedDiv.className = 'auth-resolved-name'; resolvedDiv.style.display = 'block'; }
+      return fetchOpUser(ini).then(function(){
+        var nm = _resolveUserName(ini);
+        if (!nm) { alert('User not found in OP_EDIT'); return false; }
+        try { window.__authBuffer = Array.isArray(window.__authBuffer) ? window.__authBuffer : []; window.__authBuffer.push({ initials: ini, name: nm }); renderAuthBuffer(); if (resolvedDiv) { resolvedDiv.style.display = 'none'; } if (iniEl) { iniEl.value = ''; iniEl.focus(); } if (nameInput) { nameInput.value = ''; } } catch (e) { console.error('addAuthToBuffer push error:', e); }
+        return false;
+      }).catch(function(){ alert('Error contacting server'); return false; });
+    }
+
+    // Have name locally
+    try {
+      window.__authBuffer = Array.isArray(window.__authBuffer) ? window.__authBuffer : [];
+      for (var j=0; j<window.__authBuffer.length; j++) { if ((window.__authBuffer[j]||{}).initials === ini) { alert('User already added'); return false; } }
+      window.__authBuffer.push({ initials: ini, name: name });
+      // If editing, keep the editing users list in sync with the buffer BEFORE rendering
+      try {
+        if (Array.isArray(window.__editingUsers) && window.__editingUsers.length > 0) {
+          window.__editingUsers = window.__authBuffer.slice();
+        }
+      } catch(_){ }
+      renderAuthBuffer();
+      if (resolvedDiv) { resolvedDiv.style.display = 'none'; }
+      if (iniEl) { iniEl.value = ''; iniEl.focus(); }
+      if (nameInput) { nameInput.value = ''; }
+    } catch (e) { console.error('addAuthToBuffer error:', e); }
+  } catch (e) { console.error('addAuthToBuffer outer error:', e); }
+  return false;
+}
+
+function removeAuthFromBuffer(i) {
+  try {
+    if (!Array.isArray(window.__authBuffer)) return false;
+    if (i < 0 || i >= window.__authBuffer.length) return false;
+    
+    var removedUser = window.__authBuffer[i];
+    console.log('Removing user from buffer:', removedUser);
+    
+    window.__authBuffer.splice(i, 1);
+    // If editing, keep the editing users list in sync with the buffer BEFORE rendering
+    try {
+      var editingVisible = Array.isArray(window.__editingUsers) && window.__editingUsers.length > 0;
+      if (editingVisible) {
+        window.__editingUsers = window.__authBuffer.slice();
+        console.log('Updated __editingUsers after removal, now has:', window.__editingUsers.length, 'users');
+      }
+    } catch(_){ }
+    renderAuthBuffer();
+    
+    // Show feedback to user
+    try {
+      if (removedUser && removedUser.initials) {
+        showSuccessNotification('User Removed', 'User ' + removedUser.initials + ' removed from authorization');
+      }
+    } catch(_){}
+    
+  } catch (e) { console.error('removeAuthFromBuffer error:', e); }
+  return false;
+}
+
+function closeAuthHelper() {
+  try {
+    // Check if we're in edit mode and have backup records to restore
+    var isEditMode = (Array.isArray(window.__editingUsers) && window.__editingUsers.length > 0) ||
+                     (Array.isArray(window.__editBackupRecords) && window.__editBackupRecords.length > 0);
+    
+    if (isEditMode && window.__editBackupRecords && Array.isArray(window.__editBackupRecords)) {
+      // User is canceling edit mode - restore the backup records
+      var list = _loadRecs();
+      list = list.concat(window.__editBackupRecords || []);
+      _saveRecs(list);
+      console.log('Restored', window.__editBackupRecords.length, 'backup records after cancel');
+      
+      // Clear backup
+      window.__editBackupRecords = null;
+      window.__editingUsers = null;
+      
+      // Refresh grid to show restored records
+      renderAuthGrid();
+    }
+    
+    var helperContainer = document.getElementById('authorizationHelperContainer');
+    if (helperContainer) helperContainer.style.display = 'none';
+    initAuthBuffer(); // Clear buffer when closing
+    
+    // Reset to Add Mode
+    var addMode = document.getElementById('authHelperAddMode');
+    if (addMode) addMode.style.display = 'flex';
+    try { var editModeEl = document.getElementById('authHelperEditMode'); if (editModeEl) editModeEl.style.display = 'none'; } catch(_) {}
+    
+    // Restore top Save button
+    try {
+      var topSaveBtn = document.querySelector('.form-actions .btn.btn-primary[onclick*="handleSave"]');
+      if (topSaveBtn) topSaveBtn.style.display = '';
+    } catch(_){}
+
+    // Always clear any lingering edit context and re-enable inputs
+    try { window.__editingUsers = null; } catch(_) {}
+    try { window.__editingUserInitials = null; } catch(_) {}
+    try { window.__editingUserName = null; } catch(_) {}
+    try { window.__editBackupRecords = null; } catch(_) {}
+    try {
+      var codeEl = document.getElementById('codeInput');
+      var descEl = document.getElementById('descriptionInput');
+      var typeEl = document.getElementById('typeInput');
+      if (codeEl) { codeEl.removeAttribute('disabled'); codeEl.readOnly = false; }
+      if (descEl) { descEl.removeAttribute('disabled'); descEl.readOnly = false; }
+      if (typeEl) { typeEl.removeAttribute('disabled'); }
+      var iniEl = document.getElementById('authHelperInitials');
+      if (iniEl) { iniEl.removeAttribute('disabled'); iniEl.readOnly = false; }
+    } catch(_){ }
+  } catch (e) { console.error('closeAuthHelper error:', e); }
+  return false;
+}
+window.closeAuthHelper = closeAuthHelper;
+
+function saveAuthorization() {
+  try {
+    console.log('🔧 DEBUG: saveAuthorization() called');
+    
+    // Always get values from main form (no more Edit Mode)
+    var codeEl = document.getElementById('codeInput');
+    var descEl = document.getElementById('descriptionInput');
+    var typeEl = document.getElementById('typeInput');
+    
+    if (!codeEl || !codeEl.value.trim()) {
+      alert('Code is required');
+      if (codeEl) codeEl.focus();
+      return false;
+    }
+    
+    // Enforce Description on client-side to match server validation
+    if (!descEl || !descEl.value.trim()) {
+      alert('Description is required');
+      if (descEl) descEl.focus();
+      return false;
+    }
+    
+    if (!typeEl || !typeEl.value.trim()) {
+      alert('Type is required');
+      if (typeEl) typeEl.focus();
+      return false;
+    }
+    
+    var newCode = codeEl.value.trim();
+    var newDesc = (descEl && descEl.value ? descEl.value.trim() : '');
+    var typeVal = typeEl.value.trim().toUpperCase();
+    
+    console.log('🔧 DEBUG saveAuthorization: typeVal =', typeVal);
+    console.log('🔧 DEBUG saveAuthorization: typeEl.value =', typeEl.value);
+    
+    // Validate: One Code can only have one Description AND one Description can only have one Code
+    var existingRecords = _loadRecs() || [];
+    var codeUpper = newCode.toUpperCase();
+    var descUpper = newDesc.toUpperCase();
+    var isEditingMode = Array.isArray(window.__editingUsers) && window.__editingUsers.length > 0;
+    var editingRecord = window.__editingRecord || {};
+    var editingCodeUpper = String(editingRecord.code || '').trim().toUpperCase();
+    var editingDescUpper = String(editingRecord.description || '').trim().toUpperCase();
+    
+    // Check for duplicate Code+Description combinations
+    for (var i = 0; i < existingRecords.length; i++) {
+      var r = existingRecords[i] || {};
+      var rCode = String(r.code || '').trim().toUpperCase();
+      var rDesc = String(r.description || '').trim().toUpperCase();
+      
+      // Skip validation if we're editing the same Code+Description combination
+      if (isEditingMode && rCode === editingCodeUpper && rDesc === editingDescUpper) {
+        continue;
+      }
+      
+      // Check if same Code with different Description
+      if (rCode === codeUpper && rDesc !== descUpper) {
+        alert('Error: Code "' + newCode + '" already exists with Description "' + (r.description || '') + '". Each Code can only have one Description.');
+        if (descEl) descEl.focus();
+        return false;
+      }
+      
+      // Check if same Description with different Code
+      if (rDesc === descUpper && rCode !== codeUpper) {
+        alert('Error: Description "' + newDesc + '" already exists with Code "' + (r.code || '') + '". Each Description can only have one Code.');
+        if (descEl) descEl.focus();
+        return false;
+      }
+    }
+    
+    // Check if we have existing users (editing scenario)
+    var hasExistingUsers = Array.isArray(window.__editingUsers) && window.__editingUsers.length > 0;
+    
+    if (hasExistingUsers) {
+      // Edit mode: send a single consolidated rewrite using INITIALS_ALL.
+      // 1) Gather all current users (chips + typed)
+      var users = Array.isArray(window.__authBuffer) ? window.__authBuffer.slice() : [];
+      if (!users.length && Array.isArray(window.__editingUsers)) {
+        users = window.__editingUsers.slice();
+      }
+      if (!users.length && window.__editingUserInitials) {
+        users = [{ initials: window.__editingUserInitials, name: (window.__editingUserName || _resolveUserName(window.__editingUserInitials) || '') }];
+      }
+      try {
+        var iniElInline = document.getElementById('authHelperInitials');
+        var typedIni = iniElInline && iniElInline.value ? String(iniElInline.value).trim().toUpperCase() : '';
+        if (typedIni && typedIni.length === 2) {
+          var exists = false;
+          for (var ui = 0; ui < users.length; ui++) {
+            if (String((users[ui]||{}).initials||'').trim().toUpperCase() === typedIni) { exists = true; break; }
+          }
+          if (!exists) users.push({ initials: typedIni, name: _resolveUserName(typedIni) || '' });
+        }
+      } catch(_) {}
+
+      // 2) Build unique two-letter initials list
+      var uniq = {};
+      var initialsList = [];
+      for (var k = 0; k < users.length; k++) {
+        var iniK = String((users[k]||{}).initials || '').trim().toUpperCase();
+        if (/^[A-Z]{2}$/.test(iniK) && !uniq[iniK]) { uniq[iniK] = 1; initialsList.push(iniK); }
+      }
+      // If none, we will delete the record (rewrite to empty)
+      var initialsAllStr = initialsList.join(',');
+
+      // 3) Determine if Code/Description changed; if so, delete old record first
+      var editingRecord = window.__editingRecord || {};
+      var originalCodeExact = String(editingRecord.code || '').trim();
+      var originalDescExact = String(editingRecord.description || '').trim();
+      var originalType = String(editingRecord.type || 'IN').trim().toUpperCase();
+      var changed = (String(originalCodeExact).trim().toUpperCase() !== codeUpper) || (String(originalDescExact).trim().toUpperCase() !== descUpper);
+
+      setAsyncUIBusy(true, 'Saving authorization...');
+      var seq = Promise.resolve();
+      if (changed) {
+        // Delete old record via rewrite-to-empty using a non-letter token ('-') so validation passes
+        seq = seq.then(function(){
+          return pushStockUpdate({
+            code: originalCodeExact,
+            description: (originalDescExact || '-'),
+            type: originalType || typeVal,
+            initialsAll: '-',
+            suppressReload: true
+          });
+        });
+      }
+
+      // 4) Rewrite new record with consolidated initials list (may be empty -> delete)
+      seq = seq.then(function(){
+        return pushStockUpdate({
+          code: newCode,
+          description: newDesc,
+          type: typeVal,
+          initialsAll: (initialsAllStr || '-'), // '-' triggers delete if list is empty
+          suppressReload: false
+        });
+      }).then(function(){
+        try { closeAuthHelper(); } catch(_){ }
+        try { renderAuthGrid(); } catch(_){ }
+        try { renderGrid(""); } catch(_){ }
+        // Redirect to Search & View to review what was saved
+        try { if (typeof switchTab === 'function') switchTab(1); } catch(_) {}
+        setTimeout(function(){
+          console.log('🔄 [Edit Mode] Reloading from server after bulk save...');
+          if (typeof loadAllRecordsFromPicLan === 'function') loadAllRecordsFromPicLan();
+        }, 1200);
+        try { showSuccessNotification('Authorization', 'Saved ' + initialsList.length + ' user' + (initialsList.length===1?'':'s') + ' in a single record'); } catch(_) {}
+      }).catch(function(err){
+        console.warn('saveAuthorization (edit mode bulk) error:', err);
+        try { showErrorNotification('Authorization', 'Server error while saving. Please try again.'); } catch(_) {}
+      }).finally(function(){
+        try { window.__editBackupRecords = null; } catch(_){ }
+        try { window.__editBackupUsers = null; } catch(_){ }
+        delete window.__editingUsers;
+        window.__editingUserInitials = null;
+        window.__editingUserName = null;
+        setAsyncUIBusy(false);
+      });
+      return false;
+    }
+    
+    // Normal add mode - send one consolidated rewrite including existing users
+    var buffer = Array.isArray(window.__authBuffer) ? window.__authBuffer.slice() : [];
+    var iniEl = document.getElementById('authHelperInitials');
+    var singleIni = iniEl && iniEl.value ? String(iniEl.value).trim().toUpperCase() : '';
+    if (!buffer.length && !singleIni) {
+      alert('Add at least one user');
+      if (iniEl) iniEl.focus();
+      return false;
+    }
+    if (singleIni) buffer.push({ initials: singleIni, name: _resolveUserName(singleIni) || '' });
+
+    // Build existing initials for this Code+Description to preserve them
+    var serverList = _loadRecs() || [];
+    var existingSet = {};
+    for (var li = 0; li < serverList.length; li++) {
+      var r = serverList[li] || {};
+      var rCode = String(r.code || '').trim().toUpperCase();
+      var rDesc = String(r.description || '').trim().toUpperCase();
+      if (rCode === codeUpper && rDesc === descUpper) {
+        var rIni = String(r.initials || '').trim().toUpperCase();
+        if (/^[A-Z]{2}$/.test(rIni)) existingSet[rIni] = 1;
+      }
+    }
+
+    // Union: existing + new
+    var finalSet = Object.assign({}, existingSet);
+    for (var bi = 0; bi < buffer.length; bi++) {
+      var bIni = String((buffer[bi]||{}).initials || '').trim().toUpperCase();
+      if (/^[A-Z]{2}$/.test(bIni)) finalSet[bIni] = 1;
+    }
+    var finalList = Object.keys(finalSet).sort();
+    var initialsAllStr = finalList.join(',');
+
+    setAsyncUIBusy(true, 'Saving authorization...');
+    pushStockUpdate({
+      code: newCode,
+      description: newDesc,
+      type: typeVal,
+      initialsAll: (initialsAllStr || '-'), // '-' triggers delete if empty (should not happen here)
+      date: new Date().toISOString().split('T')[0],
+      time: new Date().toLocaleTimeString()
+    }).then(function(){
+      try { renderAuthGrid(); } catch (_) {}
+      try { renderGrid(""); } catch (_) {}
+      try { showSuccessNotification('Authorization', 'Saved ' + finalList.length + ' user' + (finalList.length===1?'':'s') + ' in a single record'); } catch(_) {}
+      setTimeout(function(){
+        console.log('🔄 Reloading records from server...');
+        if (typeof loadAllRecordsFromPicLan === 'function') loadAllRecordsFromPicLan();
+      }, 1200);
+      try { initAuthBuffer(); } catch(_) {}
+      try { closeAuthHelper(); } catch(_) {}
+      // Redirect to Search & View to review what was saved
+      try { if (typeof switchTab === 'function') switchTab(1); } catch(_) {}
+      try { var codeEl2 = document.getElementById('codeInput'); if (codeEl2) codeEl2.focus(); } catch(_){ }
+    }).catch(function(err){
+      console.warn('saveAuthorization (add mode bulk) error:', err);
+      try { showErrorNotification('Authorization', 'Server error while saving. Please try again.'); } catch(_) {}
+    }).finally(function(){ setAsyncUIBusy(false); });
+  } catch (e) { console.error('saveAuthorization error:', e); }
+  return false;
+}
+window.saveAuthorization = saveAuthorization;
+
+// New Authorization Helper Functions (Price Ranges Style)
+
+// Legacy function for compatibility
+function resolveAuthUserName(initials) {
+  try {
+    var resolvedDiv = document.getElementById('authHelperResolved');
+    var val = String(initials || '').trim().toUpperCase();
+    if (val.length < 2) {
+      if (resolvedDiv) resolvedDiv.style.display = 'none';
+      return '';
+    }
+    
+    var userName = _resolveUserName(val);
+    if (resolvedDiv) {
+      if (userName) {
+        resolvedDiv.textContent = '✓ ' + userName;
+        resolvedDiv.className = 'auth-resolved-name success';
+        resolvedDiv.style.display = 'block';
+      } else {
+        resolvedDiv.textContent = 'Searching on server...';
+        resolvedDiv.className = 'auth-resolved-name';
+        resolvedDiv.style.display = 'block';
+        
+        fetchOpUser(val).then(function(){
+          var nm = _resolveUserName(val);
+          if (nm) {
+            if (resolvedDiv) {
+              resolvedDiv.textContent = '✓ ' + nm;
+              resolvedDiv.className = 'auth-resolved-name success';
+              resolvedDiv.style.display = 'block';
+            }
+          } else {
+            if (resolvedDiv) {
+              resolvedDiv.textContent = '⚠ User not found in OP_EDIT';
+              resolvedDiv.className = 'auth-resolved-name error';
+              resolvedDiv.style.display = 'block';
+            }
+          }
+        }).catch(function(){
+          if (resolvedDiv) {
+            resolvedDiv.textContent = '⚠ Error contacting server';
+            resolvedDiv.className = 'auth-resolved-name error';
+            resolvedDiv.style.display = 'block';
+          }
+        });
+      }
+    }
+    return userName || '';
+  } catch (e) { 
+    console.error('resolveAuthUserName error:', e); 
+    return '';
+  }
+}
+window.resolveAuthUserName = resolveAuthUserName;
+
+function resolveAuthUserName(initials) {
+  try {
+    var resolvedDiv = document.getElementById('authHelperResolved') || document.getElementById('authResolvedName');
+    var nameInput = document.getElementById('authDisplayName');
+    var initialsInput = document.getElementById('authHelperInitials');
+
+    // Normalize to UPPERCASE while typing
+    if (initialsInput && typeof initials === 'string') {
+      initialsInput.value = initials.toUpperCase();
+      initials = initialsInput.value;
+    }
+    if (!initials || initials.trim() === '') {
+      if (resolvedDiv) resolvedDiv.style.display = 'none';
+      if (nameInput) nameInput.value = '';
+      return '';
+    }
+
+    var val = String(initials).trim().toUpperCase();
+    // Require exactly 2 initials before querying server
+    if (val.length < 2) {
+      if (resolvedDiv) resolvedDiv.style.display = 'none';
+      if (nameInput) nameInput.value = '';
+      return '';
+    }
+    if (val.length > 2) {
+      if (resolvedDiv) {
+        resolvedDiv.textContent = 'Enter exactly 2 initials';
+        resolvedDiv.className = 'auth-resolved-name';
+        resolvedDiv.style.display = 'block';
+      }
+      if (nameInput) nameInput.value = '';
+      return '';
+    }
+
+    var userName = _resolveUserName(val);
+    if (resolvedDiv) {
+      if (userName) {
+        resolvedDiv.textContent = '✓ ' + userName;
+        resolvedDiv.className = 'auth-resolved-name success';
+        resolvedDiv.style.display = 'block';
+      } else {
+        // Try to sync from server if not found locally
+        resolvedDiv.textContent = 'Searching on server...';
+        resolvedDiv.className = 'auth-resolved-name';
+        resolvedDiv.style.display = 'block';
+
+        var key = val;
+        fetchOpUser(val).then(function(){
+          __opFetchCache.last[key] = Date.now();
+          var nm = _resolveUserName(val);
+          if (nm) {
+            if (nameInput) nameInput.value = nm;
+            if (resolvedDiv) {
+              resolvedDiv.textContent = '✓ ' + nm;
+              resolvedDiv.className = 'auth-resolved-name success';
+              resolvedDiv.style.display = 'block';
+            }
+          } else {
+            if (resolvedDiv) {
+              resolvedDiv.textContent = '⚠ User not found in OP_EDIT';
+              resolvedDiv.className = 'auth-resolved-name error';
+              resolvedDiv.style.display = 'block';
+            }
+          }
+        }).catch(function(){
+          if (resolvedDiv) {
+            resolvedDiv.textContent = '⚠ Error contacting server';
+            resolvedDiv.className = 'auth-resolved-name error';
+            resolvedDiv.style.display = 'block';
+          }
+        });
+      }
+    }
+    if (nameInput) {
+      nameInput.value = userName || '';
+    }
+    return userName || '';
+  } catch (e) { 
+    console.error('resolveAuthUserName error:', e); 
+    return '';
+  }
+}
+window.resolveAuthUserName = resolveAuthUserName;
+
+function handleAuthInputKeyDown(ev) {
+  try {
+    ev = ev || window.event;
+    var key = ev.key || ev.code || '';
+    if (key === 'Enter') {
+      if (ev.preventDefault) ev.preventDefault();
+      try { confirmAuthorization(); } catch (_) {}
+      return false;
+    }
+    if (key === 'Escape') {
+      if (ev.preventDefault) ev.preventDefault();
+      try { closeAuthHelper(); } catch (_) {}
+      return false;
+    }
+  } catch (e) { console.error('handleAuthInputKeyDown error:', e); }
+  return true;
+}
+window.handleAuthInputKeyDown = handleAuthInputKeyDown;
+
+function confirmAuthorization() {
+  try {
+    var initialsInput = document.getElementById('authInitialsInput');
+    var rec = _collect();
+    var initials = initialsInput && initialsInput.value ? initialsInput.value.trim().toUpperCase() : '';
+    var code = String(rec.code || '').trim();
+    var description = String(rec.description || '').trim();
+    var type = String(rec.type || '').trim().toUpperCase();
+    
+    if (!/^[A-Z]{2}$/.test(initials)) {
+      alert('Enter exactly two initials (e.g., EC)');
+      if (initialsInput) initialsInput.focus();
+      return false;
+    }
+
+    // Verificar que el usuario existe (server-first). Si no está en RAM, consultar servidor y continuar.
+    var userName = _resolveUserName(initials);
+    if (!userName) {
+      // Intentar resolver desde el servidor de inmediato
+      try { 
+        var resolvedDiv = document.getElementById('authResolvedName');
+        if (resolvedDiv) {
+          resolvedDiv.textContent = 'Searching on server...';
+          resolvedDiv.className = 'auth-resolved-name';
+          resolvedDiv.style.display = 'block';
+        }
+      } catch(_) {}
+      fetchOpUser(initials).then(function(){
+        var nm = _resolveUserName(initials);
+        if (!nm) {
+          alert('The entered initials do not correspond to a valid user in OP_EDIT');
+          if (initialsInput) initialsInput.focus();
+          return;
+        }
+        try { if (resolvedDiv) { resolvedDiv.textContent = '✓ ' + nm; resolvedDiv.className = 'auth-resolved-name success'; } } catch(_){}
+        // Continuar flujo de guardado con el nombre resuelto
+        try {
+          // Server-only model: no local auth cache writes
+          // Proceed to update server-driven authorization records
+
+          var mainRecords2 = _loadRecs();
+          var nowDate2 = new Date().toISOString().split('T')[0];
+          var nowTime2 = new Date().toLocaleTimeString();
+          var idx2 = -1;
+          try {
+            var lcCode2 = String(code || '').trim().toLowerCase();
+            var lcDesc2 = String(description || '').trim().toLowerCase();
+            var lcType2 = String(rec.type || type || '').trim().toUpperCase();
+            for (var i2 = 0; i2 < mainRecords2.length; i2++) {
+              var rr2 = mainRecords2[i2] || {};
+              var rcode2 = String(rr2.code || '').trim().toLowerCase();
+              var rdesc2 = String(rr2.description || '').trim().toLowerCase();
+              var rtype2 = String(rr2.type || '').trim().toUpperCase();
+              if (rcode2 === lcCode2 && rdesc2 === lcDesc2 && rtype2 === lcType2) { idx2 = i2; break; }
+            }
+          } catch(_){ }
+
+          if (idx2 >= 0) {
+            var existing2 = mainRecords2[idx2] || {};
+            existing2.initials = initials.toUpperCase();
+            existing2.name = nm;
+            existing2.date = nowDate2;
+            existing2.time = nowTime2;
+            existing2.type = (rec.type || type || '').toUpperCase();
+            mainRecords2[idx2] = existing2;
+          } else {
+            mainRecords2.push({
+              code: code,
+              description: description,
+              type: (rec.type || type || '').toUpperCase(),
+              initials: initials.toUpperCase(),
+              name: nm,
+              date: nowDate2,
+              time: nowTime2
+            });
+          }
+          console.log('DEBUG: Starting save process, code=' + code + ', description=' + description);
+          _saveRecs(mainRecords2);
+          try { renderAuthGrid(); } catch (_) {}
+          try { renderGrid(); } catch (_) {}
+          try { 
+            showSuccessNotification('Authorization Created', 'Transaction ' + code + ' authorized for ' + nm);
+          } catch(_) {}
+
+          // Enviar actualización al servidor
+          try {
+            console.log('DEBUG pushStockUpdate call 1:', {code: code, description: description, type: (rec.type || type || '').toUpperCase(), initials: initials.toUpperCase(), name: nm});
+            pushStockUpdate({
+              code: code,
+              description: description,
+              type: (rec.type || type || '').toUpperCase(),
+              initials: initials.toUpperCase(),
+              name: nm,
+              date: nowDate2,
+              time: nowTime2
+            }).then(function(ok){
+              if (!ok) {
+                try { showErrorNotification('Sync', 'Could not send update to server'); } catch(_){ }
+              }
+            });
+          } catch(_){ }
+        } catch(e2) { console.error('confirmAuthorization async flow error:', e2); }
+      }).catch(function(){
+        alert('Could not validate initials with the server');
+        if (initialsInput) initialsInput.focus();
+      });
+      return false;
+    }
+
+    // Server-only model: skip legacy local authorization cache writes
+
+    // Guardar/actualizar el registro principal
+    var mainRecords = _loadRecs();
+    var nowDate = new Date().toISOString().split('T')[0];
+    var nowTime = new Date().toLocaleTimeString();
+    var idx = -1;
+    try {
+      var lcCode = String(code || '').trim().toLowerCase();
+      var lcDesc = String(description || '').trim().toLowerCase();
+      var lcType = String(rec.type || type || '').trim().toUpperCase();
+      for (var i = 0; i < mainRecords.length; i++) {
+        var rr = mainRecords[i] || {};
+        var rcode = String(rr.code || '').trim().toLowerCase();
+        var rdesc = String(rr.description || '').trim().toLowerCase();
+        var rtype = String(rr.type || '').trim().toUpperCase();
+        if (rcode === lcCode && rdesc === lcDesc && rtype === lcType) { idx = i; break; }
+      }
+    } catch(_){ }
+
+    if (idx >= 0) {
+      // Actualizar el existente
+      var existing = mainRecords[idx] || {};
+      existing.initials = initials.toUpperCase();
+      existing.name = userName;
+      existing.date = nowDate;
+      existing.time = nowTime;
+      existing.type = type;
+      mainRecords[idx] = existing;
+    } else {
+      // Crear uno nuevo
+      mainRecords.push({
+        code: code,
+        description: description,
+        type: type,
+        initials: initials.toUpperCase(),
+        name: userName,
+        date: nowDate,
+        time: nowTime
+      });
+    }
+    _saveRecs(mainRecords);
+
+    // Actualizar grillas y mostrar éxito
+    try { renderAuthGrid(); } catch (_) {}
+    try { renderGrid(); } catch (_) {}
+    try { 
+      showSuccessNotification('Authorization Created', 'Transaction ' + code + ' authorized for ' + userName);
+    } catch(_) {}
+
+    // Enviar actualización al servidor
+    try {
+      console.log('DEBUG pushStockUpdate call 2:', {code: code, description: description, type: type, initials: initials.toUpperCase(), name: userName});
+      pushStockUpdate({
+        code: code,
+        description: description,
+        type: type,
+        initials: initials.toUpperCase(),
+        name: userName,
+        date: nowDate,
+        time: nowTime
+      }).then(function(ok){
+        if (!ok) {
+          try { showErrorNotification('Sync', 'Could not send update to server'); } catch(_){ }
+        }
+      });
+    } catch(_){ }
+
+    // Limpiar formulario principal y cerrar helper
+    var codeInput = document.getElementById('codeInput');
+    var descInput = document.getElementById('descriptionInput');
+    var typeInput = document.getElementById('typeInput');
+    if (codeInput) codeInput.value = '';
+    if (descInput) descInput.value = '';
+    if (typeInput) typeInput.selectedIndex = 0;
+    
+    closeAuthHelper();
+
+    // Enfocar de nuevo en el código para siguiente entrada
+    setTimeout(function() {
+      if (codeInput) codeInput.focus();
+    }, 500);
+
+  } catch (e) { console.error('confirmAuthorization error:', e); }
+  return false;
+}
+window.confirmAuthorization = confirmAuthorization;
+// --- End added block ---
+// --- Unified delete for Search & View rows: remove ALL authorizations for the Code+Description+Type ---
+(function(){
+  function normalize(v){ 
+    // Enhanced normalization: remove invisible chars, tabs, line breaks, &nbsp;
+    return String(v == null ? '' : v)
+      .replace(/[\u00A0\u2000-\u200B\u2028\u2029\uFEFF]/g, ' ') // Replace invisible chars with space
+      .replace(/[\t\r\n]/g, ' ') // Replace tabs and line breaks with space
+      .replace(/\s+/g, ' ') // Collapse multiple spaces
+      .trim(); 
+  }
+  function normalizeU(v){ return normalize(v).toUpperCase(); }
+
+  function getRowTriplet(btn){
+    try {
+      var tr = btn.closest('tr');
+      if(!tr) return null;
+      // Expect columns: Type | Code | Description | Actions
+      var tds = tr.querySelectorAll('td, .excel-cell');
+      if(!tds || tds.length < 3) return null;
+      var type = normalize(tds[0].innerText || tds[0].textContent);
+      var code = normalize(tds[1].innerText || tds[1].textContent);
+      var desc = normalize(tds[2].innerText || tds[2].textContent);
+      return { type:type, code:code, description:desc };
+    } catch(e){ console.warn('getRowTriplet error:', e); return null; }
+  }
+
+  // Removes every local record that matches Code+Description+Type (case-insensitive)
+  function deleteAllByCodeDescType(code, description, type){
+    try {
+      var list = _loadRecs();
+      if(!Array.isArray(list) || !list.length) return {removed:0, removedRecs:[]};
+      var CU = normalizeU(code), DU = normalizeU(description), TU = normalizeU(type);
+      var kept = [], removed = [], i;
+      for(i=0;i<list.length;i++){
+        var r = list[i] || {};
+        var rC = normalizeU(r.code);
+        var rD = normalizeU(r.description);
+        var rT = normalizeU(r.type);
+        if(rC === CU && rD === DU && rT === TU){
+          removed.push(r);
+        } else {
+          kept.push(r);
+        }
+      }
+      _saveRecs(kept);
+      return {removed: removed.length, removedRecs: removed};
+    } catch(e){ console.error('deleteAllByCodeDescType error:', e); return {removed:0, removedRecs:[]}; }
+  }
+
+  // Delegate clicks on per-row delete buttons so we don't depend on specific renderers
+  document.addEventListener('click', function(ev){
+    try {
+      var btn = ev.target.closest && ev.target.closest('.btn-delete');
+      if(!btn) return;
+      ev.preventDefault();
+
+      var triplet = getRowTriplet(btn);
+      if(!triplet){ console.warn('Delete: could not determine row values'); return; }
+
+      var code = triplet.code, desc = triplet.description, type = triplet.type || 'IN';
+      var confirmMsg = 'Delete ALL authorizations for\n' +
+                       'Code: ' + code + '\n' +
+                       'Description: ' + desc + '\n' +
+                       'Type: ' + type + '?';
+      if(!window.confirm(confirmMsg)) return;
+
+      // Optimistically disable the button to avoid double submissions
+      try { btn.disabled = true; } catch(_){ }
+
+      var result = deleteAllByCodeDescType(code, desc, type);
+
+      // Push DELETE to server for each removed local record
+      var ops = [];
+      try {
+        var nowDate = new Date().toISOString().split('T')[0];
+        var nowTime = new Date().toLocaleTimeString();
+        for(var i=0;i<result.removedRecs.length;i++){
+          var rr = result.removedRecs[i] || {};
+          // Send a DELETE for each initials previously authorized
+          ops.push(pushStockUpdate({
+            code: rr.code || code,
+            description: rr.description || desc,
+            type: 'DELETE',
+            initials: (rr.initials || '').toString().toUpperCase(),
+            name: rr.name || '',
+            date: nowDate,
+            time: nowTime
+          }));
+        }
+      } catch(e){ console.warn('DELETE push prepare error:', e); }
+
+      Promise.all(ops).catch(function(err){
+        console.warn('Some server DELETEs failed:', err);
+        try { showErrorNotification('Sync', 'Some deletes failed to sync to server.'); } catch(_){ }
+      }).finally(function(){
+        try { renderAuthGrid(); } catch(_){ }
+        try {
+          var n = result.removed;
+          if(n > 0) {
+            showSuccessNotification('Deleted', 'Removed ' + n + ' authorization' + (n===1?'':'s') + ' for this Code/Description.');
+          } else {
+            showErrorNotification('Nothing to delete', 'No matching authorizations were found.');
+          }
+        } catch(_){ }
+        try { btn.disabled = false; } catch(_){ }
+      });
+    } catch(e){ console.error('delegated .btn-delete handler error:', e); }
+  }, true);
+})();
+// --- END unified delete block ---
+// Form handlers
+function handleClear() {
+  try {
+    document.querySelectorAll(".form-grid input, .form-grid textarea").forEach(function(el){ el.value = ""; });
+    document.querySelectorAll(".form-grid select").forEach(function(el){ el.selectedIndex = 0; });
+    // Close authorization helper when clearing
+    try { closeAuthHelper(); } catch(_) {}
+  } catch (_) {}
+  return false;
+}
+
+function handleSave() {
+  try {
+    var recs = _loadRecs();
+    var rec = _collect();
+
+    // Require Code, Description and Type
+    var codeVal = String(rec.code || '').trim();
+    var descVal = String(rec.description || '').trim();
+    var typeVal = String(rec.type || '').trim();
+    if (!codeVal || !descVal || !typeVal) {
+      try { showErrorNotification('Required Fields', 'Code, Description, and Type are required to create the record'); } catch(_){}
+      try {
+        var codeEl = document.getElementById('codeInput');
+        var descEl = document.getElementById('descriptionInput');
+        var typeEl = document.getElementById('typeInput');
+        if (!codeVal && codeEl) codeEl.focus();
+        else if (!descVal && descEl) descEl.focus();
+        else if (!typeVal && typeEl) typeEl.focus();
+      } catch(_){}
+      return false;
+    }
+
+    // Open Authorization Helper to confirm/authorize the transaction
+    try { openAuthForCurrentForm(); } catch(_){ }
+    return false;
+  } catch (e) {
+    console.error(e);
+  }
+  return false;
+}
+
+// Grid and sorting functionality
+var __sortIndex = -1, __sortDir = "asc";
+var __lastRenderedRows = [];
+
+function renderGrid(filter) {
+  try {
+    console.log('🎨 renderGrid called with filter:', filter);
+    var tbody = document.getElementById('recordsTableBody');
+    if (!tbody) {
+      console.error('❌ recordsTableBody element not found!');
+      return false;
+    }
+
+    var recs = _loadRecs() || [];
+    console.log('📊 renderGrid got', recs.length, 'records from _loadRecs');
+
+    // Read filters
+    var q = typeof filter === 'string' ? filter.trim().toLowerCase() : '';
+    var fc = '';
+    var fd = '';
+    var ft = '';
+    try { fc = (document.getElementById('filter_code') || {}).value || ''; } catch(_){}
+    try { fd = (document.getElementById('filter_description') || {}).value || ''; } catch(_){}
+    try { ft = (document.getElementById('filter_type') || {}).value || ''; } catch(_){}
+    fc = fc.trim().toLowerCase();
+    fd = fd.trim().toLowerCase();
+    ft = ft.trim().toUpperCase();
+
+    console.log('🔍 Filters applied:', {q, fc, fd, ft});
+
+    // Apply filters
+    var rows = [];
+    for (var i = 0; i < recs.length; i++) {
+      var r = recs[i] || {};
+      var code = String(r.code == null ? '' : r.code);
+      var desc = String(r.description == null ? '' : r.description);
+      var type = String(r.type == null ? '' : r.type);
+      var authBy = String(r.initials == null ? '' : r.initials);
+      var authUser = String(r.name == null ? '' : r.name);
+
+      console.log('🔎 Processing record', i, ':', {code, desc, type, authBy, authUser});
+
+      if (q) {
+        var t = (code + ' ' + desc + ' ' + type + ' ' + authBy + ' ' + authUser).toLowerCase();
+        if (t.indexOf(q) === -1) {
+          console.log('❌ Record filtered out by search query');
+          continue;
+        }
+      }
+      if (fc && code.toLowerCase().indexOf(fc) === -1) {
+        console.log('❌ Record filtered out by code filter');
+        continue;
+      }
+      if (fd && desc.toLowerCase().indexOf(fd) === -1) {
+        console.log('❌ Record filtered out by description filter');
+        continue;
+      }
+      if (ft && type.toUpperCase() !== ft) {
+        console.log('❌ Record filtered out by type filter');
+        continue;
+      }
+
+      console.log('✅ Record passed all filters');
+      rows.push({ index: i, code: code, description: desc, type: type, authUser: authUser, authBy: authBy });
+    }
+
+    console.log('📋 Final filtered rows:', rows.length);
+
+    // Store filtered rows globally for delete access
+    window._currentFilteredRows = rows;
+    window._deleteButtonMap = {};
+    
+    // Render
+    if (!rows.length) {
+      console.log('📝 Rendering empty state');
+      tbody.innerHTML = "<tr class='excel-row'><td class='excel-cell' colspan='100%'>No records</td></tr>";
+    } else {
+      console.log('📝 Rendering', rows.length, 'rows');
+      var html = '';
+      for (var k = 0; k < rows.length; k++) {
+        var row = rows[k];
+        console.log('🎨 Rendering row', k, ':', {code: row.code, description: row.description, authBy: row.authBy, authUser: row.authUser});
+        
+        var typeIcon = row.type === 'IN' ? 'fas fa-arrow-down' : (row.type === 'OUT' ? 'fas fa-arrow-up' : 'fas fa-exchange-alt');
+        var typeColor = row.type === 'IN' ? '#10b981' : (row.type === 'OUT' ? '#ef4444' : '#6b7280');
+        
+        html += "<tr class='excel-row'>" +
+                "<td class='excel-cell'><div class='cell-content'><i class='fas fa-tag' style='opacity:.6'></i> " + escapeHtml(row.code) + "</div></td>" +
+                "<td class='excel-cell'><div class='cell-content'><i class='fas fa-file-text' style='opacity:.6'></i> " + escapeHtml(row.description) + "</div></td>" +
+                "<td class='excel-cell'><div class='cell-content'><i class='" + typeIcon + "' style='opacity:.6; color:" + typeColor + ";'></i> " + escapeHtml(row.type) + "</div></td>" +
+                "<td class='excel-cell'><div class='action-buttons'>" +
+                  "<button class='btn-sm btn-edit' onclick='return editTransactionAuth(\"" + escapeHtml(row.code) + "\", \"" + escapeHtml(row.description) + "\", \"" + escapeHtml(row.type) + "\")'><i class='fas fa-edit'></i></button>" +
+                "</div></td>" +
+              "</tr>";
+      }
+      tbody.innerHTML = html;
+      console.log('✅ HTML rendered to tbody');
+    }
+
+    // Update results count
+    try {
+      var rc = document.getElementById('recordsCount');
+      if (rc) {
+        rc.textContent = rows.length + ' records shown';
+        console.log('📊 Updated record count:', rows.length);
+      }
+    } catch(_){}
+
+  } catch (e) {
+    console.error('❌ renderGrid error:', e);
+  }
+  return false;
+}
+
+function updateSortUI() {
+// Simplified sort UI update
+return true;
+}
+
+// Grid toolbar stubs and utilities
+function handleSearch(q) {
+try {
+console.log('handleSearch:', q);
+renderGrid(q || '');
+} catch (e) { console.error('handleSearch error:', e); }
+return false;
+}
+function clearFilters() {
+try {
+var inputs = document.querySelectorAll('.filter-input');
+for (var i = 0; i < inputs.length; i++) {
+  if (inputs[i].tagName === 'SELECT') {
+    inputs[i].selectedIndex = 0;
+  } else {
+    inputs[i].value = '';
+  }
+}
+renderGrid('');
+try { renderAuthGrid(); } catch (_) {}
+} catch (e) { console.error('clearFilters error:', e); }
+return false;
+}
+function filterRecords() { return renderGrid((document.getElementById('searchInput') || {}).value || ''); }
+function editRecord(index) {
+  try {
+    var recs = _loadRecs();
+    var r = recs[index];
+    if (!r) return false;
+    // Fill form in Data Capture
+    var codeEl = document.getElementById('codeInput');
+    var descEl = document.getElementById('descriptionInput');
+    var typeEl = document.getElementById('typeInput');
+    if (codeEl) codeEl.value = r.code || '';
+    if (descEl) descEl.value = r.description || '';
+    if (typeEl) typeEl.value = r.type || '';
+    
+    // Show associated users if available
+    if (r.users && r.users.length > 0) {
+      var userInfo = 'Associated Users:\n';
+      for (var i = 0; i < r.users.length; i++) {
+        var u = r.users[i];
+        userInfo += '• ' + u.initials + (u.name ? ' (' + u.name + ')' : '') + '\n';
+      }
+      showSuccessNotification('Record Loaded', 'Editing record ' + (r.code || '') + '\n\n' + userInfo);
+    } else {
+      showSuccessNotification('Record Loaded', 'Editing record ' + (r.code || '') + '\n\nNo users associated with this transaction.');
+    }
+    
+    // Switch to Data Capture tab (index 0)
+    try { switchTab(0); } catch(_){}
+  } catch (e) { console.error('editRecord error:', e); }
+  return false;
+}
+
+function deleteRecord(index) {
+  try {
+    var recs = _loadRecs();
+    if (index < 0 || index >= recs.length) return false;
+    recs.splice(index, 1);
+    _saveRecs(recs);
+    renderGrid('');
+    showSuccessNotification('Deleted', 'Record removed');
+  } catch (e) { console.error('deleteRecord error:', e); }
+  return false;
+}
+
+function escapeHtml(s) {
+  try {
+    s = String(s == null ? '' : s);
+    return s.replace(/[&<>"']/g, function(ch){
+      switch(ch){
+        case '&': return '&amp;';
+        case '<': return '&lt;';
+        case '>': return '&gt;';
+        case '"': return '&quot;';
+        case "'": return '&#39;';
+        default: return ch;
+      }
+    });
+  } catch(_) { return String(s || ''); }
+}
+function exportToCSV() {
+try {
+var recs = _loadRecs();
+if (!recs || !recs.length) {
+showSuccessNotification('Export', 'No data to export');
+return false;
+}
+var cols = Object.keys(recs[0] || {});
+var lines = [cols.join(',')];
+for (var i = 0; i < recs.length; i++) {
+var row = [];
+for (var j = 0; j < cols.length; j++) {
+var v = recs[i][cols[j]];
+v = v == null ? '' : String(v);
+v = v.replace(/\"/g, '""');
+if (/[",\n]/.test(v)) v = '"' + v + '"';
+row.push(v);
+}
+lines.push(row.join(','));
+}
+var csv = lines.join('\n');
+var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+var url = URL.createObjectURL(blob);
+var a = document.createElement('a');
+a.href = url;
+a.download = 'export.csv';
+document.body.appendChild(a);
+a.click();
+setTimeout(function(){ URL.revokeObjectURL(url); if (a.parentNode) a.parentNode.removeChild(a); }, 0);
+showSuccessNotification('Export', 'CSV downloaded');
+} catch (e) { console.error('exportToCSV error:', e); }
+return false;
+}
+function loadAllRecordsFromPicLan() {
+try {
+  var baseUrls = (window.GET_STOCKS_URLS && Array.isArray(window.GET_STOCKS_URLS) && window.GET_STOCKS_URLS.length)
+    ? window.GET_STOCKS_URLS
+    : ['GET_STOCKS2.XML'];
+  console.log('🔧 DEBUG loadAllRecordsFromPicLan: Using URLs:', baseUrls);
+  function attempt(i){
+    if (i >= baseUrls.length) { 
+      console.warn('All server URLs failed, initializing empty cache');
+      window.__serverRecords = [];
+      try { showErrorNotification('Load', 'Could not load from server - working offline'); } catch(_){} 
+      return false; 
+    }
+    var url = baseUrls[i] + '?_=' + Date.now();
+    console.log('🔧 DEBUG: Attempting to fetch from URL:', url);
+    return fetch(url, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: { 'Accept': 'application/xml,text/xml;q=0.9,*/*;q=0.8' }
+    })
+    .then(function(res){ 
+      console.log('🔧 DEBUG loadAllRecordsFromPicLan: HTTP response status:', res.status);
+      if (!res.ok) throw new Error('HTTP ' + res.status); 
+      return res.text(); 
+    })
+    .then(function(txt){
+      console.log('🔧 DEBUG loadAllRecordsFromPicLan: Raw response text:', txt.substring(0, 1000));
+      console.log('🔧 DEBUG loadAllRecordsFromPicLan: Full response length:', txt.length);
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(txt || '', 'application/xml');
+      var nodes = doc.getElementsByTagName('Stock');
+      if (!nodes || !nodes.length) { 
+        try { nodes = doc.querySelectorAll('Stock, STOCK, stock, row, Row, RECORD, Record, record'); } catch(_){} 
+      }
+      console.log('🔧 DEBUG loadAllRecordsFromPicLan: Found', nodes.length, 'Stock nodes');
+      var list = [];
+      for (var j = 0; j < nodes.length; j++) {
+        var n = nodes[j];
+        var g = function(tag){ var el = n.getElementsByTagName(tag)[0]; return el ? (el.textContent || '').trim() : ''; };
+        console.log('🔧 DEBUG loadAllRecordsFromPicLan: Processing node', j, 'Code:', g('Code'), 'Description:', g('Description'));
+        // Extract users from <opers> section
+        var userList = [];
+        var operEls = n.getElementsByTagName('opers');
+        if (operEls.length > 0) {
+          var userEls = operEls[0].getElementsByTagName('user');
+          var userNameEls = operEls[0].getElementsByTagName('user_name');
+          console.log('🔍 Found', userEls.length, 'user elements and', userNameEls.length, 'user_name elements');
+          
+          // Match user initials with their names by pairing them sequentially
+          for (var u = 0; u < userEls.length; u++) {
+            var userInit = userEls[u] ? (userEls[u].textContent || '').trim().toUpperCase() : '';
+            var userName = userNameEls[u] ? (userNameEls[u].textContent || '').trim() : '';
+            console.log('🔍 Processing user pair', u, ':', {initials: userInit, name: userName});
+            
+            // Only accept exactly two uppercase letters as sanitized by server
+            if (/^[A-Z]{2}$/.test(userInit)) {
+              userList.push({ initials: userInit, name: userName });
+            } else {
+              console.log('🔍 Skipping invalid initials:', userInit);
+            }
+          }
+          console.log('🔍 Final userList for this record:', userList);
+        }
+        
+        list.push({
+          code: g('Code') || g('CODE') || g('code'),
+          description: g('Description') || g('DESCRIPTION') || g('DESC') || g('description'),
+          type: g('Type') || g('TYPE') || g('type') || g('Status') || g('STATUS') || 'IN',
+          initials: g('Initials') || g('INITIALS') || g('initials') || g('AuthorizedBy') || g('AUTHORIZEDBY') || '',
+          name: g('AuthorizedUser') || g('Name') || g('NAME') || g('AUTHORIZEDUSER') || '',
+          date: g('AuthorizedDate') || g('Date') || g('DATE') || g('AUTHORIZEDDATE') || '',
+          time: g('AuthorizedTime') || g('Time') || g('TIME') || g('AUTHORIZEDTIME') || '',
+          users: userList  // Array of {initials, name} objects
+        });
+      }
+      // Fallback 1: if no nodes were parsed, try zipping standalone tags
+      if (!list.length) {
+        try {
+          var codeEls = doc.querySelectorAll('code, CODE, Code');
+          var descEls = doc.querySelectorAll('description, DESCRIPTION, Description, desc, DESC');
+          var typeEls = doc.querySelectorAll('type, TYPE, Type, status, STATUS, Status');
+          // Do NOT attempt to read <opers> as initials; only standalone <initials> tags are valid here
+          var initEls = doc.querySelectorAll('initials, INITIALS, Initials');
+          var maxLen = Math.max(codeEls.length, descEls.length, typeEls.length, initEls.length);
+          console.warn('🔁 Fallback-zip: code', codeEls.length, 'desc', descEls.length, 'type', typeEls.length, 'initials', initEls.length);
+          for (var i = 0; i < maxLen; i++) {
+            var codeTxt = (codeEls[i] && codeEls[i].textContent) ? codeEls[i].textContent.trim() : '';
+            var descTxt = (descEls[i] && descEls[i].textContent) ? descEls[i].textContent.trim() : '';
+            var typeTxt = (typeEls[i] && typeEls[i].textContent) ? typeEls[i].textContent.trim() : '';
+            var initTxt = (initEls[i] && initEls[i].textContent) ? initEls[i].textContent.trim() : '';
+            if (codeTxt || descTxt || typeTxt || initTxt) {
+              list.push({ code: codeTxt, description: descTxt, type: typeTxt, initials: initTxt, name: '', date: '', time: '' });
+            }
+          }
+        } catch (e) { console.warn('Fallback-zip parsing error:', e); }
+      }
+      // Fallback 2: regex extraction from raw text if still empty or parsererror present
+      try {
+        var hasParserError = doc.getElementsByTagName('parsererror').length > 0;
+        if ((!list.length && txt) || hasParserError) {
+          if (hasParserError) console.warn('⚠️ XML parsererror detected, using regex fallback');
+          var codes = [] , descs = [] , types = [] , inits = [];
+          var m;
+          var reCode = /<\s*code[^>]*>([\s\S]*?)<\s*\/\s*code\s*>/gi;
+          var reDesc = /<\s*(description|desc)[^>]*>([\s\S]*?)<\s*\/\s*(description|desc)\s*>/gi;
+          var reType = /<\s*(type|status)[^>]*>([\s\S]*?)<\s*\/\s*(type|status)\s*>/gi;
+          // Exclude <opers> from initials regex to avoid concatenated users payload
+          var reInit = /<\s*(initials)[^>]*>([\s\S]*?)<\s*\/\s*(initials)\s*>/gi;
+          while ((m = reCode.exec(txt))) codes.push(String(m[1] || '').trim());
+          while ((m = reDesc.exec(txt))) descs.push(String(m[2] || '').trim());
+          while ((m = reType.exec(txt))) types.push(String(m[2] || '').trim());
+          while ((m = reInit.exec(txt))) inits.push(String(m[2] || '').trim());
+          var maxN = Math.max(codes.length, descs.length, types.length, inits.length);
+          console.warn('🔎 Fallback-regex: code', codes.length, 'desc', descs.length, 'type', types.length, 'initials', inits.length);
+          for (var k = 0; k < maxN; k++) {
+            var c = (codes[k] || '').trim();
+            var d = (descs[k] || '').trim();
+            var t = (types[k] || '').trim();
+            var ii = (inits[k] || '').trim();
+            if (c || d || t || ii) list.push({ code: c, description: d, type: t, initials: ii, name: '', date: '', time: '' });
+          }
+        }
+      } catch (e) { console.warn('Fallback-regex parsing error:', e); }
+      console.log('Loaded', list.length, 'records from server');
+      
+      // Normalize records to ensure consistent structure
+      var normalizedList = [];
+      for (var j = 0; j < list.length; j++) {
+        var record = list[j] || {};
+        var normalized = {
+          code: String(record.code || '').trim(),
+          description: String(record.description || '').trim(),
+          type: String(record.type || record.status || 'IN').trim().toUpperCase(),
+          initials: String(record.initials || '').trim(),
+          name: String(record.name || '').trim(),
+          date: String(record.date || '').trim(),
+          time: String(record.time || '').trim(),
+          // Preserve parsed users to support chip rendering and edit UI
+          users: Array.isArray(record.users) ? record.users.slice() : []
+        };
+        
+        // Temporarily disabled filter to debug record structure
+        // if (normalized.code.indexOf(' ') !== -1) {
+        //   console.log('🚫 Skipping malformed record with code containing space:', normalized.code);
+        //   continue;
+        // }
+        
+        normalizedList.push(normalized);
+      }
+      
+      // SERVER-ONLY: Update global cache and refresh grids immediately
+      window.__serverRecords = normalizedList;
+      console.log('🔄 Updated server records cache:', normalizedList.length, 'records');
+      console.log('📋 Sample cached records:', normalizedList.slice(0, 3));
+      
+      try { 
+        console.log('🎨 Calling renderGrid from loadAllRecordsFromPicLan');
+        renderGrid(''); 
+      } catch(e){ console.error('renderGrid error:', e); }
+      try { 
+        console.log('🎨 Calling renderAuthGrid from loadAllRecordsFromPicLan');
+        renderAuthGrid(); 
+      } catch(e){ console.error('renderAuthGrid error:', e); }
+      try { showSuccessNotification('Load', 'Loaded ' + list.length + ' records'); } catch(_){}
+      return true;
+    })
+    .catch(function(err){
+      console.warn('loadAllRecordsFromPicLan error:', err && err.message ? err.message : err);
+      // Initialize empty cache on error to prevent blocking operations
+      if (!window.__serverRecords) {
+        window.__serverRecords = [];
+        console.log('Initialized empty server records cache due to load error');
+      }
+      return attempt(i+1);
+    });
+  }
+  return attempt(0);
+} catch (e) { console.error('loadAllRecordsFromPicLan error:', e); }
+return false;
+}
+
+// Async UI feedback helpers for save/delete operations
+function __ensureAsyncStyles() {
+  try {
+    if (document.getElementById('async-ui-style')) return;
+    var css = '\n#globalAsyncOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;z-index:99999;backdrop-filter:saturate(180%) blur(2px);}\n#globalAsyncOverlay .box{background:#111827; color:#e5e7eb; padding:14px 18px; border-radius:8px; display:flex; align-items:center; box-shadow:0 10px 30px rgba(0,0,0,0.2);}\n#globalAsyncOverlay .spinner{width:16px;height:16px;border:2px solid #60a5fa;border-top-color:transparent;border-radius:50%;margin-right:10px;animation:spin 0.8s linear infinite;}\n#globalAsyncOverlay .label{font-size:13px;letter-spacing:0.3px;}\n@keyframes spin{to{transform:rotate(360deg)}}\nbutton[disabled]{opacity:0.6; cursor:not-allowed;}';
+    var style = document.createElement('style');
+    style.id = 'async-ui-style';
+    style.type = 'text/css';
+    style.appendChild(document.createTextNode(css));
+    document.head.appendChild(style);
+  } catch(_) {}
+}
+
+function __toggleControlsDisabled(disabled) {
+  try {
+    // Disable primary action buttons and common inputs used in flows
+    var selectors = [
+      'button.btn.btn-primary[onclick*="saveAuthorization"]',
+      'button.btn-sm.btn-delete',
+      'button.btn-sm.btn-edit',
+      '#codeInput', '#descriptionInput', '#typeInput',
+      '#authHelperInitials', '#authInitialsInput'
+    ];
+    for (var i = 0; i < selectors.length; i++) {
+      var nodes = document.querySelectorAll(selectors[i]);
+      for (var j = 0; j < nodes.length; j++) {
+        var el = nodes[j];
+        if (!el) continue;
+        if (disabled) {
+          el.setAttribute('disabled', 'disabled');
+        } else {
+          el.removeAttribute('disabled');
+        }
+      }
+    }
+  } catch(_) {}
+}
+
+function setAsyncUIBusy(isBusy, label) {
+  try {
+    __ensureAsyncStyles();
+    var overlay = document.getElementById('globalAsyncOverlay');
+    if (isBusy) {
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'globalAsyncOverlay';
+        overlay.innerHTML = '<div class="box"><div class="spinner"></div><div class="label"></div></div>';
+        document.body.appendChild(overlay);
+      }
+      var lbl = overlay.querySelector('.label');
+      if (lbl) lbl.textContent = String(label || 'Working...');
+      overlay.style.display = 'flex';
+      __toggleControlsDisabled(true);
+    } else {
+      if (overlay) overlay.style.display = 'none';
+      __toggleControlsDisabled(false);
+    }
+  } catch(_) {}
+}
+
+function pushStockUpdate(opts) {
+  try {
+    opts = opts || {};
+    var code = String(opts.code || '').trim();
+    var description = String(opts.description || '').trim();
+    if (!code || !description) return Promise.resolve(false);
+    var initials = String(opts.initials || '').trim().toUpperCase();
+    var name = String(opts.name || '').trim();
+    // Accept 'type' from caller and send it to server as STATUS for compatibility
+    var type = String(opts.type || opts.status || 'IN').trim().toUpperCase();
+    var status = type;
+    // Optional bulk rewrite list (any non-letter separators are allowed by server)
+    var initialsAll = String(opts.initialsAll || opts.INITIALS_ALL || '').trim();
+    var suppressReload = !!opts.suppressReload;
+    var date = String(opts.date || new Date().toISOString().split('T')[0]);
+    var time = String(opts.time || new Date().toLocaleTimeString());
+    var baseUrls = (window.UPDATE_STOCKS_URLS && Array.isArray(window.UPDATE_STOCKS_URLS) && window.UPDATE_STOCKS_URLS.length)
+      ? window.UPDATE_STOCKS_URLS
+      : ['UPDATE_STOCKS2.XML'];
+    var qs = 'CODE=' + encodeURIComponent(code)
+      + '&DESCRIPTION=' + encodeURIComponent(description)
+      + '&INITIALS=' + encodeURIComponent(initials)
+      + '&NAME=' + encodeURIComponent(name)
+      + '&STATUS=' + encodeURIComponent(status)
+      + '&DATE=' + encodeURIComponent(date)
+      + '&TIME=' + encodeURIComponent(time)
+      + (initialsAll ? '&INITIALS_ALL=' + encodeURIComponent(initialsAll) : '')
+      + '&_=' + Date.now();
+    
+    console.log('🔧 DEBUG pushStockUpdate: sending STATUS =', status, 'for code:', code);
+    console.log('🔧 DEBUG pushStockUpdate: baseUrls =', baseUrls);
+    function attempt(i){
+      if (i >= baseUrls.length) return Promise.resolve(false);
+      var url = baseUrls[i] + '?' + qs;
+      return fetch(url, {
+        method: 'GET',
+        cache: 'no-store',
+        headers: { 'Accept': 'application/xml,text/xml;q=0.9,*/*;q=0.8' }
+      })
+      .then(function(res){ if (!res.ok) throw new Error('HTTP ' + res.status); return res.text(); })
+      .then(function(txt){ 
+        console.log('pushStockUpdate response:', (txt || '').slice(0, 500)); 
+        
+        // Check if server returned success
+        if (txt && txt.includes('<status>success</status>')) {
+          console.log('✅ pushStockUpdate: Server confirmed success, preparing cache refresh...');
+          // SERVER-ONLY: Reload data from server after successful save
+          if (!suppressReload) {
+            setTimeout(function() {
+              console.log('🔄 pushStockUpdate: Cache refresh after save');
+              window.__serverRecords = [];
+              if (typeof loadAllRecordsFromPicLan === 'function') {
+                console.log('🔄 Forcing fresh server data load...');
+                loadAllRecordsFromPicLan();
+              }
+            }, 500);
+          }
+          return true;
+        } else {
+          console.error('pushStockUpdate failed. Response:', txt);
+          throw new Error('Server rejected request: ' + (txt || 'No response'));
+        }
+      })
+      .catch(function(_){ return attempt(i + 1); });
+    }
+    return attempt(0);
+  } catch (e) { console.warn('pushStockUpdate error:', e); return Promise.resolve(false); }
+}
+window.pushStockUpdate = pushStockUpdate;
+
+function deleteStockRecord(code, description, initials, name) {
+  try {
+    console.log('🗑️ deleteStockRecord called with:', {code, description, initials, name});
+    console.log('🔍 Current server cache before delete:', window.__serverRecords?.length || 0, 'records');
+    
+    // Build detailed confirmation message for single record
+    var lines = [];
+    lines.push('You are about to DELETE authorization for:');
+    lines.push('');
+    lines.push('Code: ' + code);
+    lines.push('Description: ' + description);
+    lines.push('User: ' + initials + (name ? ' — ' + name : ''));
+    lines.push('');
+    lines.push('This action cannot be undone. Continue?');
+    var confirmMsg = lines.join('\n');
+    
+    if (!confirm(confirmMsg)) {
+      console.log('❌ Delete cancelled by user');
+      return;
+    }
+    
+    console.log('✅ User confirmed delete, proceeding...');
+    var list = _loadRecs() || [];
+    // Handle legacy index-based calls for backward compatibility
+    if (typeof code === 'number' && arguments.length === 1) {
+      var index = code;
+      if (index < 0 || index >= list.length) {
+        showErrorNotification('Delete Error', 'Invalid record index');
+        return false;
+      }
+      var record = list[index];
+      code = record.code || '';
+      description = record.description || '';
+      initials = record.initials || '';
+      name = record.name || '';
+      console.log('Legacy mode - converted to:', {code, description, initials, name});
+    }
+    
+    if (!code) {
+      showErrorNotification('Delete Error', 'Cannot delete record: missing code');
+      return false;
+    }
+    
+    console.log('⚠️ Skipping second confirmation - already confirmed above');
+    
+    // Proceed even if local cache is empty; server is the source of truth
+    if (!list.length) {
+      console.warn('No local cache loaded yet; proceeding with server delete anyway.');
+    }
+    
+    // Normalize targets for robust matching and server calls
+    var targetCodeU = String(code || '').trim().toUpperCase();
+    var targetDescU = String(description || '').trim().toUpperCase();
+    var targetDescNormU = (targetDescU === '-' ? '' : targetDescU);
+    var targetIniU = String(initials || '').trim().toUpperCase();
+
+    // Show async UI during delete
+    setAsyncUIBusy(true, 'Deleting record...');
+    
+    function doDeleteOnce(){
+      return pushStockUpdate({
+        code: code,
+        description: (description || '-'),
+        status: 'DELETE',
+        initials: initials,
+        name: name || '',
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toLocaleTimeString(),
+        suppressReload: true
+      });
+    }
+    
+    return doDeleteOnce().then(function(ok){
+      if (ok !== true) {
+        console.warn('Delete first attempt failed. Retrying once...');
+        return doDeleteOnce();
+      }
+      return true;
+    }).then(function(ok){
+      if (ok !== true) {
+        showErrorNotification('Delete Failed', 'Server rejected delete request. Please try again.');
+        // Optionally resync from server to reflect actual state
+        try { setTimeout(function(){ if (typeof loadAllRecordsFromPicLan==='function') loadAllRecordsFromPicLan(); }, 500); } catch(_){}
+        return false;
+      }
+      console.log('✅ Server confirmed delete success');
+      // IMMEDIATE: Remove from local cache using normalized match (Code+DescNorm+Initials), any Type
+      var currentRecords = Array.isArray(window.__serverRecords) ? window.__serverRecords.slice() : [];
+      var before = currentRecords.length;
+      var filtered = currentRecords.filter(function(r){
+        var rCodeU = String(r.code || '').trim().toUpperCase();
+        var rDescU = String(r.description || '').trim().toUpperCase();
+        var rDescNormU = (rDescU === '-' ? '' : rDescU);
+        var rIni = String(r.initials || '').trim().toUpperCase();
+        var match = (rCodeU === targetCodeU && rDescNormU === targetDescNormU && rIni === targetIniU);
+        if (match) console.log('🗑️ Removing from cache:', {code: r.code, desc: r.description, initials: rIni});
+        return !match;
+      });
+      window.__serverRecords = filtered;
+      console.log('🔍 Local cache removal:', before, '->', filtered.length);
+      try { renderGrid(''); } catch(e){ console.error('renderGrid error:', e); }
+      try { renderAuthGrid(); } catch(e){ console.error('renderAuthGrid error:', e); }
+      
+      // Verify on server before reloading to avoid revival
+      try {
+        var attemptsLeft = 5;
+        var pollDelay = 600;
+        var baseUrls = (window.GET_STOCKS_URLS && Array.isArray(window.GET_STOCKS_URLS) && window.GET_STOCKS_URLS.length)
+          ? window.GET_STOCKS_URLS
+          : ['GET_STOCKS2.XML'];
+        function poll(urlIdx){
+          if (attemptsLeft <= 0) {
+            console.warn('⚠️ [DeleteOne] Server did not reflect deletion after polling. Skipping server reload.');
+            return;
+          }
+          if (urlIdx >= baseUrls.length) urlIdx = 0;
+          var url = baseUrls[urlIdx] + '?_=' + Date.now();
+          fetch(url, { method: 'GET', cache: 'no-store' })
+            .then(function(res){ if (!res.ok) throw new Error('HTTP ' + res.status); return res.text(); })
+            .then(function(txt){
+              var parser = new DOMParser();
+              var doc = parser.parseFromString(txt || '', 'application/xml');
+              var nodes = doc.getElementsByTagName('Stock');
+              if (!nodes || !nodes.length) { try { nodes = doc.querySelectorAll('Stock, STOCK, row, Row, RECORD, Record'); } catch(_){} }
+              var anyLeft = false;
+              for (var j = 0; j < nodes.length; j++) {
+                var n = nodes[j];
+                var g = function(tag){ var el = n.getElementsByTagName(tag)[0]; return el ? (el.textContent || '').trim() : ''; };
+                var c = String(g('Code') || g('CODE') || '').trim().toUpperCase();
+                var d = String(g('Description') || g('DESCRIPTION') || g('DESC') || '').trim().toUpperCase();
+                var dNorm = (d === '-' ? '' : d);
+                var ini = String(g('AuthorizedBy') || g('AUTHORIZED_BY') || g('INITIALS') || '').trim().toUpperCase();
+                if (c === targetCodeU && dNorm === targetDescNormU && ini === targetIniU) { anyLeft = true; break; }
+              }
+              if (!anyLeft) {
+                console.log('✅ [DeleteOne] Server reflects deletion. Reloading now...');
+                if (typeof loadAllRecordsFromPicLan === 'function') loadAllRecordsFromPicLan();
+                return;
+              }
+              attemptsLeft--;
+              setTimeout(function(){ poll(urlIdx + 1); }, pollDelay);
+            })
+            .catch(function(){ attemptsLeft--; setTimeout(function(){ poll(urlIdx + 1); }, pollDelay); });
+        }
+        setTimeout(function(){ poll(0); }, 600);
+      } catch(_){ }
+      
+      showSuccessNotification('Record Deleted', 'Record ' + code + ' deleted successfully');
+      return true;
+    }).catch(function(err){
+      console.warn('deleteStockRecord final error:', err);
+      showErrorNotification('Delete Error', 'Error deleting record');
+      return false;
+    }).finally(function(){ setAsyncUIBusy(false); });
+  } catch (e) { 
+    console.error('deleteStockRecord error:', e); 
+    showErrorNotification('Delete Error', 'Error deleting record: ' + e.message);
+    return false; 
+  }
+}
+window.deleteStockRecord = deleteStockRecord;
+
+// — Cache utilities for Search & View (hard refresh + localStorage purge) —
+(function(){
+// Purge any key that starts with 'taimex_records_' and OP caches, then hard-refresh the grid
+window.manualCleanupLocalStorage = function(){
+try{
+var removed = 0;
+for (var i = localStorage.length - 1; i >= 0; i--) {
+var k = localStorage.key(i) || '';
+if (k.indexOf('taimex_records_') === 0) {
+localStorage.removeItem(k);
+removed++;
+}
+}
+// Clean OP users cache (persistent + in-memory)
+try { localStorage.removeItem('opUsers'); } catch(_){}
+try { window.__ramOpUsers = {}; } catch(_){}
+try { window.__opFetchCache = { inflight:{}, last:{} }; } catch(_){}
+console.log('Cleaned', removed, 'localStorage keys and RAM caches');
+if (typeof showSuccessNotification === 'function') {
+showSuccessNotification('Cache Cleared', 'Removed ' + removed + ' cached records');
+}
+// Force reload grids
+if (typeof renderGrid === 'function') renderGrid('');
+if (typeof renderAuthGrid === 'function') renderAuthGrid();
+} catch(e){
+console.warn('manualCleanupLocalStorage error:', e);
+}
+return false;
+};
+// Force reload from localStorage without purging it (clears RAM caches only)
+window.forceAuthGridReload = function(){
+try {
+delete window.__authData;
+delete window.__authRows;
+if (typeof renderAuthGrid === 'function') renderAuthGrid();
+if (typeof updateSortUI === 'function') updateSortUI();
+if (typeof showSuccessNotification === 'function') {
+showSuccessNotification('Reloaded', 'Grid data reloaded from localStorage.');
+}
+} catch(e){
+console.warn('forceAuthGridReload error:', e);
+}
+return false;
+};
+})();
+// — END cache utilities —
+
+function deleteAllAuthorization() {
+  try {
+    // Determine context: prefer edit mode inputs
+    var isEditMode = Array.isArray(window.__editingUsers) && window.__editingUsers.length > 0;
+    var code = '';
+    var description = '';
+    var typeVal = '';
+    try {
+      if (isEditMode) {
+        var codeInput = document.getElementById('authHelperEditCode');
+        var descInput = document.getElementById('authHelperEditDescription');
+        // Fallback to current form context when edit inputs are not present
+        code = (codeInput && codeInput.value) ? String(codeInput.value).trim() : String(window.__currentCode == null ? '' : window.__currentCode).trim();
+        description = (descInput && descInput.value) ? String(descInput.value).trim() : String(window.__currentDescription == null ? '' : window.__currentDescription).trim();
+        typeVal = String(window.__currentTxnType == null ? '' : window.__currentTxnType).trim().toUpperCase() || 'IN';
+      } else {
+        // Fall back to current form context
+        code = String(window.__currentCode == null ? '' : window.__currentCode).trim();
+        description = String(window.__currentDescription == null ? '' : window.__currentDescription).trim();
+        var typeEl = document.getElementById('typeInput');
+        typeVal = String(typeEl && typeEl.value ? typeEl.value : window.__currentTxnType || 'IN').trim().toUpperCase() || 'IN';
+      }
+    } catch (_e) {}
+    
+    if (!code) {
+      showErrorNotification('Delete All', 'Cannot delete: missing Code');
+      return false;
+    }
+    var list = _loadRecs() || [];
+    var targetCode = code.trim().toUpperCase();
+    var targetDesc = (description || '').trim().toUpperCase();
+    var targetDescNorm = (targetDesc === '-' ? '' : targetDesc);
+    var targetType = typeVal;
+    // Collect all matching users for Code+Description+Type
+    var usersByIni = {};
+    var toRemoveIdx = [];
+    
+    // In edit mode, the matching records were removed from local cache and stored in __editBackupRecords
+    if (isEditMode && Array.isArray(window.__editBackupRecords) && window.__editBackupRecords.length) {
+      for (var i = 0; i < window.__editBackupRecords.length; i++) {
+        var rb = window.__editBackupRecords[i] || {};
+        var iniB = String(rb.initials || '').trim().toUpperCase();
+        var nmB = String(rb.name || '').trim();
+        if (iniB) usersByIni[iniB] = nmB || usersByIni[iniB] || '';
+      }
+      // Note: toRemoveIdx remains empty because list no longer contains these records while editing
+    } else {
+      for (var i = 0; i < list.length; i++) {
+        var r = list[i] || {};
+        var rCode = String(r.code || '').trim().toUpperCase();
+        var rDesc = String(r.description || '').trim().toUpperCase();
+        var rDescNorm = (rDesc === '-' ? '' : rDesc);
+        // Ignore Type when collecting initials; server DELETE removes all types for CODE*INITIALS
+        if (rCode === targetCode && rDescNorm === targetDescNorm) {
+          var ini = String(r.initials || '').trim().toUpperCase();
+          var nm = String(r.name || '').trim();
+          if (ini) usersByIni[ini] = nm || usersByIni[ini] || '';
+          toRemoveIdx.push(i);
+        }
+      }
+    }
+    var initials = Object.keys(usersByIni);
+    // Do NOT hard-fail when no local initials are found. We'll request a bulk delete from server.
+    try { console.log('[DeleteAll] Targets -> Code:', targetCode, 'Desc(norm):', targetDescNorm, 'Initials (if any):', initials); } catch(_){ }
+    // Build confirmation message
+    var lines = [];
+    lines.push('You are about to DELETE ALL authorizations for:');
+    lines.push('');
+    lines.push('Type: ' + targetType);
+    lines.push('Code: ' + code);
+    lines.push('Description: ' + (description || '(blank)'));
+    lines.push('');
+    if (initials.length) {
+      lines.push('Users to delete (' + initials.length + '):');
+      for (var k = 0; k < initials.length; k++) {
+        var ini2 = initials[k];
+        lines.push('  - ' + ini2 + (usersByIni[ini2] ? ' — ' + usersByIni[ini2] : ''));
+      }
+    } else {
+      lines.push('Users to delete: (no cache available — will delete entire record on server)');
+    }
+    lines.push('');
+    lines.push('This action cannot be undone. Continue?');
+    var confirmMsg = lines.join('\n');
+    if (!confirm(confirmMsg)) return false;
+    
+    // Issue a single bulk rewrite with INITIALS_ALL = '-' (no tokens) to delete the entire record on server
+    setAsyncUIBusy(true, 'Deleting all authorizations...');
+    return pushStockUpdate({
+      code: code,
+      description: (description || '-'),
+      status: 'DELETE',
+      initialsAll: '-',
+      suppressReload: true
+    }).then(function(ok){
+      if (ok !== true) return false;
+      // Remove ALL rows for this Code+Description from local cache (any Type/Initials)
+      var safeList = Array.isArray(list) ? list : [];
+      var beforeLen = safeList.length;
+      list = safeList.filter(function(r){
+        var rCode = String(r.code || '').trim().toUpperCase();
+        var rDesc = String(r.description || '').trim().toUpperCase();
+        var rDescNorm = (rDesc === '-' ? '' : rDesc);
+        return !(rCode === targetCode && rDescNorm === targetDescNorm);
+      });
+      var removedCount = beforeLen - list.length;
+      _saveRecs(list);
+      // Refresh BOTH grids so the row doesn't appear to revive
+      try { renderGrid(''); } catch(_) {}
+      try { renderAuthGrid(); } catch(_) {}
+      // Prevent closeAuthHelper from restoring backups after a confirmed Delete All
+      try { window.__editBackupRecords = null; } catch(_) {}
+      try { window.__editingUsers = null; } catch(_) {}
+      // Clear edit mode backup after successful deletion
+      if (isEditMode && Array.isArray(window.__editBackupRecords)) {
+        window.__editBackupRecords = null;
+        delete window.__editBackupRecords;
+      }
+      // Close the Authorization Helper to clearly signal completion
+      try { if (typeof closeAuthHelper === 'function') closeAuthHelper(); } catch(_) {}
+      
+      // Clear all caches to prevent deleted records from reappearing
+      try {
+        delete window.__authData;
+        delete window.__authRows;
+        delete window.__authBuffer;
+        delete window.__editingUsers;
+        // Force local cache refresh for this specific code+description
+        var list2 = _loadRecs() || [];
+        var cleanedList = [];
+        for (var i = 0; i < list2.length; i++) {
+          var r = list2[i] || {};
+          // Purge all remaining rows for this Code+Description (any Type)
+          var rCodeU = String(r.code || '').trim().toUpperCase();
+          var rDescU = String(r.description || '').trim().toUpperCase();
+          var rDescUNorm = (rDescU === '-' ? '' : rDescU);
+          if (!(rCodeU === targetCode && rDescUNorm === targetDescNorm)) {
+            cleanedList.push(r);
+          }
+        }
+        _saveRecs(cleanedList);
+      } catch(_){ }
+      
+      // Verify on server that no rows remain for this Code+Description before reloading, to prevent revival
+      try {
+        var attemptsLeft = 5;
+        var pollDelay = 600;
+        var baseUrls = (window.GET_STOCKS_URLS && Array.isArray(window.GET_STOCKS_URLS) && window.GET_STOCKS_URLS.length)
+          ? window.GET_STOCKS_URLS
+          : ['GET_STOCKS2.XML'];
+        function checkServerCleared(urlIdx){
+          if (attemptsLeft <= 0) {
+            console.warn('⚠️ [DeleteAll] Server did not reflect deletions after polling. Skipping server reload to avoid revival.');
+            return;
+          }
+          if (urlIdx >= baseUrls.length) urlIdx = 0;
+          var url = baseUrls[urlIdx] + '?_=' + Date.now();
+          fetch(url, { method: 'GET', cache: 'no-store' })
+            .then(function(res){ if (!res.ok) throw new Error('HTTP ' + res.status); return res.text(); })
+            .then(function(txt){
+              var parser = new DOMParser();
+              var doc = parser.parseFromString(txt || '', 'application/xml');
+              var nodes = doc.getElementsByTagName('Stock');
+              if (!nodes || !nodes.length) { try { nodes = doc.querySelectorAll('Stock, STOCK, row, Row, RECORD, Record'); } catch(_){} }
+              var anyLeft = false;
+              for (var j = 0; j < nodes.length; j++) {
+                var n = nodes[j];
+                var g = function(tag){ var el = n.getElementsByTagName(tag)[0]; return el ? (el.textContent || '').trim() : ''; };
+                var c = String(g('code') || g('Code') || g('CODE') || '').trim().toUpperCase();
+                var d = String(g('description') || g('Description') || g('DESCRIPTION') || g('desc') || g('DESC') || '').trim().toUpperCase();
+                var dNorm = (d === '-' ? '' : d);
+                if (c === targetCode && dNorm === targetDescNorm) { anyLeft = true; break; }
+              }
+              if (!anyLeft) {
+                console.log('✅ [DeleteAll] Server reflects deletions. Reloading now...');
+                if (typeof loadAllRecordsFromPicLan === 'function') loadAllRecordsFromPicLan();
+                return;
+              }
+              attemptsLeft--;
+              setTimeout(function(){ checkServerCleared(urlIdx + 1); }, pollDelay);
+            })
+            .catch(function(){ attemptsLeft--; setTimeout(function(){ checkServerCleared(urlIdx + 1); }, pollDelay); });
+        }
+        setTimeout(function(){ checkServerCleared(0); }, 600);
+      } catch(_){ }
+      
+      showSuccessNotification('Delete All', 'Deleted ' + removedCount + ' record' + (removedCount === 1 ? '' : 's') + ' for Code ' + code);
+      return true;
+    }).catch(function(err){
+      console.warn('deleteAllAuthorization error:', err);
+      showErrorNotification('Delete All', 'Server error while deleting. Please try again.');
+      return false;
+    }).finally(function(){
+      setAsyncUIBusy(false);
+    });
+  } catch (e) {
+    console.error('deleteAllAuthorization error:', e);
+    showErrorNotification('Delete All', 'Error: ' + (e && e.message ? e.message : e));
+    return false;
+  }
+}
+window.deleteAllAuthorization = deleteAllAuthorization;
+
+function deleteAllFromGrid(type, code, description) {
+  try {
+    // Set context for deleteAllAuthorization()
+    window.__currentTxnType = String(type || 'IN').trim().toUpperCase();
+    window.__currentCode = String(code || '').trim();
+    window.__currentDescription = String(description || '').trim();
+    // Ensure helper is closed so we are not in edit mode
+    try { var editModeEl = document.getElementById('authHelperEditMode'); if (editModeEl) editModeEl.style.display = 'none'; } catch(_) {}
+    
+    // Handle the Promise properly to prevent records from reappearing
+    var result = deleteAllAuthorization();
+    if (result && typeof result.then === 'function') {
+      result.then(function(success) {
+        if (success) {
+          console.log('Delete All completed successfully');
+        }
+      }).catch(function(error) {
+        console.error('Delete All failed:', error);
+      });
+    }
+    return false; // Prevent default form submission
+  } catch (e) {
+    console.error('deleteAllFromGrid error:', e);
+    showErrorNotification('Delete All', 'Error preparing deletion: ' + (e && e.message ? e.message : e));
+    return false;
+  }
+}
+window.deleteAllFromGrid = deleteAllFromGrid;
+
+function manualCleanupLocalStorage() {
+  try {
+  var keys = [_storageKey(), 'authRules', 'taimex_auth_rules'];
+  for (var i = 0; i < keys.length; i++) {
+    try { localStorage.removeItem(keys[i]); } catch (_) {}
+  }
+  showSuccessNotification('Cache Cleared', 'Local storage cleared');
+  try { renderGrid(''); } catch (_) {}
+  try { renderAuthGrid(); } catch (_) {}
+  } catch (e) { console.error('manualCleanupLocalStorage error:', e); }
+  return false;
+}
+
+// REMOVED: All localStorage auth functions - server only now 
+
+function patternToRegExp(pattern) {
+  var p = String(pattern == null ? '' : pattern);
+  if (p === '*') return /^.*$/i;
+  // ... (rest of the code remains the same)
+// Escape regex metacharacters using string replacement to avoid character class issues
+var esc = function (s) {
+s = String(s == null ? '' : s);
+var out = '';
+for (var i = 0; i < s.length; i++) {
+var ch = s.charAt(i);
+switch (ch) {
+case '\\': out += '\\\\'; break; // backslash
+case '.': out += '\\.'; break;
+case '*': out += '\\*'; break;
+case '+': out += '\\+'; break;
+case '?': out += '\\?'; break;
+case '^': out += '\\^'; break;
+case '$': out += '\\$'; break;
+case '{': out += '\\{'; break;
+case '}': out += '\\}'; break;
+case '(': out += '\\('; break;
+case ')': out += '\\)'; break;
+case '|': out += '\\|'; break;
+case '[': out += '\\['; break;
+case ']': out += '\\]'; break;
+default: out += ch;
+}
+}
+return out;
+};
+var re = '^' + p.split('*').map(esc).join('.*') + '$';
+try { return new RegExp(re, 'i'); } catch (_) { return new RegExp('^' + esc(p) + '$', 'i'); }
+}
+
+function _match(pattern, value) {
+var v = String(value == null ? '' : value);
+var p = String(pattern == null ? '' : pattern);
+if (!p) return false;
+return patternToRegExp(p).test(v);
+}
+
+function checkAuth(initials, txn, src, action) {
+try {
+  var ini = String(initials || '').trim().toUpperCase();
+  if (!ini) return false;
+  var list = _loadRecs() || [];
+  var tx = String(txn || '').trim();
+  var act = String(action || 'EDIT').toUpperCase();
+
+  // Treat txn as a pattern to match against Code or Description when provided; src is ignored in server model
+  var matchesPattern = function(pat, val) {
+    if (!pat) return true;
+    return patternToRegExp(pat).test(String(val == null ? '' : val));
+  };
+
+  for (var i = 0; i < list.length; i++) {
+    var r = list[i] || {};
+    var okIni = String(r.authorizedBy || '').trim().toUpperCase() === ini;
+    if (!okIni) continue;
+    var okTxn = tx ? (matchesPattern(tx, r.code || '') || matchesPattern(tx, r.description || '')) : true;
+    var okPerm = (act === 'EDIT'); // only EDIT is modeled
+    if (okIni && okTxn && okPerm) return true;
+  }
+  return false;
+} catch (e) {
+  console.error('checkAuth error:', e);
+  return false;
+}
+}
+window.checkAuth = checkAuth;
+
+function renderAuthGrid() {
+try {
+var tbody = document.getElementById('recordsTableBody');
+if (!tbody) { console.error('recordsTableBody element not found!'); return false; }
+
+// Use server data only - no local storage
+var list = _loadRecs();
+if (!Array.isArray(list)) {
+  console.error('_loadRecs() did not return an array:', list);
+  list = [];
+}
+
+var filterType = '';
+var filterCode = '';
+var filterDescription = '';
+var qVal = '';
+
+try {
+  var el3 = document.getElementById('authFilterType');
+  if (el3) filterType = String(el3.value || '').trim().toUpperCase();
+  
+  var el4 = document.getElementById('authFilterCode');
+  if (el4) filterCode = String(el4.value || '').trim().toLowerCase();
+  
+  var el5 = document.getElementById('authFilterDescription');
+  if (el5) filterDescription = String(el5.value || '').trim().toLowerCase();
+  
+  var fq = document.getElementById('searchInput');
+  if (fq) qVal = String(fq.value || '').toLowerCase();
+} catch (filterErr) {
+  console.error('Error getting filter values:', filterErr);
+}
+
+var html = '';
+var renderedCount = 0;
+
+// Group by Type+Code+Description so the grid shows a single row per transaction
+var groups = {};
+for (var i = 0; i < list.length; i++) {
+  var r0 = list[i] || {};
+  var t0 = String(r0.type || 'IN').trim().toUpperCase();
+  var c0 = String(r0.code || '').trim();
+  var d0 = String(r0.description || '').trim();
+  var key = t0 + '|' + c0.toUpperCase() + '|' + d0.toUpperCase();
+  if (!groups[key]) {
+    groups[key] = { type: t0, code: c0, description: d0, firstIndex: i, count: 0 };
+  }
+  groups[key].count++;
+}
+var grouped = [];
+for (var k in groups) if (Object.prototype.hasOwnProperty.call(groups, k)) grouped.push(groups[k]);
+
+for (var gi = 0; gi < grouped.length; gi++) {
+  try {
+    var g = grouped[gi];
+    // Filters apply to grouped row
+    if (filterType && String(g.type).toUpperCase() !== filterType) continue;
+    if (filterCode && String(g.code).toLowerCase().indexOf(filterCode) === -1) continue;
+    if (filterDescription && String(g.description).toLowerCase().indexOf(filterDescription) === -1) continue;
+    // Global search
+    if (qVal) {
+      var combinedG = (String(g.code||'') + ' ' + String(g.description||'') + ' ' + String(g.type||'')).toLowerCase();
+      if (combinedG.indexOf(qVal) === -1) continue;
+    }
+
+    renderedCount++;
+    var typeIcon = '';
+    var typeColor = '';
+    if (g.type === 'IN') { typeIcon = '<i class="fas fa-arrow-up" style="color: #10b981;"></i> IN'; typeColor = 'color: #10b981;'; }
+    else if (g.type === 'OUT') { typeIcon = '<i class="fas fa-arrow-down" style="color: #ef4444;"></i> OUT'; typeColor = 'color: #ef4444;'; }
+    else { typeIcon = '<i class="fas fa-exchange-alt" style="color: #6b7280;"></i> ' + (g.type || 'N/A'); typeColor = 'color: #6b7280;'; }
+
+    // Escape single quotes for inline handler params
+    var safeCode = String(g.code || '').replace(/'/g, "\\'");
+    var safeDesc = String(g.description || '').replace(/'/g, "\\'");
+
+    html += '\n          <tr class="excel-row">'
+      + '\n            <td class="excel-cell readonly"><div class="cell-content"><i class="fas fa-code"></i> ' + (g.code || 'N/A') + '</div></td>'
+      + '\n            <td class="excel-cell readonly"><div class="cell-content"><i class="fas fa-file-text"></i> ' + (g.description || 'N/A') + '</div></td>'
+      + '\n            <td class="excel-cell readonly"><div class="cell-content" style="' + typeColor + '">' + typeIcon + '</div></td>'
+      + '\n            <td class="excel-cell action-buttons">'
+      + '\n              <button type="button" class="btn-sm btn-edit" onclick="return editAuthRule(' + g.firstIndex + ')" style="background: #3b82f6; color: white;" title="Edit Authorization"><i class="fas fa-edit"></i></button>'
+      + '\n            </td>'
+      + '\n          </tr>';
+  } catch (recordErr) {
+    console.error('Error processing grouped record', gi, ':', recordErr);
+  }
+}
+
+console.log('Rendered rows count:', renderedCount);
+
+var cntEl = document.getElementById('recordsCount');
+if (cntEl) { cntEl.textContent = renderedCount + ' auth records shown'; }
+
+if (html) {
+  tbody.innerHTML = html;
+} else {
+  tbody.innerHTML = "<tr><td class='excel-cell' colspan='4' style='text-align:center;color:#64748b;padding:12px;'>No authorization rules</td></tr>";
+}
+
+} catch (e) {
+  console.error('renderAuthGrid error:', e);
+  var tbody = document.getElementById('recordsTableBody');
+  if (tbody) {
+    tbody.innerHTML = "<tr><td class='excel-cell' colspan='4' style='text-align:center;color:#ef4444;padding:12px;'>Error loading data: " + (e.message || e) + "</td></tr>";
+  }
+}
+return false;
+}
+
+function filterAuthRules() { return renderAuthGrid(); }
+
+// Sorting for Authorization grid when rendered via generic grid headers
+function sortAuthTable(index) {
+try {
+var cols = ['code','description','type'];
+if (typeof index !== 'number' || index < 0 || index >= cols.length) return false;
+var list = _loadRecs();
+if (!Array.isArray(list)) list = [];
+if (typeof window.__authSortIndex === 'undefined') window.__authSortIndex = -1;
+if (typeof window.__authSortDir === 'undefined') window.__authSortDir = 'asc';
+if (window.__authSortIndex === index) {
+window.__authSortDir = (window.__authSortDir === 'asc' ? 'desc' : 'asc');
+} else {
+window.__authSortIndex = index;
+window.__authSortDir = 'asc';
+}
+var dir = window.__authSortDir;
+list.sort(function(a, b) {
+var key = cols[index];
+var av = a && a[key], bv = b && b[key];
+if (key === 'active') { av = !!av ? 1 : 0; bv = !!bv ? 1 : 0; }
+av = (av == null) ? '' : av;
+bv = (bv == null) ? '' : bv;
+if (typeof av === 'string') av = av.toLowerCase();
+if (typeof bv === 'string') bv = bv.toLowerCase();
+if (av < bv) return dir === 'asc' ? -1 : 1;
+if (av > bv) return dir === 'asc' ? 1 : -1;
+return 0;
+});
+_saveRecs(list);
+renderAuthGrid();
+} catch (e) { console.error('sortAuthTable error:', e); }
+return false;
+}
+
+// Generic grid stubs to avoid runtime errors in preview mode
+function sortTable(index) {
+try { console.log('sortTable (preview stub) called with index:', index); renderGrid(''); }
+catch (e) { console.error('sortTable error:', e); }
+return false;
+}
+function filterRecords() {
+try { renderGrid(''); }
+catch (e) { console.error('filterRecords error:', e); }
+return false;
+}
+
+/* Removed deprecated addAuthRule() and deleteAuthRule() that performed local-only cache mutations.
+   All Authorization add/edit/delete must go through server-driven flows:
+   - Add/Edit: Authorization Helper -> saveAuthorization() -> pushStockUpdate() -> loadAllRecordsFromPicLan()
+   - Delete: deleteStockRecord(index) -> server DELETE -> loadAllRecordsFromPicLan()
+*/
+
+function exportToCSV() {
+  try {
+    var list = _loadRecs();
+    if (!Array.isArray(list)) list = [];
+    var rows = [];
+    rows.push(['Code','Description','Type']);
+    for (var i = 0; i < list.length; i++) {
+      var r = list[i] || {};
+      rows.push([
+        String(r.code || ''),
+        String(r.description || ''),
+        String(r.type || '')
+      ]);
+    }
+    var csv = '';
+    for (var ri = 0; ri < rows.length; ri++) {
+      var row = rows[ri];
+      for (var ci = 0; ci < row.length; ci++) {
+        var cell = String(row[ci] == null ? '' : row[ci]);
+        // Escape quotes
+        cell = '"' + cell.replace(/"/g, '""') + '"';
+        csv += (ci ? ',' : '') + cell;
+      }
+      csv += '\n';
+    }
+    var a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = 'stocktrans_authorizations.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch (e) { console.error('exportToCSV error:', e); }
+  return false;
+}
+
+function clearFilters() {
+  try {
+    var ids = ['authFilterType','authFilterCode','authFilterDescription','searchInput'];
+    for (var i = 0; i < ids.length; i++) {
+      var el = document.getElementById(ids[i]);
+      if (el) {
+        if (el.tagName === 'SELECT') el.selectedIndex = 0; else el.value = '';
+      }
+    }
+    renderAuthGrid();
+    showSuccessNotification('Filters', 'All filters cleared');
+  } catch (e) { console.error('clearFilters error:', e); }
+  return false;
+}
+</script>
+
+
+
+
+  <style>
+    /* Authorization Helper Styles - Matching Page Blue ADN */
+    .hidden { display: none !important; }
+    .authorization-section {
+      margin: 12px auto;
+      padding: 10px;
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border: 2px solid #3b82f6;
+      border-radius: 8px;
+      text-align: left;
+      max-width: 800px;
+      width: 100%;
+    }
+
+    .auth-info-row {
+      margin-bottom: 6px;
+      padding: 6px;
+      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+      border: 1px solid #3b82f6;
+      border-radius: 6px;
+      position: relative;
+      text-align: left;
+    }
+
+    .auth-info-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 8px;
+      align-items: end;
+      justify-items: stretch;
+      text-align: left;
+    }
+
+    .auth-info-grid .form-group {
+      margin-bottom: 0;
+      text-align: left;
+    }
+
+    .auth-info-grid label {
+      text-align: left;
+      display: block;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+
+    .auth-info-grid input {
+      text-align: left;
+      padding: 6px 8px;
+      border: 2px solid #e5e7eb;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.9);
+      font-size: 12px;
+      height: 30px;
+    }
+
+    .auth-info-grid input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+    }
+
+    .auth-display-value {
+      background: rgba(255, 255, 255, 0.7);
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      display: inline-block;
+      min-width: 100px;
+      font-weight: 500;
+      color: #1e293b;
+      font-size: 13px;
+      height: 32px;
+      line-height: 20px;
+    }
+
+    .auth-resolved-name {
+      margin-top: 6px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      text-align: right;
+    }
+
+    .auth-resolved-name.success {
+      background: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #bfdbfe;
+    }
+
+    .auth-resolved-name.error {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      height: 32px;
+    }
+
+    .authorization-section .btn-primary {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      border-color: #2563eb;
+    }
+
+    .authorization-section .btn-primary:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      border-color: #1e40af;
+    }
+
+    @media (max-width: 768px) {
+      .auth-info-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        text-align: left;
+      }
+      .auth-info-grid .form-group { text-align: left; }
+      .auth-info-grid label { text-align: left; }
+      .auth-info-grid input { text-align: left; }
+      .authorization-section { text-align: left; }
+      .auth-info-row { text-align: left; }
+      .auth-resolved-name { text-align: left; }
+    }
+
+    /* Authorization Modal Styles */
+    .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; display: flex; align-items: center; justify-content: center; }
+    .auth-modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); }
+    .auth-modal-content { position: relative; background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); max-width: 500px; width: 90%; max-height: 90vh; overflow: hidden; animation: modalSlideIn 0.3s ease; }
+    @keyframes modalSlideIn { from { opacity: 0; transform: scale(0.9) translateY(-20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .auth-modal-header { background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%); color: white; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .auth-modal-header h3 { margin: 0; font-size: 1.2em; display: flex; align-items: center; gap: 8px; }
+    .auth-modal-close { background: none; border: none; color: white; font-size: 1.2em; cursor: pointer; padding: 4px; border-radius: 4px; transition: background-color 0.2s; }
+    .auth-modal-close:hover { background: rgba(255, 255, 255, 0.1); }
+    .auth-modal-body { padding: 24px; }
+    .transaction-info { background: #f8fafc; border-radius: 8px; padding: 16px; margin-bottom: 20px; border-left: 4px solid #3b82f6; }
+    .info-item { display: flex; margin-bottom: 8px; }
+    .info-item:last-child { margin-bottom: 0; }
+    .info-item label { font-weight: 600; color: #374151; min-width: 100px; }
+    .info-item span { color: #1e293b; font-weight: 500; }
+    .auth-form .form-group { margin-bottom: 16px; }
+    .auth-form label { font-weight: 600; color: #374151; margin-bottom: 8px; display: block; }
+    .auth-form input { width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: all 0.2s ease; }
+    .auth-form input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+    .user-resolved { margin-top: 8px; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; }
+    .auth-modal-footer { background: #f8fafc; padding: 16px 24px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid #e5e7eb; }
+
+    /* Multi-add UI */
+    .auth-input-row { display: flex; gap: 6px; align-items: center; }
+    .auth-input-row input { flex: 1; }
+    .auth-input-row .btn-add { display: inline-flex; align-items: center; justify-content: center; padding: 6px 8px; height: 30px; flex-shrink: 0; font-size: 12px; }
+    .auth-buffer-list { margin-top: 8px; display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 6px; }
+    .user-bubble { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; border-radius: 16px; padding: 6px 10px; margin: 3px 0; display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .user-bubble:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); transition: all 0.2s ease; }
+    .user-bubble button { background: rgba(255,255,255,0.2); border: none; color: white; cursor: pointer; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; margin-left: 3px; font-size: 11px; font-weight: bold; }
+    .user-bubble button:hover { background: rgba(255,255,255,0.3); }
+    .auth-chip .remove { background: transparent; border: none; color: #1e3a8a; cursor: pointer; font-weight: 700; padding: 0 4px; line-height: 1; }
+    .auth-chip .remove:hover { color: #ef4444; }
+    
+    /* Inline helper specific styles */
+    .authorization-section .transaction-info { background: #f8fafc; border-radius: 6px; padding: 10px; margin-bottom: 10px; border-left: 3px solid #3b82f6; }
+    .authorization-section .info-item { display: flex; margin-bottom: 6px; }
+    .authorization-section .info-item:last-child { margin-bottom: 0; }
+    .authorization-section .info-item label { font-weight: 600; color: #374151; min-width: 80px; font-size: 12px; }
+    .authorization-section .info-item span { color: #1e293b; font-weight: 500; font-size: 12px; }
+  </style>
+
+  <script>
+    // IMMEDIATE DEBUG - Check if console works
+    console.log(' JavaScript loaded successfully');
+    console.log(' Testing console output immediately');
+    
+    // Configure URLs for local server FIRST - before any functions are called
+    // Force clear browser cache and override any cached URLs
+    delete window.GET_STOCKS_URLS;
+    delete window.UPDATE_STOCKS_URLS;
+    
+    // Set new URLs with cache busting - force fresh data
+    window.GET_STOCKS_URLS = ['GET_STOCKS2.XML'];
+    window.UPDATE_STOCKS_URLS = ['UPDATE_STOCKS2.XML'];
+    
+    // Avoid forced reload on remote host to prevent throttling; just warn once
+    if (window.location.href.includes('54.189.226.145') && !sessionStorage.getItem('remoteWarned')) {
+      console.warn('Running from remote host; using relative endpoints. No auto-redirect to avoid throttling.');
+      sessionStorage.setItem('remoteWarned', '1');
+    }
+    
+    console.log('🔧 DEBUG: Local URLs configured:', window.GET_STOCKS_URLS, window.UPDATE_STOCKS_URLS);
+    console.log('🔧 DEBUG: Current location:', window.location.href);
+    
+    // Defensive: remove any legacy "Check 'EC'" button if it appears via cache or old build
+    function removeCheckEcButton() {
+      try {
+        // Prefer toolbar search
+        var containers = [
+          document.querySelector('.grid-toolbar .toolbar-right'),
+          document.querySelector('.grid-toolbar'),
+          document.body
+        ].filter(Boolean);
+        for (var c = 0; c < containers.length; c++) {
+          var root = containers[c];
+          // Remove by text match
+          var btns = root.querySelectorAll('button');
+          for (var i = 0; i < btns.length; i++) {
+            var t = (btns[i].innerText || btns[i].textContent || '').trim();
+            if (/Check\s*'EC'/i.test(t) || /Check\s*EC/i.test(t)) {
+              btns[i].remove();
+              continue;
+            }
+          }
+          // Remove by icon match as extra safeguard
+          var icons = root.querySelectorAll('i.fa-user-check, i.fas.fa-user-check, i.far.fa-user-check');
+          for (var j = 0; j < icons.length; j++) {
+            var b = icons[j].closest('button');
+            if (b) b.remove();
+          }
+        }
+      } catch (e) { console.warn('Cleanup EC button failed:', e); }
+    }
+
+    function ensureCheckEcRemoved() {
+      try {
+        removeCheckEcButton();
+        var target = document.querySelector('.grid-toolbar') || document.body;
+        if (target && !window.__ecObserver) {
+          var obs = new MutationObserver(function() { removeCheckEcButton(); });
+          obs.observe(target, { childList: true, subtree: true });
+          window.__ecObserver = obs;
+        }
+        // Extra: sweep a few times to catch late injections
+        var count = 0;
+        var iv = setInterval(function(){
+          removeCheckEcButton();
+          if (++count >= 10) clearInterval(iv);
+        }, 300);
+      } catch (e) { console.warn('ensureCheckEcRemoved failed:', e); }
+    }
+    
+    // Auto-load server records on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log(' DOM loaded, initializing...');
+      // Defensive cleanup for legacy button
+      setTimeout(ensureCheckEcRemoved, 0);
+      setTimeout(function() {
+        console.log(' Auto-load timeout triggered');
+        console.log('⏰ Auto-load timeout triggered');
+        if (typeof loadAllRecordsFromPicLan === 'function') {
+          console.log('📡 Auto-loading server records...');
+          loadAllRecordsFromPicLan();
+        } else {
+          console.error('❌ loadAllRecordsFromPicLan function not found');
+        }
+      }, 1000);
+    });
+
+    // Live dynamic behavior (Price Edit style): auto-open/update helper as user types
+    function debounce(fn, wait) {
+      var t;
+      return function() {
+        var ctx = this, args = arguments;
+        clearTimeout(t);
+        t = setTimeout(function(){ fn.apply(ctx, args); }, wait);
+      };
+    }
+
+    function updateInlineHelperFor(code, desc, type) {
+      try {
+        // Do not interfere if an explicit edit (with backup) is in progress
+        if (Array.isArray(window.__editBackupRecords) && window.__editBackupRecords.length) return;
+
+        code = String(code || '').trim();
+        desc = String(desc || '').trim();
+        type = String(type || '').trim().toUpperCase();
+        if (!code || !desc || !type) {
+          try { closeAuthHelper(); } catch(_) {}
+          return;
+        }
+
+        // Build current context
+        window.__currentCode = code;
+        window.__currentDescription = desc;
+        window.__currentTxnType = type || 'IN';
+
+        // Find existing records for this triple
+        var list = _loadRecs() || [];
+        var tCode = code.toUpperCase();
+        var tDesc = desc.toUpperCase();
+        var tType = type.toUpperCase();
+        var byIni = {};
+        for (var i = 0; i < list.length; i++) {
+          var r = list[i] || {};
+          if (String(r.code || '').trim().toUpperCase() === tCode &&
+              String(r.description || '').trim().toUpperCase() === tDesc &&
+              String(r.type || '').trim().toUpperCase() === tType) {
+            // Prefer array of users parsed from <opers>
+            if (Array.isArray(r.users) && r.users.length) {
+              for (var u = 0; u < r.users.length; u++) {
+                var ux = r.users[u] || {};
+                var ini = String(ux.initials || '').trim().toUpperCase();
+                var nm = String(ux.name || '').trim();
+                if (ini) {
+                  if (!byIni[ini]) byIni[ini] = { initials: ini, name: nm };
+                  else if (!byIni[ini].name && nm) byIni[ini].name = nm;
+                }
+              }
+            } else {
+              // Fallback to single-value fields
+              var ini2 = String(r.initials || '').trim().toUpperCase();
+              var nm2 = String(r.name || '').trim();
+              if (ini2) {
+                if (!byIni[ini2]) byIni[ini2] = { initials: ini2, name: nm2 };
+                else if (!byIni[ini2].name && nm2) byIni[ini2].name = nm2;
+              }
+            }
+          }
+        }
+
+        var serverUsers = Object.keys(byIni).map(function(k){ return byIni[k]; });
+        var editingUsers = Array.isArray(window.__editingUsers) ? window.__editingUsers.slice() : [];
+        // Merge without duplicates (by initials). Do NOT auto-populate chips; keep buffer untouched.
+        // Priority: editing (user changes) over server
+        var byIniMerged = {};
+        function addAll(arr){
+          for (var i=0;i<arr.length;i++){
+            var u = arr[i]||{}; var ini = String(u.initials||'').trim().toUpperCase(); if(!ini) continue;
+            if(!byIniMerged[ini]) byIniMerged[ini] = { initials: ini, name: u.name||'' };
+            else if(!byIniMerged[ini].name && u.name) byIniMerged[ini].name = u.name;
+          }
+        }
+        addAll(editingUsers);
+        addAll(serverUsers);
+        var merged = Object.keys(byIniMerged).map(function(k){ return byIniMerged[k]; });
+
+        // Only update editing users; do not create chips automatically
+        if (!Array.isArray(window.__authBuffer)) { window.__authBuffer = []; }
+        window.__editingUsers = merged.slice();
+  
+        // Open helper (will show Edit UI and current buffer)
+        openAuthForCurrentForm();
+      } catch (e) { console.error('updateInlineHelperFor error:', e); }
+    }
+
+    // Auto-complete function: when user types Code, auto-fill Description and Type
+    function autoCompleteFromCode(code) {
+      try {
+        if (!code || code.length < 2) return;
+        var list = _loadRecs() || [];
+        var codeUpper = code.trim().toUpperCase();
+        
+        var descEl = document.getElementById('descriptionInput');
+        var typeEl = document.getElementById('typeInput');
+        var currentDesc = descEl ? descEl.value.trim() : '';
+        
+        // If we have both Code and Description, find exact match
+        if (currentDesc) {
+          var currentDescUpper = currentDesc.toUpperCase();
+          for (var i = 0; i < list.length; i++) {
+            var r = list[i] || {};
+            var rCode = String(r.code || '').trim().toUpperCase();
+            var rDesc = String(r.description || '').trim().toUpperCase();
+            if (rCode === codeUpper && rDesc === currentDescUpper) {
+              // Found exact match - use its actual Type
+              if (typeEl) {
+                typeEl.value = r.type || 'IN';
+              }
+              setTimeout(function() {
+                updateInlineHelperFor(r.code || code, r.description || currentDesc, r.type || 'IN');
+              }, 100);
+              return;
+            }
+          }
+        }
+        
+        // If only Code provided, find first match to auto-fill Description only
+        var match = null;
+        for (var i = 0; i < list.length; i++) {
+          var r = list[i] || {};
+          if (String(r.code || '').trim().toUpperCase() === codeUpper) {
+            match = r;
+            break;
+          }
+        }
+        
+        if (match) {
+          // Auto-fill Description only if empty
+          if (descEl && !descEl.value.trim()) {
+            descEl.value = match.description || '';
+            // After filling description, use the exact Type for this Code+Description
+            if (typeEl) {
+              typeEl.value = match.type || 'IN';
+            }
+            setTimeout(function() {
+              updateInlineHelperFor(match.code || code, match.description || '', match.type || 'IN');
+            }, 100);
+          }
+        }
+      } catch (e) { console.error('autoCompleteFromCode error:', e); }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        var codeEl = document.getElementById('codeInput');
+        var descEl = document.getElementById('descriptionInput');
+        var typeEl = document.getElementById('typeInput');
+        
+        var trigger = function(){
+          var c = codeEl ? codeEl.value.trim() : '';
+          var d = descEl ? descEl.value.trim() : '';
+          var t = typeEl ? typeEl.value : '';
+          // Close modal if either Code OR Description is empty
+          if (!c || !d) { try { closeAuthHelper(); } catch(_){} return; }
+          if (c && d && t) updateInlineHelperFor(c, d, t);
+        };
+        
+        var codeAutoComplete = function() {
+          var c = codeEl ? codeEl.value : '';
+          if (c && c.length >= 1) {
+            autoCompleteFromCode(c);
+          }
+        };
+        
+        var deb = debounce(trigger, 250);
+        var debAutoComplete = debounce(codeAutoComplete, 300);
+        
+        if (codeEl) {
+          codeEl.addEventListener('input', debAutoComplete);
+          codeEl.addEventListener('input', deb);
+        }
+        if (descEl) descEl.addEventListener('input', deb);
+        if (typeEl) typeEl.addEventListener('change', deb);
+      } catch (e) { console.error('inline listeners error:', e); }
+    });
+
+    // Edit authorization rule - navigate to Data Capture tab for full editing
+    function editAuthRule(index) {
+      try {
+        var list = _loadRecs();
+        if (index < 0 || index >= list.length) {
+          showErrorNotification('Error', 'Invalid record index');
+          return false;
+        }
+        
+        var record = list[index];
+        
+        // Switch to Data Capture tab first
+        switchTab(0);
+        
+        // Pre-fill the form with existing record data
+        setTimeout(function() {
+          try {
+            var codeInput = document.getElementById('codeInput');
+            var descInput = document.getElementById('descriptionInput');
+            var typeInput = document.getElementById('typeInput');
+            
+            if (codeInput) codeInput.value = record.code || '';
+            if (descInput) descInput.value = record.description || '';
+            if (typeInput) typeInput.value = record.type || 'IN';
+            
+            // Set editing context
+            window.__editingRecordIndex = index;
+            window.__editingRecord = record;
+            window.__currentCode = record.code || '';
+            window.__currentDescription = record.description || '';
+            window.__currentTxnType = record.type || 'IN';
+            
+            // Collect all existing authorized users for this Code+Description+Type
+            var targetCode = String(record.code || '').trim().toUpperCase();
+            var targetDesc = String(record.description || '').trim().toUpperCase();
+            var targetType = String(record.type || '').trim().toUpperCase();
+            
+            var matchingRecords = [];
+            var byIni = {};
+            for (var i = 0; i < list.length; i++) {
+              var r = list[i] || {};
+              var rCode = String(r.code || '').trim().toUpperCase();
+              var rDesc = String(r.description || '').trim().toUpperCase();
+              var rType = String(r.type || '').trim().toUpperCase();
+              if (rCode === targetCode && rDesc === targetDesc && rType === targetType) {
+                matchingRecords.push(r);
+                // Prefer new parsed users array from <opers>
+                if (Array.isArray(r.users) && r.users.length) {
+                  for (var u = 0; u < r.users.length; u++) {
+                    var ux = r.users[u] || {};
+                    var ini = String(ux.initials || '').trim().toUpperCase();
+                    var nm = String(ux.name || '').trim();
+                    if (ini) {
+                      if (!byIni[ini]) byIni[ini] = { initials: ini, name: nm };
+                      else if (!byIni[ini].name && nm) byIni[ini].name = nm;
+                    }
+                  }
+                } else {
+                  // Fallback to single-value fields
+                  var ini2 = String(r.initials || '').trim().toUpperCase();
+                  var nm2 = String(r.name || '').trim();
+                  if (ini2) {
+                    if (!byIni[ini2]) byIni[ini2] = { initials: ini2, name: nm2 };
+                    else if (!byIni[ini2].name && nm2) byIni[ini2].name = nm2;
+                  }
+                }
+              }
+            }
+            
+            // Set editing users (deduped) and backup matching records
+            window.__editingUsers = Object.keys(byIni).map(function(k){ return byIni[k]; });
+            // Keep a baseline snapshot of original users for DELETE operations
+            window.__editBackupUsers = window.__editingUsers.slice();
+            window.__editBackupRecords = matchingRecords;
+            
+            // Keep all records visible in grid during editing
+            // Records will only be removed when user saves changes
+            
+            // Open Authorization Helper automatically; it will detect edit mode and preload from __editingUsers
+            openAuthForCurrentForm();
+            
+            // Inform user
+            setTimeout(function() {
+              renderAuthBuffer();
+              showSuccessNotification('Edit Mode', 'Editing authorization for: ' + (record.code || 'N/A') + ' - ' + (record.description || 'N/A') + '. Users loaded: ' + (window.__editingUsers.length || 0));
+            }, 200);
+            
+          } catch (e) {
+            console.error('Error setting up edit form:', e);
+            showErrorNotification('Edit Error', 'Could not load record for editing');
+          }
+        }, 100);
+        
+      } catch (e) {
+        console.error('editAuthRule error:', e);
+        showErrorNotification('Edit Error', 'Error loading record: ' + (e.message || e));
+      }
+      return false;
+    }
+    window.editAuthRule = editAuthRule;
+
+    // Event delegation for delete buttons
+    // Edit Transaction Authorization function
+    function editTransactionAuth(code, description, type) {
+      try {
+        console.log('📝 Edit Transaction Auth called:', {code, description, type});
+        
+        // Switch to Data Capture tab
+        switchTab(0);
+        
+        // Fill the form with the values
+        var codeInput = document.getElementById('codeInput');
+        var descInput = document.getElementById('descriptionInput');
+        var typeInput = document.getElementById('typeInput');
+        
+        if (codeInput) codeInput.value = code || '';
+        if (descInput) descInput.value = description || '';
+        if (typeInput) typeInput.value = type || 'IN';
+        
+        // Load existing users from server for this code
+        loadExistingUsersForEdit(code, description, type);
+        
+        return false;
+      } catch (e) {
+        console.error('editTransactionAuth error:', e);
+        return false;
+      }
+    }
+    window.editTransactionAuth = editTransactionAuth;
+    
+    // Load existing users from server for edit mode
+    function loadExistingUsersForEdit(code, description, type) {
+      try {
+        console.log('🔍 Loading existing users for edit:', {code, description, type});
+        
+        // Set context
+        window.__currentCode = code;
+        window.__currentDescription = description;
+        window.__currentTxnType = type || 'IN';
+        
+        // Find the record in server data and extract users
+        var serverRecords = window.__serverRecords || [];
+        var existingUsers = [];
+        var codeU = String(code || '').trim().toUpperCase();
+        var descU = String(description || '').trim().toUpperCase();
+        var typeU = String(type || 'IN').trim().toUpperCase();
+        var byIni = {};
+        for (var i = 0; i < serverRecords.length; i++) {
+          var r = serverRecords[i] || {};
+          var rCodeU = String(r.code || '').trim().toUpperCase();
+          var rDescU = String(r.description || '').trim().toUpperCase();
+          var rTypeU = String(r.type || '').trim().toUpperCase();
+          var match = (rCodeU === codeU)
+            && (!descU || rDescU === descU)
+            && (!typeU || rTypeU === typeU);
+          if (!match) continue;
+          console.log('🔍 Matched record for users:', r);
+          if (Array.isArray(r.users) && r.users.length) {
+            for (var u = 0; u < r.users.length; u++) {
+              var ux = r.users[u] || {};
+              var ini = String(ux.initials || '').trim().toUpperCase();
+              var nm = String(ux.name || '').trim();
+              if (ini && !byIni[ini]) byIni[ini] = { initials: ini, name: nm };
+              else if (ini && nm && !byIni[ini].name) byIni[ini].name = nm;
+            }
+          } else {
+            var ini2 = String(r.initials || '').trim().toUpperCase();
+            var nm2 = String(r.name || '').trim();
+            if (ini2 && !byIni[ini2]) byIni[ini2] = { initials: ini2, name: nm2 };
+            else if (ini2 && nm2 && !byIni[ini2].name) byIni[ini2].name = nm2;
+          }
+        }
+        existingUsers = Object.keys(byIni).map(function(k){ return byIni[k]; });
+        
+        console.log('🔍 Found existing users (deduped):', existingUsers);
+        console.log('🔍 Server records available:', window.__serverRecords ? window.__serverRecords.length : 'none');
+        console.log('🔍 Looking for code:', code);
+        
+        // Set up edit mode with existing users
+        window.__editingUsers = existingUsers.slice();
+        window.__editBackupUsers = existingUsers.slice();
+        window.__authBuffer = existingUsers.slice();
+        window.__editingRecord = { code: code, description: description, type: type };
+        
+        // Open the authorization helper and render existing user chips
+        setTimeout(function() {
+          openAuthForCurrentForm();
+          // Render the user chips after the helper opens
+          setTimeout(function() {
+            console.log('🔍 About to render auth buffer with:', window.__authBuffer);
+            renderAuthBuffer();
+            console.log('🔍 renderAuthBuffer() called');
+          }, 50);
+        }, 100);
+        
+      } catch (e) {
+        console.error('loadExistingUsersForEdit error:', e);
+        // Fallback to original behavior
+        setTimeout(function() {
+          updateInlineHelperFor(code, description, type);
+        }, 100);
+      }
+    }
+    
+    // Handle Type dropdown changes in Data Capture form
+    function handleTypeChange() {
+      try {
+        var typeEl = document.getElementById('typeInput');
+        var type = typeEl ? typeEl.value.trim() : '';
+        
+        // Update current context
+        window.__currentTxnType = type;
+        
+        // If Transaction Authorization helper is open, update it
+        var helperContainer = document.getElementById('authorizationHelperContainer');
+        if (helperContainer && helperContainer.style.display !== 'none') {
+          updateInlineHelperFor(window.__currentCode || '', window.__currentDescription || '', type);
+        }
+      } catch (e) {
+        console.error('handleTypeChange error:', e);
+      }
+    }
+    window.handleTypeChange = handleTypeChange;
+  </script>
+
+</body>
+</html>     

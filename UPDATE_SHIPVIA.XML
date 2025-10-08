@@ -1,0 +1,98 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+*
+* UPDATE_SHIPVIA.XML - Create, update or delete SHIPVIA records
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'SHIPVIAS' TO SHIPVIASF ELSE STOP 201,'SHIPVIAS'
+
+PL_GETVAR ACTION FROM 'action' ELSE ACTION = ''
+PL_GETVAR SHIPVIA_CODE FROM 'shipvia_code' ELSE SHIPVIA_CODE = ''
+PL_GETVAR SHIPVIA_NAME FROM 'shipvia_name' ELSE SHIPVIA_NAME = ''
+PL_GETVAR SHIPVIA_DESC FROM 'shipvia_description' ELSE SHIPVIA_DESC = ''
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+XML.RESPONSE = '<?xml version="1.0"?><update_response>'
+XML.RESPONSE = XML.RESPONSE : '<debug_action>[' : ACTION : ']</debug_action>'
+XML.RESPONSE = XML.RESPONSE : '<debug_code>[' : SHIPVIA_CODE : ']</debug_code>'
+XML.RESPONSE = XML.RESPONSE : '<debug_code_length>' : LEN(SHIPVIA_CODE) : '</debug_code_length>'
+XML.RESPONSE = XML.RESPONSE : '<debug_name>[' : SHIPVIA_NAME : ']</debug_name>'
+XML.RESPONSE = XML.RESPONSE : '<debug_desc>[' : SHIPVIA_DESC : ']</debug_desc>'
+
+* Validate required fields
+IF SHIPVIA_CODE = '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<status>error</status>'
+    XML.RESPONSE = XML.RESPONSE : '<message>Ship Via Code is required</message>'
+    GOTO WRITE_RESPONSE
+END
+
+* Convert code to uppercase
+SHIPVIA_CODE = OCONV(SHIPVIA_CODE, 'MCU')
+
+BEGIN CASE
+    CASE ACTION = 'DELETE'
+        * Delete record
+        READ SHIPVIA.RECORD FROM SHIPVIASF, SHIPVIA_CODE ELSE
+            XML.RESPONSE = XML.RESPONSE : '<status>error</status>'
+            XML.RESPONSE = XML.RESPONSE : '<message>Ship Via not found</message>'
+            GOTO WRITE_RESPONSE
+        END
+        
+        DELETE SHIPVIASF, SHIPVIA_CODE
+        
+        XML.RESPONSE = XML.RESPONSE : '<status>success</status>'
+        XML.RESPONSE = XML.RESPONSE : '<message>Ship Via ' : SHIPVIA_CODE : ' deleted successfully</message>'
+        XML.RESPONSE = XML.RESPONSE : '<action>deleted</action>'
+        
+    CASE ACTION = 'UPDATE' OR ACTION = 'CREATE'
+        * Validate name
+        IF SHIPVIA_NAME = '' THEN
+            XML.RESPONSE = XML.RESPONSE : '<status>error</status>'
+            XML.RESPONSE = XML.RESPONSE : '<message>Ship Via Name is required</message>'
+            GOTO WRITE_RESPONSE
+        END
+        
+        * Check if record exists
+        READ SHIPVIA.RECORD FROM SHIPVIASF, SHIPVIA_CODE ELSE
+            SHIPVIA.RECORD = ''
+            IS_NEW = 'Y'
+        END
+        IF SHIPVIA.RECORD <> '' THEN IS_NEW = 'N'
+        
+        * Build record
+        SHIPVIA.RECORD<1> = SHIPVIA_NAME
+        SHIPVIA.RECORD<2> = SHIPVIA_DESC
+        
+        * Write record
+        WRITE SHIPVIA.RECORD ON SHIPVIASF, SHIPVIA_CODE
+        
+        IF IS_NEW = 'Y' THEN
+            XML.RESPONSE = XML.RESPONSE : '<status>success</status>'
+            XML.RESPONSE = XML.RESPONSE : '<message>Ship Via ' : SHIPVIA_CODE : ' created successfully</message>'
+            XML.RESPONSE = XML.RESPONSE : '<action>created</action>'
+        END ELSE
+            XML.RESPONSE = XML.RESPONSE : '<status>success</status>'
+            XML.RESPONSE = XML.RESPONSE : '<message>Ship Via ' : SHIPVIA_CODE : ' updated successfully</message>'
+            XML.RESPONSE = XML.RESPONSE : '<action>updated</action>'
+        END
+        
+        * Echo back the data
+        XML.RESPONSE = XML.RESPONSE : '<shipvia>'
+        XML.RESPONSE = XML.RESPONSE : '<code>' : SHIPVIA_CODE : '</code>'
+        XML.RESPONSE = XML.RESPONSE : '<name>' : SHIPVIA_NAME : '</name>'
+        XML.RESPONSE = XML.RESPONSE : '<description>' : SHIPVIA_DESC : '</description>'
+        XML.RESPONSE = XML.RESPONSE : '</shipvia>'
+        
+    CASE 1
+        XML.RESPONSE = XML.RESPONSE : '<status>error</status>'
+        XML.RESPONSE = XML.RESPONSE : '<message>Invalid action: ' : ACTION : '</message>'
+END CASE
+
+WRITE_RESPONSE:
+XML.RESPONSE = XML.RESPONSE : '</update_response>'
+
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_SHIPVIA.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_SHIPVIA.XML','',ERR)
+RETURN
+</PRE>

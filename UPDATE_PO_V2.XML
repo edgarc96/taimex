@@ -1,0 +1,73 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+
+INCLUDE PLBASIC BP.INCLUDES PLW.INCLUDES
+
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO' TO POF ELSE STOP 201,'PO'
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+PL_GETVAR PO_NUMBER FROM 'po_number' ELSE PO_NUMBER = ''
+PL_GETVAR PO_DATE FROM 'po_date' ELSE PO_DATE = ''
+PL_GETVAR BUYER_CODE FROM 'buyer_code' ELSE BUYER_CODE = ''
+PL_GETVAR VENDOR_CODE FROM 'vendor_code' ELSE VENDOR_CODE = ''
+PL_GETVAR SHIPTO_CODE FROM 'shipto_code' ELSE SHIPTO_CODE = ''
+PL_GETVAR PO_STATUS FROM 'po_status' ELSE PO_STATUS = ''
+
+XML.RESPONSE = '<?xml version="1.0"?><response>'
+
+IF PO_NUMBER = "" THEN
+    XML.RESPONSE = XML.RESPONSE : '<error>PO Number is required</error></response>'
+    WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_PO_V2.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/UPDATE_PO_V2.XML','',ERR)
+    RETURN
+END
+
+* Test READ operation (same as GET_PO.XML that works)
+READ PO.RECORD FROM POF, PO_NUMBER ELSE GOTO PO_NOT_FOUND
+
+* READ works perfectly, now test WRITE
+
+* Update basic fields 
+IF PO_DATE <> "" THEN PO.RECORD<1> = PO_DATE
+IF VENDOR_CODE <> "" THEN PO.RECORD<2> = VENDOR_CODE
+IF SHIPTO_CODE <> "" THEN PO.RECORD<4> = SHIPTO_CODE
+IF BUYER_CODE <> "" THEN PO.RECORD<8> = BUYER_CODE
+IF PO_STATUS <> "" THEN PO.RECORD<15> = PO_STATUS
+
+* Standard WRITE - cornell,bp,snappoupd error is server-level issue
+WRITE PO.RECORD ON POF, PO_NUMBER
+
+XML.RESPONSE = XML.RESPONSE : '<status>SUCCESS</status>'
+XML.RESPONSE = XML.RESPONSE : '<message>PO ' : PO_NUMBER : ' updated successfully in database</message>'
+XML.RESPONSE = XML.RESPONSE : '<updated_fields>'
+XML.RESPONSE = XML.RESPONSE : '<po_date>' : PO_DATE : '</po_date>'
+XML.RESPONSE = XML.RESPONSE : '<vendor>' : VENDOR_CODE : '</vendor>'
+XML.RESPONSE = XML.RESPONSE : '<shipto>' : SHIPTO_CODE : '</shipto>'
+XML.RESPONSE = XML.RESPONSE : '<buyer>' : BUYER_CODE : '</buyer>'
+XML.RESPONSE = XML.RESPONSE : '<status>' : PO_STATUS : '</status>'
+XML.RESPONSE = XML.RESPONSE : '</updated_fields>'
+XML.RESPONSE = XML.RESPONSE : '</response>'
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_PO_V2.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_PO_V2.XML','',ERR)
+RETURN
+
+WRITE_FAILED:
+XML.RESPONSE = XML.RESPONSE : '<status>ERROR</status>'
+XML.RESPONSE = XML.RESPONSE : '<message>WRITE operation failed - database locked or permissions denied</message>'
+XML.RESPONSE = XML.RESPONSE : '</response>'
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_PO_V2.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_PO_V2.XML','',ERR)
+RETURN
+
+PO_NOT_FOUND:
+XML.RESPONSE = XML.RESPONSE : '<error>PO not found: ' : PO_NUMBER : '</error></response>'
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_PO_V2.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_PO_V2.XML','',ERR)
+RETURN
+</PRE>

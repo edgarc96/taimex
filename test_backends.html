@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Backend Test - SO Draft System</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .test-card h2 {
+      margin-top: 0;
+      color: #333;
+      border-bottom: 2px solid #3b82f6;
+      padding-bottom: 10px;
+    }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background: #2563eb;
+    }
+    button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    .result {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      padding: 15px;
+      margin-top: 15px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+    .status-success {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .status-error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .status-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .info {
+      background: #dbeafe;
+      border-left: 4px solid #3b82f6;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+    }
+    .warning {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Backend Test Suite - SO Draft System</h1>
+  
+  <div class="warning">
+    <strong>⚠️ Important:</strong> If all tests show <strong>Status: 0</strong>, the backend XML files are not compiled on the server. 
+    See <code>BACKEND_DEPLOYMENT_INSTRUCTIONS.md</code> for deployment steps.
+  </div>
+
+  <!-- Test 1: GET_SO_TMP.XML -->
+  <div class="test-card">
+    <h2>Test 1: GET_SO_TMP.XML <span id="status1" class="status status-pending">Not Run</span></h2>
+    <div class="info">
+      <strong>Purpose:</strong> Retrieve saved drafts for user "EC"<br>
+      <strong>Expected:</strong> Status 200, XML response with &lt;tmp_list&gt; root element
+    </div>
+    <button onclick="testGetDrafts()">Run Test</button>
+    <button onclick="clearResult('result1')">Clear</button>
+    <div id="result1" class="result" style="display: none;"></div>
+  </div>
+
+  <!-- Test 2: SAVE_SO_TMP.XML -->
+  <div class="test-card">
+    <h2>Test 2: SAVE_SO_TMP.XML <span id="status2" class="status status-pending">Not Run</span></h2>
+    <div class="info">
+      <strong>Purpose:</strong> Save a test draft to TMP database<br>
+      <strong>Expected:</strong> Status 200, XML response with &lt;success&gt;true&lt;/success&gt;
+    </div>
+    <button onclick="testSaveDraft()">Run Test</button>
+    <button onclick="clearResult('result2')">Clear</button>
+    <div id="result2" class="result" style="display: none;"></div>
+  </div>
+
+  <!-- Test 3: GET_SHIPVIAS.XML (Control Test) -->
+  <div class="test-card">
+    <h2>Test 3: GET_SHIPVIAS.XML (Control) <span id="status3" class="status status-pending">Not Run</span></h2>
+    <div class="info">
+      <strong>Purpose:</strong> Test a known working endpoint as control<br>
+      <strong>Expected:</strong> Status 200, XML response with ship via data
+    </div>
+    <button onclick="testShipVias()">Run Test</button>
+    <button onclick="clearResult('result3')">Clear</button>
+    <div id="result3" class="result" style="display: none;"></div>
+  </div>
+
+  <!-- Test 4: Session Check -->
+  <div class="test-card">
+    <h2>Test 4: Session Check <span id="status4" class="status status-pending">Not Run</span></h2>
+    <div class="info">
+      <strong>Purpose:</strong> Verify user session data is available<br>
+      <strong>Expected:</strong> User initials "EC" found in sessionStorage or cookies
+    </div>
+    <button onclick="testSession()">Run Test</button>
+    <button onclick="clearResult('result4')">Clear</button>
+    <div id="result4" class="result" style="display: none;"></div>
+  </div>
+
+  <script>
+    function log(resultId, message) {
+      const resultDiv = document.getElementById(resultId);
+      resultDiv.style.display = 'block';
+      resultDiv.textContent += message + '\n';
+    }
+
+    function clearResult(resultId) {
+      const resultDiv = document.getElementById(resultId);
+      resultDiv.textContent = '';
+      resultDiv.style.display = 'none';
+    }
+
+    function setStatus(statusId, status, text) {
+      const statusSpan = document.getElementById(statusId);
+      statusSpan.className = 'status status-' + status;
+      statusSpan.textContent = text;
+    }
+
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+
+    function getUserInitials() {
+      let initials = sessionStorage.getItem('userInitials');
+      if (!initials) {
+        initials = getCookie('userInitials');
+      }
+      return initials || '';
+    }
+
+    // Test 1: GET_SO_TMP.XML
+    function testGetDrafts() {
+      clearResult('result1');
+      setStatus('status1', 'pending', 'Running...');
+      
+      const userInitials = getUserInitials();
+      log('result1', '🔍 Testing GET_SO_TMP.XML');
+      log('result1', '📋 User Initials: ' + (userInitials || 'NOT FOUND'));
+      log('result1', '');
+      
+      const url = 'GET_SO_TMP.XML?user_initials=' + encodeURIComponent(userInitials);
+      log('result1', '📡 URL: ' + url);
+      log('result1', '⏳ Sending request...');
+      log('result1', '');
+      
+      const startTime = Date.now();
+      
+      fetch(url)
+        .then(response => {
+          const elapsed = Date.now() - startTime;
+          log('result1', '📥 Response received in ' + elapsed + 'ms');
+          log('result1', '📊 Status: ' + response.status);
+          log('result1', '📊 Status Text: ' + response.statusText);
+          log('result1', '');
+          
+          if (response.status === 0) {
+            setStatus('status1', 'error', 'FAILED - Status 0');
+            log('result1', '❌ ERROR: Status 0');
+            log('result1', '❌ Backend file not found or not compiled');
+            log('result1', '');
+            log('result1', '🔧 ACTION REQUIRED:');
+            log('result1', '   1. Upload GET_SO_TMP.XML to server BP directory');
+            log('result1', '   2. Compile: :COMPILE BP GET_SO_TMP.XML');
+            log('result1', '   3. Verify: :LIST BP GET_SO_TMP.XML');
+            return null;
+          }
+          
+          if (response.status === 200) {
+            setStatus('status1', 'success', 'PASSED');
+            return response.text();
+          } else {
+            setStatus('status1', 'error', 'FAILED - Status ' + response.status);
+            return response.text();
+          }
+        })
+        .then(text => {
+          if (text) {
+            log('result1', '📄 Response Body:');
+            log('result1', '─'.repeat(60));
+            log('result1', text.substring(0, 1000));
+            if (text.length > 1000) {
+              log('result1', '... (truncated, total length: ' + text.length + ' chars)');
+            }
+            log('result1', '─'.repeat(60));
+            
+            // Parse XML
+            try {
+              const parser = new DOMParser();
+              const xmlDoc = parser.parseFromString(text, 'text/xml');
+              const drafts = xmlDoc.querySelectorAll('temp_so');
+              log('result1', '');
+              log('result1', '✅ XML Parsed Successfully');
+              log('result1', '📊 Found ' + drafts.length + ' draft(s)');
+            } catch (e) {
+              log('result1', '');
+              log('result1', '⚠️ XML Parse Error: ' + e.message);
+            }
+          }
+        })
+        .catch(error => {
+          setStatus('status1', 'error', 'FAILED - Network Error');
+          log('result1', '❌ Network Error: ' + error.message);
+          log('result1', '');
+          log('result1', 'Possible causes:');
+          log('result1', '  - Backend file not compiled');
+          log('result1', '  - Server not responding');
+          log('result1', '  - CORS issue');
+        });
+    }
+
+    // Test 2: SAVE_SO_TMP.XML
+    function testSaveDraft() {
+      clearResult('result2');
+      setStatus('status2', 'pending', 'Running...');
+      
+      const userInitials = getUserInitials();
+      log('result2', '💾 Testing SAVE_SO_TMP.XML');
+      log('result2', '📋 User Initials: ' + (userInitials || 'NOT FOUND'));
+      log('result2', '');
+      
+      const testData = {
+        temp_id: 'so*tmp*' + userInitials.toLowerCase() + '*test*' + Date.now(),
+        save_mode: 'TEMP',
+        so_number: 'TEST-' + Date.now(),
+        customer_code: 'TEST-CUST',
+        shipto_code: 'TEST-SHIP',
+        billto_code: 'TEST-BILL',
+        ship_via: 'FEDEX',
+        terms: 'NET30',
+        email: 'test@example.com',
+        header_notes: 'Test draft from backend test suite',
+        part_numbers: 'PART001|PART002',
+        descriptions: 'Test Part 1|Test Part 2',
+        line_quantities: '100|200',
+        line_prices: '10.50|25.00'
+      };
+      
+      log('result2', '📦 Test Data:');
+      Object.keys(testData).forEach(key => {
+        log('result2', '  ' + key + ': ' + testData[key]);
+      });
+      log('result2', '');
+      
+      const params = new URLSearchParams(testData);
+      log('result2', '📡 URL: SAVE_SO_TMP.XML');
+      log('result2', '⏳ Sending POST request...');
+      log('result2', '');
+      
+      const startTime = Date.now();
+      
+      fetch('SAVE_SO_TMP.XML', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: params.toString()
+      })
+        .then(response => {
+          const elapsed = Date.now() - startTime;
+          log('result2', '📥 Response received in ' + elapsed + 'ms');
+          log('result2', '📊 Status: ' + response.status);
+          log('result2', '📊 Status Text: ' + response.statusText);
+          log('result2', '');
+          
+          if (response.status === 0) {
+            setStatus('status2', 'error', 'FAILED - Status 0');
+            log('result2', '❌ ERROR: Status 0');
+            log('result2', '❌ Backend file not found or not compiled');
+            log('result2', '');
+            log('result2', '🔧 ACTION REQUIRED:');
+            log('result2', '   1. Upload SAVE_SO_TMP.XML to server BP directory');
+            log('result2', '   2. Compile: :COMPILE BP SAVE_SO_TMP.XML');
+            log('result2', '   3. Verify: :LIST BP SAVE_SO_TMP.XML');
+            return null;
+          }
+          
+          if (response.status === 200) {
+            setStatus('status2', 'success', 'PASSED');
+            return response.text();
+          } else {
+            setStatus('status2', 'error', 'FAILED - Status ' + response.status);
+            return response.text();
+          }
+        })
+        .then(text => {
+          if (text) {
+            log('result2', '📄 Response Body:');
+            log('result2', '─'.repeat(60));
+            log('result2', text);
+            log('result2', '─'.repeat(60));
+            
+            // Parse XML
+            try {
+              const parser = new DOMParser();
+              const xmlDoc = parser.parseFromString(text, 'text/xml');
+              const success = xmlDoc.querySelector('success')?.textContent === 'true';
+              const message = xmlDoc.querySelector('message')?.textContent || '';
+              const tempId = xmlDoc.querySelector('temp_id')?.textContent || '';
+              
+              log('result2', '');
+              log('result2', '✅ XML Parsed Successfully');
+              log('result2', '📊 Success: ' + success);
+              log('result2', '📊 Message: ' + message);
+              log('result2', '📊 Temp ID: ' + tempId);
+            } catch (e) {
+              log('result2', '');
+              log('result2', '⚠️ XML Parse Error: ' + e.message);
+            }
+          }
+        })
+        .catch(error => {
+          setStatus('status2', 'error', 'FAILED - Network Error');
+          log('result2', '❌ Network Error: ' + error.message);
+        });
+    }
+
+    // Test 3: GET_SHIPVIAS.XML (Control)
+    function testShipVias() {
+      clearResult('result3');
+      setStatus('status3', 'pending', 'Running...');
+      
+      log('result3', '🚚 Testing GET_SHIPVIAS.XML (Control Test)');
+      log('result3', '');
+      log('result3', '📡 URL: GET_SHIPVIAS.XML');
+      log('result3', '⏳ Sending request...');
+      log('result3', '');
+      
+      const startTime = Date.now();
+      
+      fetch('GET_SHIPVIAS.XML')
+        .then(response => {
+          const elapsed = Date.now() - startTime;
+          log('result3', '📥 Response received in ' + elapsed + 'ms');
+          log('result3', '📊 Status: ' + response.status);
+          log('result3', '');
+          
+          if (response.status === 200) {
+            setStatus('status3', 'success', 'PASSED');
+            log('result3', '✅ Control test passed - Server is responding');
+            return response.text();
+          } else {
+            setStatus('status3', 'error', 'FAILED');
+            return response.text();
+          }
+        })
+        .then(text => {
+          if (text) {
+            log('result3', '');
+            log('result3', '📄 Response (first 500 chars):');
+            log('result3', '─'.repeat(60));
+            log('result3', text.substring(0, 500));
+            log('result3', '─'.repeat(60));
+          }
+        })
+        .catch(error => {
+          setStatus('status3', 'error', 'FAILED');
+          log('result3', '❌ Error: ' + error.message);
+        });
+    }
+
+    // Test 4: Session Check
+    function testSession() {
+      clearResult('result4');
+      setStatus('status4', 'pending', 'Running...');
+      
+      log('result4', '🔐 Testing User Session');
+      log('result4', '');
+      
+      // Check sessionStorage
+      const sessionInitials = sessionStorage.getItem('userInitials');
+      const sessionUserName = sessionStorage.getItem('userName');
+      
+      log('result4', '📦 sessionStorage:');
+      log('result4', '  userInitials: ' + (sessionInitials || 'NOT FOUND'));
+      log('result4', '  userName: ' + (sessionUserName || 'NOT FOUND'));
+      log('result4', '');
+      
+      // Check cookies
+      const cookieInitials = getCookie('userInitials');
+      const cookieUserName = getCookie('userName');
+      
+      log('result4', '🍪 Cookies:');
+      log('result4', '  userInitials: ' + (cookieInitials || 'NOT FOUND'));
+      log('result4', '  userName: ' + (cookieUserName ? decodeURIComponent(cookieUserName) : 'NOT FOUND'));
+      log('result4', '');
+      
+      // Final result
+      const finalInitials = sessionInitials || cookieInitials;
+      const finalUserName = sessionUserName || (cookieUserName ? decodeURIComponent(cookieUserName) : '');
+      
+      if (finalInitials) {
+        setStatus('status4', 'success', 'PASSED');
+        log('result4', '✅ Session Active');
+        log('result4', '👤 User: ' + finalInitials + ' - ' + finalUserName);
+      } else {
+        setStatus('status4', 'error', 'FAILED');
+        log('result4', '❌ No session found');
+        log('result4', '');
+        log('result4', '🔧 ACTION REQUIRED:');
+        log('result4', '   1. Go to LOGINEDIT.HTM');
+        log('result4', '   2. Log in with valid credentials');
+        log('result4', '   3. Return to this page');
+      }
+    }
+
+    // Auto-run session check on load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        testSession();
+      }, 500);
+    });
+  </script>
+</body>
+</html>

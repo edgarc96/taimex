@@ -1,0 +1,84 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+  OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+  OPEN 'WO' TO WOF ELSE STOP 201,'WO'
+  OPEN 'PARTS' TO PARTS.FILE ELSE STOP 201,'PARTS'
+
+*
+* REM Get parameters from URL for Work Order processing - try multiple parameter names
+PL_GETVAR WO_ID FROM 'WO_ID' ELSE WO_ID = ''
+PL_GETVAR WO_ID2 FROM 'wo_id' ELSE WO_ID2 = ''
+PL_GETVAR WO_ID3 FROM 'WOID' ELSE WO_ID3 = ''
+PL_GETVAR ACTION FROM 'ACTION' ELSE ACTION = 'EDIT'
+
+* Use whichever WO_ID has a value
+IF WO_ID = '' AND WO_ID2 <> '' THEN WO_ID = WO_ID2
+IF WO_ID = '' AND WO_ID3 <> '' THEN WO_ID = WO_ID3
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : AM:'<WorkOrder>' 
+
+*REM Add debug info to see what WO_ID we received
+XML.RESPONSE = XML.RESPONSE : AM:'<debug_wo_id>' : WO_ID : '</debug_wo_id>'
+
+*REM Read existing Work Order record
+READ WO.RECORD FROM WOF, WO_ID ELSE
+    XML.RESPONSE = XML.RESPONSE : AM:'<status>ERROR</status>'
+    XML.RESPONSE = XML.RESPONSE : AM:'<message>Work Order not found: ' : WO_ID : '</message>'
+    XML.RESPONSE = XML.RESPONSE : AM:'</WorkOrder>'
+    WRITE XML.RESPONSE ON XMLDATAF,'SIMPLE_SEARCH.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/SIMPLE_SEARCH.XML','',ERR)
+    RETURN
+END
+
+* Get field values from record
+WO_DATE = WO.RECORD<1>
+WO_TYPE = WO.RECORD<20>
+NOTES = WO.RECORD<25>
+ASSY_NO = WO.RECORD<32>
+SCHEDULE_DATE = WO.RECORD<34>
+ORD_QTY = WO.RECORD<35>
+YIELD = WO.RECORD<36>
+START_DATE = WO.RECORD<104>
+
+* Convert multivalue NOTES back to line breaks for frontend
+NOTES = CHANGE(NOTES, @VM, CHAR(10))
+
+* Lookup ASSY_DESC based on retrieved ASSY_NO
+ASSY_DESC = ''
+IF ASSY_NO <> '' THEN
+    READ PART.RECORD FROM PARTS.FILE, ASSY_NO ELSE ASSY_DESC = ''
+    IF PART.RECORD <> '' THEN ASSY_DESC = PART.RECORD<1>
+END
+
+XML.RESPONSE = XML.RESPONSE : AM:'<status>SUCCESS</status>'
+XML.RESPONSE = XML.RESPONSE : AM:'<message>Work Order retrieved successfully</message>'
+XML.RESPONSE = XML.RESPONSE : AM:'<wo_id>' : WO_ID : '</wo_id>'
+
+*REM Return Work Order data
+XML.RESPONSE = XML.RESPONSE : AM:'<data>'
+XML.RESPONSE = XML.RESPONSE : AM:'  <wo_date>' : WO_DATE : '</wo_date>'
+XML.RESPONSE = XML.RESPONSE : AM:'  <wo_type>' : WO_TYPE : '</wo_type>'
+XML.RESPONSE = XML.RESPONSE : AM:'  <start_date>' : START_DATE : '</start_date>'
+XML.RESPONSE = XML.RESPONSE : AM:'  <notes>' : NOTES : '</notes>'
+XML.RESPONSE = XML.RESPONSE : AM:'  <assy_no>' : ASSY_NO : '</assy_no>'
+XML.RESPONSE = XML.RESPONSE : AM:'  <assy_desc>' : ASSY_DESC : '</assy_desc>'
+XML.RESPONSE = XML.RESPONSE : AM:'  <schedule_date>' : SCHEDULE_DATE : '</schedule_date>'
+XML.RESPONSE = XML.RESPONSE : AM:'  <yield>' : YIELD : '</yield>'
+XML.RESPONSE = XML.RESPONSE : AM:'  <ord_qty>' : ORD_QTY : '</ord_qty>'
+XML.RESPONSE = XML.RESPONSE : AM:'</data>'
+XML.RESPONSE = XML.RESPONSE : AM:'</WorkOrder>'
+
+*REM Output the XML
+WRITE XML.RESPONSE ON XMLDATAF,'SIMPLE_SEARCH.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/SIMPLE_SEARCH.XML','',ERR)
+RETURN
+</pre>

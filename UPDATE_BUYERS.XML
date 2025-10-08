@@ -1,0 +1,61 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+*
+* UPDATE_BUYERS.XML - Write initials to BUYERS file
+*
+* Initialize ALL variables first
+INITIALS = ''
+BUYERS.RECORD = ''
+XML.RESPONSE = ''
+ERR = ''
+OUTFILE = ''
+XAM = CHAR(254)
+
+* Open files
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'BUYERS' TO BUYERSF ELSE GOTO NO_BUYERS_FILE
+
+* Get parameter
+PL_GETVAR INITIALS FROM 'INITIALS' ELSE INITIALS = ''
+INITIALS = TRIM(OCONV(INITIALS, "MCU"))
+
+* Build XML header
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<response>'
+
+* Check if INITIALS provided
+IF INITIALS = '' THEN
+   XML.RESPONSE = XML.RESPONSE : XAM : '<status>error</status><success>false</success><message>Missing INITIALS</message>'
+   GOTO FINISH
+END
+
+* Write directly to BUYERS database
+BUYERS.REC = INITIALS
+WRITE BUYERS.REC ON BUYERSF, INITIALS
+
+* Success response
+XML.RESPONSE = XML.RESPONSE : XAM : '<status>success</status><success>true</success><message>WRITE COMMAND EXECUTED</message><initials>' : INITIALS : '</initials><write_status>COMPLETED</write_status>'
+GOTO FINISH
+
+WRITE_FAIL:
+XML.RESPONSE = XML.RESPONSE : XAM : '<status>error</status><success>false</success><message>Write to BUYERS failed</message>'
+GOTO FINISH
+
+VERIFY_FAIL:
+XML.RESPONSE = XML.RESPONSE : XAM : '<status>error</status><success>false</success><message>VERIFICATION FAILED - BUYERS write did not persist</message>'
+GOTO FINISH
+
+NO_BUYERS_FILE:
+XML.RESPONSE = XML.RESPONSE : XAM : '<status>error</status><success>false</success><message>Cannot open BUYERS file</message>'
+
+FINISH:
+* Close XML
+XML.RESPONSE = XML.RESPONSE : XAM : '</response>'
+
+* Write and serve
+OUTFILE = 'BUYERS'
+WRITE XML.RESPONSE ON XMLDATAF, OUTFILE
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/' : OUTFILE, '', ERR)
+RETURN
+</PRE>

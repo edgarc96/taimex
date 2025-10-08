@@ -1,0 +1,187 @@
+<PRE>
+<PicLan-IP/BASIC ^ ^
+*REM UPDATE_PO.XML - Update Purchase Order data
+*REM This script updates PO records with modified data from the frontend
+
+*REM Open required files
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO' TO POF ELSE STOP 201,'PO'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+*REM Set content type
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Get parameters from POST data
+PL_GETVAR PO_NUMBER FROM 'po_number' ELSE PO_NUMBER = ''
+PL_GETVAR PO_DATE FROM 'po_date' ELSE PO_DATE = ''
+PL_GETVAR BUYER_CODE FROM 'buyer_code' ELSE BUYER_CODE = ''
+PL_GETVAR VENDOR_CODE FROM 'vendor_code' ELSE VENDOR_CODE = ''
+PL_GETVAR SHIPTO_CODE FROM 'shipto_code' ELSE SHIPTO_CODE = ''
+PL_GETVAR PO_STATUS FROM 'po_status' ELSE PO_STATUS = ''
+PL_GETVAR HEADER_NOTES FROM 'header_notes' ELSE HEADER_NOTES = ''
+PL_GETVAR LINE_ITEMS_JSON FROM 'line_items' ELSE LINE_ITEMS_JSON = ''
+PL_GETVAR SCHEDULE_DATA FROM 'schedule_data' ELSE SCHEDULE_DATA = ''
+PL_GETVAR NEEDS_DATA FROM 'needs_data' ELSE NEEDS_DATA = ''
+PL_GETVAR ACK_DATA FROM 'ack_data' ELSE ACK_DATA = ''
+PL_GETVAR LINE_NOTES_DATA FROM 'line_notes_data' ELSE LINE_NOTES_DATA = ''
+
+*REM Initialize response
+XML.RESPONSE = '<?xml version="1.0"?><update_response>'
+
+*REM Debug: Log all received parameters
+XML.RESPONSE = XML.RESPONSE : '<debug_params>'
+XML.RESPONSE = XML.RESPONSE : '<po_number_received>' : PO_NUMBER : '</po_number_received>'
+XML.RESPONSE = XML.RESPONSE : '<po_date_received>' : PO_DATE : '</po_date_received>'
+XML.RESPONSE = XML.RESPONSE : '<buyer_code_received>' : BUYER_CODE : '</buyer_code_received>'
+XML.RESPONSE = XML.RESPONSE : '<vendor_code_received>' : VENDOR_CODE : '</vendor_code_received>'
+XML.RESPONSE = XML.RESPONSE : '<line_items_received>' : LINE_ITEMS_JSON : '</line_items_received>'
+XML.RESPONSE = XML.RESPONSE : '</debug_params>'
+
+*REM Validate required parameters
+IF PO_NUMBER = "" THEN
+    XML.RESPONSE = XML.RESPONSE : '<error>PO Number is required</error></update_response>'
+    WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_PO.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/UPDATE_PO.XML','',ERR)
+    RETURN
+END
+
+*REM Read existing PO record
+READ PO.RECORD FROM POF, PO_NUMBER ELSE GOTO PO_NOT_FOUND
+
+*REM Update basic PO fields
+IF PO_DATE <> "" THEN PO.RECORD<1> = PO_DATE
+IF VENDOR_CODE <> "" THEN PO.RECORD<2> = VENDOR_CODE
+IF SHIPTO_CODE <> "" THEN PO.RECORD<4> = SHIPTO_CODE
+IF BUYER_CODE <> "" THEN PO.RECORD<8> = BUYER_CODE
+IF PO_STATUS <> "" THEN PO.RECORD<15> = PO_STATUS
+
+*REM Update Header Notes (Field 25)
+IF HEADER_NOTES <> "" THEN
+    CONVERT "|" TO XVM IN HEADER_NOTES
+    PO.RECORD<25> = HEADER_NOTES
+END
+
+*REM Process Line Items Data
+IF LINE_ITEMS_JSON <> "" THEN
+    PART_NUMBERS_MV = ""
+    UNIT_PRICES_MV = ""
+    QUANTITIES_MV = ""
+    
+    CONVERT "|" TO XVM IN LINE_ITEMS_JSON
+    LINE_COUNT = DCOUNT(LINE_ITEMS_JSON, XVM)
+    
+    FOR I = 1 TO LINE_COUNT
+        LINE_DATA = LINE_ITEMS_JSON<1,I>
+        IF LINE_DATA <> "" THEN
+            PART_NUM = FIELD(LINE_DATA, "*", 1)
+            QTY = FIELD(LINE_DATA, "*", 2)  
+            UNIT_PRICE = FIELD(LINE_DATA, "*", 3)
+            
+            IF PART_NUMBERS_MV = "" THEN
+                PART_NUMBERS_MV = PART_NUM
+            END ELSE
+                PART_NUMBERS_MV = PART_NUMBERS_MV : XVM : PART_NUM
+            END
+            
+            IF QUANTITIES_MV = "" THEN
+                QUANTITIES_MV = QTY
+            END ELSE
+                QUANTITIES_MV = QUANTITIES_MV : XVM : QTY
+            END
+            
+            IF UNIT_PRICE <> "" AND NUM(UNIT_PRICE) THEN
+                PRICE_INT = UNIT_PRICE * 100
+                IF UNIT_PRICES_MV = "" THEN
+                    UNIT_PRICES_MV = PRICE_INT
+                END ELSE
+                    UNIT_PRICES_MV = UNIT_PRICES_MV : XVM : PRICE_INT
+                END
+            END
+        END
+    NEXT I
+    
+    IF PART_NUMBERS_MV <> "" THEN PO.RECORD<32> = PART_NUMBERS_MV
+    IF QUANTITIES_MV <> "" THEN PO.RECORD<31> = QUANTITIES_MV  
+    IF UNIT_PRICES_MV <> "" THEN PO.RECORD<36> = UNIT_PRICES_MV
+END
+
+*REM Process Schedule Data (Field 34)
+IF SCHEDULE_DATA <> "" THEN
+    SCHEDULE_MV = ""
+    CONVERT "|" TO XVM IN SCHEDULE_DATA
+    SCHED_COUNT = DCOUNT(SCHEDULE_DATA, XVM)
+    
+    FOR I = 1 TO SCHED_COUNT
+        SCHED_ITEM = SCHEDULE_DATA<1,I>
+        IF SCHED_ITEM <> "" THEN
+            SCHED_DATE = FIELD(SCHED_ITEM, "*", 1)
+            SCHED_QTY = FIELD(SCHED_ITEM, "*", 2)
+            
+            IF SCHED_DATE <> "" AND SCHED_QTY <> "" THEN
+                SCHED_ENTRY = SCHED_DATE : CHAR(252) : SCHED_QTY
+                IF SCHEDULE_MV = "" THEN
+                    SCHEDULE_MV = SCHED_ENTRY
+                END ELSE
+                    SCHEDULE_MV = SCHEDULE_MV : XVM : SCHED_ENTRY
+                END
+            END
+        END
+    NEXT I
+    
+    IF SCHEDULE_MV <> "" THEN PO.RECORD<34> = SCHEDULE_MV
+END
+
+*REM Process Acknowledgments Data (Field 49)
+IF ACK_DATA <> "" THEN
+    ACK_MV = ""
+    CONVERT "|" TO XVM IN ACK_DATA
+    ACK_COUNT = DCOUNT(ACK_DATA, XVM)
+    
+    FOR I = 1 TO ACK_COUNT
+        ACK_ITEM = ACK_DATA<1,I>
+        IF ACK_ITEM <> "" THEN
+            ACK_DATE = FIELD(ACK_ITEM, "*", 1)
+            ACK_QTY = FIELD(ACK_ITEM, "*", 2)
+            
+            IF ACK_DATE <> "" AND ACK_QTY <> "" THEN
+                ACK_ENTRY = ACK_DATE : "*" : ACK_QTY
+                IF ACK_MV = "" THEN
+                    ACK_MV = ACK_ENTRY
+                END ELSE
+                    ACK_MV = ACK_MV : XVM : ACK_ENTRY
+                END
+            END
+        END
+    NEXT I
+    
+    IF ACK_MV <> "" THEN PO.RECORD<49> = ACK_MV
+END
+
+*REM Write updated record back to file
+WRITE PO.RECORD ON POF, PO_NUMBER
+
+*REM Success response
+XML.RESPONSE = XML.RESPONSE : '<success>true</success>'
+XML.RESPONSE = XML.RESPONSE : '<message>PO ' : PO_NUMBER : ' updated successfully</message>'
+XML.RESPONSE = XML.RESPONSE : '<po_number>' : PO_NUMBER : '</po_number>'
+XML.RESPONSE = XML.RESPONSE : '</update_response>'
+
+*REM Output the response
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_PO.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_PO.XML','',ERR)
+RETURN
+
+PO_NOT_FOUND:
+*REM Handle PO not found error
+XML.RESPONSE = XML.RESPONSE : '<error>PO ' : PO_NUMBER : ' not found</error></update_response>'
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_PO.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_PO.XML','',ERR)
+RETURN
+</pre>

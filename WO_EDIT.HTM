@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TAIMEX - WORK ORDERS</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>*{margin:0;padding:0;box-sizing:border-box}html,body{height:100vh;overflow:hidden;width:100%}body{font-family:Inter,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;background:linear-gradient(135deg,#f1f5f9 0%,#e2e8f0 100%);color:#334155;width:100%}.container{width:100%;height:100vh;background:#fff;display:flex;flex-direction:column;overflow:hidden}.header{background:linear-gradient(135deg,#1e293b 0%,#1e3a8a 100%);color:#fff;padding:12px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(30,41,59,.25);position:relative;z-index:100;width:100%}.header-left{display:flex;align-items:center;gap:20px;position:relative;z-index:1}.logo-section img{height:40px;width:auto;object-fit:contain;filter:brightness(1.05)}.title-section{text-align:right;position:relative;z-index:1}.title-row{display:flex;align-items:center;justify-content:flex-end;gap:15px}.welcome-user{white-space:nowrap}.welcome-user span{color:#cbd5e1;font-size:.8em;font-weight:400}.welcome-user strong{color:#3b82f6;margin-left:4px;font-weight:600}.title-section h2{font-size:.95em;margin:0;font-weight:500;color:#cbd5e1;letter-spacing:.3px}.title-section p{font-size:.75em;margin:2px 0 0 0;color:#a2a8ba;font-weight:400}.hamburger-menu{background:none;border:none;color:#fff;font-size:1.2em;cursor:pointer;padding:8px;border-radius:6px;transition:background-color .2s ease}.hamburger-menu:hover{background-color:rgba(255,255,255,.12)}.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;width:100%}.sidebar{position:fixed;top:0;left:-300px;width:300px;height:100vh;background:rgba(255,255,255,.08);backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);color:#fff;transition:left .2s ease;z-index:2000;box-shadow:2px 0 12px rgba(0,0,0,.35)}.sidebar.active{left:0}.sidebar-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.55);opacity:0;visibility:hidden;transition:all .25s ease;z-index:1500;pointer-events:none}.sidebar-overlay.active{opacity:1;visibility:visible;pointer-events:auto}.sidebar-content{padding:24px}.sidebar-header{padding:20px;background:linear-gradient(135deg,#1e293b 0%,#1e3a8a 100%);margin:-24px -24px 20px -24px;border-radius:0 0 12px 12px}.sidebar-header h3{color:#fff;margin:0;font-size:1.1em;font-weight:600}.sidebar-menu{list-style:none}.sidebar-menu li{margin-bottom:8px}.sidebar-menu a,.sidebar-menu label{display:block;padding:12px 16px;color:#e2e8f0;text-decoration:none;border-radius:8px;transition:all .2s ease;cursor:pointer;font-size:.9em}.sidebar-menu a:hover,.sidebar-menu label:hover,.sidebar-menu a.active,.sidebar-menu label.active{background:rgba(59,130,246,.15);color:#3b82f6;transform:translateX(4px)}.sidebar-menu a i,.sidebar-menu label i{margin-right:12px;width:16px;text-align:center}.tab-navigation{background:#f8fafc;border-bottom:2px solid #e2e8f0;width:100%}.tab-buttons{display:flex;flex-wrap:wrap;width:100%}.tab-button{background:none;border:none;padding:16px 24px;cursor:pointer;font-size:.9em;font-weight:500;color:#64748b;border-bottom:3px solid transparent;transition:all .2s ease;display:flex;align-items:center;gap:8px}.tab-button:hover{color:#1e293b;background:rgba(59,130,246,.05)}.tab-button.active{color:#1e293b;border-bottom-color:#2563eb;background:rgba(59,130,246,.08);border-bottom-width:4px}.tab-button i{font-size:.9em}.tab-content{flex:1;overflow-y:auto;background:#fff}.tab-pane{display:none;height:100%;overflow-y:auto}.tab-pane.active{display:block}.form-container{max-width:1200px;margin:0 auto;padding:32px;background:#fff}.form-group{margin-bottom:20px}.form-group label{display:block;margin-bottom:8px;font-weight:500;color:#374151;font-size:.9em}.form-group input,.form-group select,.form-group textarea{width:100%;padding:12px 16px;border:2px solid #e5e7eb;border-radius:8px;font-size:.9em;transition:all .2s ease;background:#fff}.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}.form-group textarea{resize:vertical;min-height:80px}.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border:none;border-radius:8px;font-size:.9em;font-weight:500;cursor:pointer;transition:all .2s ease;text-decoration:none}.btn-primary{background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);color:white}.btn-primary:hover{background:linear-gradient(135deg,#2563eb 0%,#1e40af 100%);transform:translateY(-1px);box-shadow:0 4px 12px rgba(59,130,246,.3)}.btn-secondary{background:#6b7280;color:white}.btn-secondary:hover{background:#4b5563}.notification-container{position:fixed;top:20px;right:20px;z-index:9999;max-width:400px}.notification{background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.12);border-left:4px solid #10b981;padding:16px 20px;margin-bottom:12px;display:flex;align-items:flex-start;gap:12px;transform:translateX(100%);opacity:0;transition:all .3s ease}.notification.show{transform:translateX(0);opacity:1}.notification.hide{transform:translateX(100%);opacity:0}.notification-icon{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:#10b981;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8em}.notification-content{flex:1}.notification-title{font-weight:600;color:#1f2937;margin-bottom:4px;font-size:.9em}.notification-message{color:#6b7280;font-size:.8em;line-height:1.4}.notification.error{border-left-color:#ef4444}.notification.error .notification-icon{background:#ef4444}.notification.loading{border-left-color:#f59e0b}.notification.loading .notification-icon{background:#f59e0b}</style>
+</head>
+<body>
+  <style>
+    /* Sidebar - Force override with !important */
+    .sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            left: -300px !important;
+            width: 300px !important;
+            height: 100vh !important;
+            background: rgba(255, 255, 255, .08) !important;
+            backdrop-filter: blur(1px) !important;
+            -webkit-backdrop-filter: blur(1px) !important;
+            color: white !important;
+            transition: left 0.2s ease !important;
+            z-index: 2000 !important;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3) !important;
+            overflow: hidden !important;
+            border-radius: 0 !important;
+    }
+    .sidebar.active { left: 0 !important; }
+    .sidebar-overlay {
+            position: fixed !important; 
+            top: 0 !important; 
+            left: 0 !important; 
+            width: 100vw !important; 
+            height: 100vh !important;
+            background: rgba(0, 0, 0, 0.5) !important; 
+            opacity: 0 !important; 
+            visibility: hidden !important;
+            transition: all 0.3s ease !important; 
+            z-index: 999 !important; 
+            pointer-events: none !important;
+    }
+    .sidebar-overlay.active { 
+            opacity: 1 !important; 
+            visibility: visible !important; 
+            pointer-events: auto !important; 
+    }
+    #sb-toggle:checked ~ .sidebar-overlay { 
+            opacity: 1 !important; 
+            visibility: visible !important; 
+            pointer-events: auto !important; 
+    }
+
+    .sidebar-content { padding: 24px !important; }
+
+    .sidebar-header {
+            padding: 20px !important; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+    }
+
+    .sidebar-header h3 { 
+            font-size: 1.2em !important; 
+            color: white !important; 
+            margin: 0 !important; 
+    }
+
+    .sidebar-menu { 
+            list-style: none !important; 
+            padding: 0 !important; 
+            margin: 0 !important; 
+    }
+
+    .sidebar-menu li { margin-bottom: 8px !important; }
+
+    .sidebar-menu a, .sidebar-menu label {
+            display: block !important;
+            padding: 12px 16px !important;
+            color: #f3f4f6 !important;
+            text-decoration: none !important;
+            border-radius: 8px !important;
+            transition: all 0.2s ease !important;
+            font-weight: 500 !important;
+    }
+
+    .sidebar-menu a:hover, .sidebar-menu label:hover { 
+            background-color: rgba(30, 64, 175, 0.1) !important; 
+            color: white !important; 
+    }
+    .sidebar-menu a.active, .sidebar-menu label.active { 
+            background-color: rgba(30, 64, 175, 0.2) !important; 
+            color: #93c5fd !important; 
+    }
+
+    .sidebar-menu a i, .sidebar-menu label i { 
+            margin-right: 12px !important; 
+            width: 20px !important; 
+            text-align: center !important; 
+    }
+    .sidebar-menu label { cursor: pointer !important; }
+
+    /* CSS-only sidebar toggle */
+    #sb-toggle { position: absolute; left: -9999px; }
+    #sb-toggle:checked ~ .sidebar { left: 0 !important; }
+    #sb-toggle:checked ~ .sidebar-overlay { 
+            opacity: 1 !important; 
+            visibility: visible !important; 
+            pointer-events: auto !important; 
+    }
+    /* Match PARTSEDIT hamburger icon sizing (slightly reduced to match perception) */
+    .hamburger-menu { font-size: 1.1em !important; padding: 6px !important; line-height: 1 !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; }
+    .hamburger-menu svg { width: 1em; height: 1em; fill: currentColor; display: inline-block; vertical-align: -0.125em; }
+    /* Tabs: match PARTSEDIT exactly */
+    .tab-navigation { background: #fff !important; border-bottom: 1px solid #e2e8f0 !important; width: 100% !important; }
+    .tab-buttons { display: flex !important; flex-wrap: wrap !important; width: 100% !important; }
+    .tab-button { background: none !important; border: none !important; padding: 10px 18px !important; color: #64748b !important; font-weight: 500 !important; cursor: pointer !important; transition: all .3s ease !important; border-bottom: 3px solid transparent !important; display: flex !important; align-items: center !important; gap: 8px !important; font-size: .9em !important; line-height: 1.1 !important; }
+    .tab-button:hover { color: #1e40af !important; background: rgba(30, 64, 175, .05) !important; }
+    .tab-button.active { color: #1e40af !important; background: rgba(30, 64, 175, .1) !important; border-bottom-color: #1e40af !important; font-weight: 600 !important; }
+    .tab-content { flex: 1 !important; overflow: hidden !important; width: 100% !important; }
+    .tab-pane { display: none !important; height: 100% !important; overflow-y: auto !important; padding: 16px 20px !important; background: #f8fafc !important; width: 100% !important; }
+    .tab-pane.active { display: block !important; }
+  </style>
+
+  <input type="checkbox" id="sb-toggle" />
+  <label for="sb-toggle" class="sidebar-overlay"></label>
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3>Menu</h3>
+    </div>
+    <div class="sidebar-content">
+      <ul class="sidebar-menu">
+        <li><label for="sb-toggle">Main Menu</label></li>
+        <li><label for="sb-toggle">Parts Management</label></li>
+        <li><label for="sb-toggle" class="active">Work Orders</label></li>
+        <li><label for="sb-toggle">Stock Transactions</label></li>
+        <li><label for="sb-toggle">Commodities</label></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <div class="header-left">
+        <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">
+          <svg viewBox="0 0 448 512" role="img" aria-hidden="true" focusable="false">
+            <path d="M0 96C0 78.3 14.3 64 32 64H416C433.7 64 448 78.3 448 96C448 113.7 433.7 128 416 128H32C14.3 128 0 113.7 0 96zM0 256C0 238.3 14.3 224 32 224H416C433.7 224 448 238.3 448 256C448 273.7 433.7 288 416 288H32C14.3 288 0 273.7 0 256zM448 416C448 433.7 433.7 448 416 448H32C14.3 448 0 433.7 0 416C0 398.3 14.3 384 32 384H416C433.7 384 448 398.3 448 416z"></path>
+          </svg>
+        </label>
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL" onerror="this.onerror=null;this.src='http://54.189.226.145/uploads/assets/images/taimex_logo.png';">
+        </div>
+      </div>
+      <div class="title-section">
+        <div class="title-row">
+          <div class="welcome-user">
+            <span>Welcome,</span>
+            <strong>Admin User</strong>
+          </div>
+          <div>
+            <h2>TAIMEX - WORK ORDERS</h2>
+            <p>TAIMEX - MANAGEMENT</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <main class="main-content">
+      <div class="tab-navigation">
+        <div class="tab-buttons">
+          <button type="button" class="tab-button active" data-tab-index="0">
+            + Data Capture
+          </button>
+          <button type="button" class="tab-button" data-tab-index="1">
+            🔍 Search & View
+          </button>
+        </div>
+      </div>
+      <div class="tab-content">
+        <div class="tab-pane active" id="tab-0">
+          <div class="form-container">
+            <h3 style="margin-bottom:8px; color:#1e293b; font-size:14px; font-weight:600;">Work Order Data Capture</h3>
+            
+            <style>
+              .form-group.required>label::after{content:" *";color:#ef4444;margin-left:4px}
+              .info-alert{display:flex;gap:6px;align-items:flex-start;background:#eff6ff;border-left:3px solid #3b82f6;padding:4px 8px;border-radius:4px;color:#1e3a8a;margin-bottom:6px;font-size:11px}
+              .info-alert i{color:#3b82f6;margin-top:1px}
+              .tab-pane .form-container{max-width:none;width:100%;margin:0;padding:8px 16px;display:flex;flex-direction:column;align-items:stretch;height:calc(100vh - 140px);overflow-y:auto}
+              .form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:none;width:100%;grid-auto-flow:row dense}
+              .form-group{width:100%;min-width:0;margin-bottom:6px}
+              .form-group.span-2{grid-column:span 2}
+              .form-group.span-3{grid-column:span 3}
+              .form-group.span-full{grid-column:1/-1}
+              .form-group label{font-size:12px;margin-bottom:3px;font-weight:500;line-height:1.3}
+              .form-group input,.form-group select,.form-group textarea{padding:5px 8px;font-size:12px;border:1px solid #d1d5db;line-height:1.3}
+              .form-group input[readonly]{background-color:#f9fafb;color:#6b7280;border-color:#e5e7eb;font-style:italic}
+              .form-group input.display-only{background-color:#f9fafb;color:#6b7280;border-color:#e5e7eb;font-style:italic;cursor:not-allowed}
+              .form-group textarea{min-height:40px;resize:vertical}
+              .search-section{margin-bottom:6px;padding:6px;background:#f8fafc;border-radius:4px;border:1px solid #e2e8f0}
+              .search-section label{font-size:12px;margin-bottom:3px}
+              .search-section input{padding:4px 6px;font-size:11px}
+            </style>
+            
+            <div class="info-alert">
+              <i>ℹ️</i>
+              <div>
+                <strong>Important:</strong> Fields marked with <span style="color:#ef4444">*</span> are required. Work Number must be unique.
+              </div>
+            </div>
+            
+            <div class="search-section">
+              <label style="font-weight: 600; color: #374151; margin-bottom: 6px; display: block;">Search Existing Work Order</label>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="text" placeholder="Enter WO ID to edit" id="woSearchInput" style="flex: 1; border: 1px solid #d1d5db; border-radius: 4px; padding: 6px 8px; font-size: 12px;" oninput="handleWorkOrderInput(event)" onkeydown="handleWorkOrderKeydown(event)">
+                <button type="button" onclick="searchWorkOrder()" class="btn btn-secondary" style="white-space: nowrap; padding: 6px 12px; font-size: 12px;">
+                  <i class="fas fa-search"></i> Search
+                </button>
+                <button type="button" onclick="showNewWorkOrderForm()" class="btn btn-secondary" style="white-space: nowrap; padding: 6px 12px; font-size: 12px;">
+                  <i class="fas fa-plus"></i> New
+                </button>
+              </div>
+              <div id="woSearchStatus" style="margin-top: 6px; font-size: 11px; min-height: 14px;"></div>
+            </div>
+            
+            <form class="form-grid" onsubmit="return false;" id="woForm" style="display: none;">
+              <!-- Primera fila: Work Number y WO Type -->
+              <div class="form-group required span-2">
+                <label>Work Number (WONO) <span style="color:#6b7280;font-weight:400;font-size:10px;">(auto-filled from search)</span></label>
+                <input type="text" placeholder="Will be filled when searching..." name="work_number" required aria-required="true" id="workNumberInput" readonly>
+              </div>
+              
+              <div class="form-group required span-2">
+                <label>WO Type</label>
+                <select name="wo_type" required aria-required="true" id="woTypeInput">
+                  <option value="">Select WO Type</option>
+                  <option value="1">1 - Normal Production</option>
+                  <option value="2">2 - Rework</option>
+                </select>
+              </div>
+              
+              <!-- Segunda fila: Fechas -->
+              <div class="form-group required">
+                <label>WO Date</label>
+                <input type="date" name="wo_date" required aria-required="true" id="woDateInput">
+              </div>
+              
+              <div class="form-group">
+                <label>Start Date</label>
+                <input type="date" name="start_date" id="startDateInput">
+              </div>
+              
+              <div class="form-group">
+                <label>Schedule Date</label>
+                <input type="date" name="schedule_date" id="scheduleDateInput">
+              </div>
+              
+              <div class="form-group">
+                <label>Schedule Qty</label>
+                <input type="number" placeholder="Quantity" name="schedule_qty" min="0" step="1" id="scheduleQtyInput">
+              </div>
+              
+              <!-- Tercera fila: Assembly Number -->
+              <div class="form-group required span-3">
+                <label>Assembly Number <span style="color:#6b7280;font-weight:400;font-size:10px;">(auto-filled from search)</span></label>
+                <input type="text" placeholder="Start typing assembly number..." name="assembly_number" required aria-required="true" id="assemblyNumberInput" oninput="handleAssemblyInput(event)">
+                <div id="assemblyDescription" style="margin-top: 3px; font-size: 11px; color: #6b7280; min-height: 14px; line-height: 1.2;"></div>
+              </div>
+              
+              <div class="form-group">
+                <label>Yield %</label>
+                <input type="number" placeholder="Percentage" name="yield_percent" min="0" max="100" step="0.01" id="yieldPercentInput">
+              </div>
+              
+              <!-- Cuarta fila: Order Quantity y Notes -->
+              <div class="form-group">
+                <label>Order Quantity</label>
+                <input type="number" placeholder="Quantity" name="order_quantity" min="0" step="1" id="orderQuantityInput">
+              </div>
+              
+              <div class="form-group span-3">
+                <label>Notes</label>
+                <textarea placeholder="Additional notes or comments" name="notes" rows="2" id="notesInput"></textarea>
+              </div>
+              
+              <!-- Quinta fila: Botones -->
+              <div class="form-group span-full" style="display:flex; gap:10px; margin-top:8px; justify-content:flex-start;">
+                <button type="button" class="btn btn-primary" onclick="handleSave()" style="padding:6px 20px;font-size:12px;">
+                  Save Work Order
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="handleClear()" style="padding:6px 20px;font-size:12px;">
+                  Clear Form
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        
+        <div class="tab-pane" id="tab-1">
+          <div class="form-container">
+            <h3 style="margin-bottom:24px; color:#1e293b;">Search & View Work Orders</h3>
+            <p style="color:#6b7280;margin-bottom:20px;">Search and view functionality will be implemented here.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Tab switching functionality
+    function switchTab(index) {
+      try {
+        var buttons = document.querySelectorAll('.tab-button');
+        var panes = document.querySelectorAll('.tab-pane');
+        
+        buttons.forEach(function(btn, i) {
+          if (i === index) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+        
+        panes.forEach(function(pane, i) {
+          if (i === index) {
+            pane.classList.add('active');
+          } else {
+            pane.classList.remove('active');
+          }
+        });
+      } catch (e) {
+        console.error('switchTab error:', e);
+      }
+    }
+
+    // Notification system
+    function initializeNotifications() {
+      var c = document.getElementById("notificationContainer");
+      if (!c) {
+        c = document.createElement("div");
+        c.className = "notification-container";
+        c.id = "notificationContainer";
+        document.body.appendChild(c);
+      }
+    }
+
+    var loadingNotification = null;
+
+    function showSuccessNotification(title, message) {
+      initializeNotifications();
+      var container = document.getElementById("notificationContainer");
+      var notification = document.createElement("div");
+      notification.className = "notification";
+      notification.innerHTML = '<div class="notification-icon"><i>✓</i></div><div class="notification-content"><div class="notification-title">' + (title || "Success") + '</div>' + (message ? '<div class="notification-message">' + message + '</div>' : '') + '</div>';
+      container.appendChild(notification);
+      setTimeout(function() { notification.classList.add("show"); }, 100);
+      setTimeout(function() {
+        notification.classList.remove("show");
+        notification.classList.add("hide");
+        setTimeout(function() { container.removeChild(notification); }, 300);
+      }, 3000);
+    }
+
+    function showErrorNotification(title, message) {
+      initializeNotifications();
+      var container = document.getElementById("notificationContainer");
+      var notification = document.createElement("div");
+      notification.className = "notification error";
+      notification.innerHTML = '<div class="notification-icon"><i>✗</i></div><div class="notification-content"><div class="notification-title">' + (title || "Error") + '</div>' + (message ? '<div class="notification-message">' + message + '</div>' : '') + '</div>';
+      container.appendChild(notification);
+      setTimeout(function() { notification.classList.add("show"); }, 100);
+      setTimeout(function() {
+        notification.classList.remove("show");
+        notification.classList.add("hide");
+        setTimeout(function() { container.removeChild(notification); }, 300);
+      }, 5000);
+    }
+
+    function showLoadingNotification(title, message) {
+      hideLoadingNotification();
+      initializeNotifications();
+      var container = document.getElementById("notificationContainer");
+      loadingNotification = document.createElement("div");
+      loadingNotification.className = "notification loading";
+      loadingNotification.innerHTML = '<div class="notification-icon"><i>⟳</i></div><div class="notification-content"><div class="notification-title">' + (title || "Loading") + '</div>' + (message ? '<div class="notification-message">' + message + '</div>' : '') + '</div>';
+      container.appendChild(loadingNotification);
+      setTimeout(function() { loadingNotification.classList.add("show"); }, 100);
+    }
+
+    function hideLoadingNotification() {
+      if (loadingNotification) {
+        loadingNotification.classList.remove("show");
+        loadingNotification.classList.add("hide");
+        setTimeout(function() {
+          if (loadingNotification && loadingNotification.parentNode) {
+            loadingNotification.parentNode.removeChild(loadingNotification);
+          }
+          loadingNotification = null;
+        }, 300);
+      }
+    }
+
+    // Form handling functions
+    function handleSave() {
+      try {
+        // Collect form data
+        var form = document.querySelector('.form-grid');
+        var formData = {
+          // Keep for client validation; backend ignores it
+          WORK_NUMBER: form.querySelector('[name="work_number"]').value.trim(),
+          // Backend expects these exact names (see process.xml)
+          WO_DATE: form.querySelector('[name="wo_date"]').value.trim(),
+          WO_TYPE: form.querySelector('[name="wo_type"]').value.trim(),
+          START_DATE: form.querySelector('[name="start_date"]').value.trim(),
+          ASSY_NO: form.querySelector('[name="assembly_number"]').value.trim(),
+          SCHEDULE_DATE: form.querySelector('[name="schedule_date"]').value.trim(),
+          SCHEDULE_QTY: form.querySelector('[name="schedule_qty"]').value.trim(),
+          YIELD: form.querySelector('[name="yield_percent"]').value.trim(),
+          ORD_QTY: form.querySelector('[name="order_quantity"]').value.trim(),
+          NOTES: form.querySelector('[name="notes"]').value.trim(),
+          ACTION: 'CREATE'
+        };
+        
+        // Validate required fields
+        if (!formData.WORK_NUMBER) {
+          showErrorNotification('Validation Error', 'Work Number is required');
+          return false;
+        }
+        if (!formData.WO_DATE) {
+          showErrorNotification('Validation Error', 'WO Date is required');
+          return false;
+        }
+        if (!formData.WO_TYPE) {
+          showErrorNotification('Validation Error', 'WO Type is required');
+          return false;
+        }
+        if (!formData.ASSY_NO) {
+          showErrorNotification('Validation Error', 'Assembly Number is required');
+          return false;
+        }
+        
+        // Show loading notification
+        showLoadingNotification('Saving work order...', 'Please wait while we save the work order data');
+        
+        // Build form data for POST
+        var params = new URLSearchParams();
+        for (var key in formData) {
+          params.append(key, formData[key] || '');
+        }
+        
+        // Debug: Log what we're sending
+        console.log('Sending to /UPDATE_WO.XML:', params.toString());
+        
+        // Send to update_wo.xml (backend for saving/updating Work Orders)
+        fetch('/UPDATE_WO.XML', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: params.toString()
+        })
+        .then(function(response) {
+          console.log('Response status:', response.status);
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          return response.text();
+        })
+        .then(function(xmlText) {
+          console.log('Raw XML response:', xmlText);
+          try { 
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(xmlText, 'application/xml');
+
+            var parseError = doc.querySelector('parsererror');
+            if (parseError) {
+              console.error('XML parse error:', parseError.textContent);
+              hideLoadingNotification();
+              showErrorNotification('XML Error', 'Server returned invalid XML');
+              return;
+            }
+            
+            var statusEl = doc.querySelector('status');
+            var statusTxt = statusEl ? statusEl.textContent.trim().toUpperCase() : '';
+            
+            if (statusTxt === 'SUCCESS') {
+              hideLoadingNotification();
+              var messageEl = doc.querySelector('message');
+              var woIdEl = doc.querySelector('wo_id');
+              var successMsg = messageEl ? messageEl.textContent : 'Work order saved successfully';
+              if (woIdEl) successMsg += ' (ID: ' + woIdEl.textContent + ')';
+              showSuccessNotification('Success', successMsg);
+            } else if (statusTxt === 'ERROR') {
+              hideLoadingNotification();
+              var messageEl = doc.querySelector('message');
+              var errorsEl = doc.querySelector('errors');
+              var errorMsg = messageEl ? messageEl.textContent : 'Save failed';
+              
+              // If there are validation errors, show them
+              if (errorsEl && errorsEl.textContent) {
+                var errorText = errorsEl.textContent.trim();
+                if (errorText.endsWith(';')) errorText = errorText.slice(0, -1);
+                errorMsg = errorText.replace(/;/g, '\n• ');
+                if (errorMsg.startsWith('• ')) errorMsg = errorMsg.substring(2);
+                errorMsg = '• ' + errorMsg;
+              }
+              
+              console.error('Server errors:', errorMsg);
+              showErrorNotification('Validation Error', errorMsg);
+            } else {
+              hideLoadingNotification();
+              console.error('Unknown status:', statusTxt);
+              showErrorNotification('Unknown Error', 'Server returned unknown status: ' + statusTxt);
+            }
+          } catch (e) {
+            hideLoadingNotification();
+            console.error('XML parsing error:', e);
+            console.error('XML content:', xmlText);
+            showErrorNotification('Error', 'Failed to parse server response');
+          }
+        })
+        .catch(function(error) {
+          hideLoadingNotification();
+          console.error('Save error:', error);
+          showErrorNotification('Network Error', 'Failed to save work order. Please try again.');
+        });
+        
+      } catch (e) {
+        hideLoadingNotification();
+        console.error('handleSave error:', e);
+        showErrorNotification('Error', 'An unexpected error occurred');
+      }
+      return false;
+    }
+
+    function handleClear() {
+      try {
+        var form = document.querySelector('.form-grid');
+        var inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(function(input) {
+          if (input.type === 'date') {
+            input.value = '';
+          } else if (input.tagName === 'SELECT') {
+            input.selectedIndex = 0;
+          } else {
+            input.value = '';
+          }
+        });
+        showSuccessNotification('Form Cleared', 'All fields have been cleared');
+      } catch (e) {
+        console.error('handleClear error:', e);
+      }
+      return false;
+    }
+
+    // Event listeners
+    document.addEventListener("click", function(ev) {
+      try {
+        var btn = ev.target.closest && ev.target.closest(".tab-button");
+        if (btn) {
+          var list = document.querySelectorAll(".tab-button");
+          var idx = Array.prototype.indexOf.call(list, btn);
+          if (typeof window.switchTab === "function") {
+            window.switchTab(idx);
+          }
+          ev.preventDefault();
+          return false;
+        }
+        
+        // Sidebar menu links: set active state and close sidebar
+        var menuLink = ev.target.closest && ev.target.closest(".sidebar-menu a, .sidebar-menu label");
+        if (menuLink) {
+          var links = document.querySelectorAll(".sidebar-menu a, .sidebar-menu label");
+          for (var k = 0; k < links.length; k++) {
+            links[k].classList.remove("active");
+          }
+          menuLink.classList.add("active");
+          // For anchors: prevent default and close via JS
+          if (menuLink.tagName && menuLink.tagName.toLowerCase() === 'a') {
+            try { 
+              var toggle = document.getElementById('sb-toggle');
+              if (toggle) toggle.checked = false;
+            } catch (e2) { /* noop */ }
+            ev.preventDefault();
+            return false;
+          }
+          return;
+        }
+      } catch (e) {
+        console.error("Event listener error:", e);
+      }
+    });
+
+    // Work Order search and edit functions
+    var workOrderTimeout = null;
+    var lastSearchedWO = '';
+    var lastRequestedWO = '';
+    var currentSearchController = null;
+    var currentSearchId = 0;
+    var currentSearchTimeout = null;
+    
+    function handleWorkOrderInput(event) {
+      var woIdInput = document.getElementById('woSearchInput');
+      var currentWO = woIdInput ? woIdInput.value.trim() : '';
+      
+      // Clear any existing timeout
+      if (workOrderTimeout) {
+        clearTimeout(workOrderTimeout);
+      }
+      
+      // If empty or too short, clear everything and stop
+      if (!currentWO || currentWO.length < 3) {
+        clearFormForNewSearch();
+        var statusDiv = document.getElementById('woSearchStatus');
+        if (statusDiv) statusDiv.innerHTML = '';
+        lastSearchedWO = '';
+        return;
+      }
+      
+      // If WO is different from last searched, clear form immediately
+      if (currentWO !== lastSearchedWO && lastSearchedWO !== '') {
+        clearFormForNewSearch();
+        var statusDiv = document.getElementById('woSearchStatus');
+        if (statusDiv) statusDiv.innerHTML = '';
+      }
+      
+      // No live search. Search will be triggered only via Enter key or Search button.
+    }
+    
+    function handleWorkOrderKeydown(event) {
+      try {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          searchWorkOrder();
+        }
+      } catch (e) {
+        console.error('handleWorkOrderKeydown error:', e);
+      }
+    }
+
+    function performWorkOrderSearch(woId) {
+      try {
+        var statusDiv = document.getElementById('woSearchStatus');
+        
+        // Guard: do not search if too short
+        woId = (woId || '').trim();
+        if (woId.length < 3) {
+          if (typeof clearFormForNewSearch === 'function') {
+            clearFormForNewSearch();
+          }
+          lastSearchedWO = '';
+          if (statusDiv) statusDiv.innerHTML = '';
+          return;
+        }
+        // Cancel any in-flight search and start a new one
+        try { if (currentSearchController) currentSearchController.abort(); } catch (e) {}
+        if (currentSearchTimeout) { clearTimeout(currentSearchTimeout); currentSearchTimeout = null; }
+        var mySearchId = (++currentSearchId);
+        currentSearchController = (window.AbortController ? new AbortController() : null);
+        // Track the request to guard against stale responses
+        lastRequestedWO = woId;
+        
+        if (statusDiv) statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+        
+        var url = '/process.xml?WO_ID=' + encodeURIComponent(woId) + '&ACTION=EDIT&_ts=' + Date.now();
+        // Safety timeout so UI never stays stuck
+        currentSearchTimeout = setTimeout(function() {
+          if (mySearchId === currentSearchId) {
+            try { if (currentSearchController) currentSearchController.abort(); } catch (e) {}
+            var sd = document.getElementById('woSearchStatus');
+            if (sd) sd.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> Search timed out';
+          }
+        }, 10000);
+        
+        fetch(url, { signal: currentSearchController ? currentSearchController.signal : undefined, cache: 'no-store' })
+          .then(function(response) {
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            return response.text();
+          })
+          .then(function(xmlText) {
+            if (mySearchId !== currentSearchId) { return; }
+            try { 
+              console.log('Search XML response:', xmlText); 
+            } catch (e) {}
+            
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(xmlText, 'application/xml');
+
+            var parseError = doc.querySelector('parsererror');
+            if (parseError) {
+              if (statusDiv) statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> Invalid XML response';
+              if (typeof clearFormForNewSearch === 'function') {
+                clearFormForNewSearch();
+              }
+              lastSearchedWO = '';
+              if (mySearchId === currentSearchId) {
+                if (currentSearchTimeout) { clearTimeout(currentSearchTimeout); currentSearchTimeout = null; }
+                currentSearchController = null;
+              }
+              return;
+            }
+
+            // Ignore stale responses: only accept if matches the most recent request
+            var responseWoIdEl = doc.querySelector('wo_id');
+            var responseWoId = responseWoIdEl ? responseWoIdEl.textContent.trim() : '';
+            if (!responseWoId || responseWoId !== lastRequestedWO) {
+              try { console.log('Ignoring stale response', { lastRequestedWO: lastRequestedWO, responseWoId: responseWoId }); } catch (e) {}
+              return;
+            }
+
+            var statusEl = doc.querySelector('status');
+            var statusTxt = statusEl ? statusEl.textContent.trim().toUpperCase() : '';
+            
+            if (statusTxt === 'SUCCESS') {
+              populateFormFromXML(doc);
+              if (statusDiv) statusDiv.innerHTML = '<i class="fas fa-check" style="color: #22c55e;"></i> Work Order loaded successfully';
+              lastSearchedWO = woId;
+              if (mySearchId === currentSearchId) {
+                if (currentSearchTimeout) { clearTimeout(currentSearchTimeout); currentSearchTimeout = null; }
+                currentSearchController = null;
+              }
+            } else {
+              var messageEl = doc.querySelector('message');
+              var msg = messageEl ? messageEl.textContent : 'Work Order not found';
+              if (statusDiv) statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> ' + msg;
+              if (typeof clearFormForNewSearch === 'function') {
+                clearFormForNewSearch();
+              }
+              lastSearchedWO = '';
+              if (mySearchId === currentSearchId) {
+                if (currentSearchTimeout) { clearTimeout(currentSearchTimeout); currentSearchTimeout = null; }
+                currentSearchController = null;
+              }
+            }
+          })
+          .catch(function(err) {
+            console.error('performWorkOrderSearch error:', err);
+            if (err && err.name === 'AbortError') { return; }
+            if (statusDiv) statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> Error searching Work Order';
+            if (typeof clearFormForNewSearch === 'function') {
+              clearFormForNewSearch();
+            }
+            lastSearchedWO = '';
+            if (mySearchId === currentSearchId) {
+              if (currentSearchTimeout) { clearTimeout(currentSearchTimeout); currentSearchTimeout = null; }
+              currentSearchController = null;
+            }
+          });
+      } catch (e) {
+        console.error('performWorkOrderSearch exception:', e);
+      }
+    }
+
+    function searchWorkOrder() {
+      try {
+        var woIdInput = document.getElementById('woSearchInput');
+        var statusDiv = document.getElementById('woSearchStatus');
+        var woId = woIdInput ? woIdInput.value.trim() : '';
+
+        if (!woId) {
+          if (statusDiv) statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i> Please enter a WO ID';
+          return false;
+        }
+        if (woId.length < 3) {
+          if (statusDiv) statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i> Enter at least 3 characters';
+          clearFormForNewSearch();
+          lastSearchedWO = '';
+          return false;
+        }
+
+        // Clear form before new search
+        clearFormForNewSearch();
+        
+        // Use the common search function
+        performWorkOrderSearch(woId);
+      } catch (e) {
+        console.error('searchWorkOrder exception:', e);
+      }
+      return false;
+    }
+
+    function populateFormFromXML(doc) {
+      try {
+        // Show the form when populating with existing WO data
+        showFormForEdit();
+        
+        var dataEl = doc.querySelector('data');
+        if (!dataEl) return;
+
+        var getVal = function(tag) {
+          var el = dataEl.querySelector(tag);
+          return el ? el.textContent.trim() : '';
+        };
+
+        // Convert {MM/DD/YYYY | MM-DD-YYYY} -> YYYY-MM-DD for HTML <input type="date">
+        // If already ISO (YYYY-MM-DD), return as-is.
+        var toInputDate = function(s) {
+          try {
+            if (!s) return '';
+            s = (s + '').trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s; // already ISO
+            var m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+            if (m) {
+              var mm = ("0" + m[1]).slice(-2);
+              var dd = ("0" + m[2]).slice(-2);
+              var yyyy = m[3];
+              return yyyy + '-' + mm + '-' + dd;
+            }
+            return '';
+          } catch (e) { return ''; }
+        };
+
+        var woIdEl = doc.querySelector('wo_id');
+        var woId = woIdEl ? woIdEl.textContent.trim() : '';
+        var field = document.getElementById('workNumberInput');
+        if (field) field.value = woId;
+
+        var m = {
+          woDateInput: toInputDate(getVal('wo_date')),
+          woTypeInput: getVal('wo_type'),
+          startDateInput: toInputDate(getVal('start_date')),
+          assemblyNumberInput: getVal('assy_no'),
+          scheduleDateInput: toInputDate(getVal('schedule_date')),
+          scheduleQtyInput: getVal('schedule_qty'),
+          yieldPercentInput: getVal('yield'),
+          orderQuantityInput: getVal('ord_qty'),
+          notesInput: getVal('notes')
+        };
+        Object.keys(m).forEach(function(id){
+          var el = document.getElementById(id);
+          if (!el) return;
+          var val = m[id];
+          // Normalize date inputs to ISO format
+          if (el.type === 'date') {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+              val = toInputDate(val);
+            }
+            // If still invalid, do not assign to avoid browser warnings
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+              return;
+            }
+          }
+          el.value = val;
+        });
+
+        var desc = getVal('assy_desc');
+        var descDiv = document.getElementById('assemblyDescription');
+        if (descDiv) descDiv.innerHTML = desc ? '<i class="fas fa-check" style="color: #22c55e;"></i> ' + desc : '';
+        // If backend did not return assy_desc, fetch it client-side using current Assembly Number
+        if (!desc) {
+          var assyInput = document.getElementById('assemblyNumberInput');
+          var assyVal = assyInput ? assyInput.value.trim() : '';
+          if (assyVal && assyVal.length >= 3) {
+            try { lookupAssemblyDescription(); } catch (e) { console.error('lookupAssemblyDescription error:', e); }
+          }
+        }
+      } catch (e) {
+        console.error('populateFormFromXML error:', e);
+      }
+    }
+
+    function clearFormForNewSearch() {
+      try {
+        // Clear only the form fields, not the search input
+        var form = document.querySelector('.form-grid');
+        if (form) {
+          var inputs = form.querySelectorAll('input, select, textarea');
+          inputs.forEach(function(input) {
+            if (input.type === 'date') {
+              input.value = '';
+            } else if (input.tagName === 'SELECT') {
+              input.selectedIndex = 0;
+            } else {
+              input.value = '';
+            }
+          });
+        }
+        
+        // Clear assembly description
+        var assemblyDesc = document.getElementById('assemblyDescription');
+        if (assemblyDesc) assemblyDesc.innerHTML = '';
+        
+        // Set default WO date
+        try {
+          var today = new Date().toISOString().split('T')[0];
+          var woDateInput = document.getElementById('woDateInput');
+          if (woDateInput) woDateInput.value = today;
+        } catch (e) {}
+        
+        // Hide form after clearing
+        hideForm();
+      } catch (e) {
+        console.error('clearFormForNewSearch error:', e);
+      }
+    }
+
+    function showNewWorkOrderForm() {
+      try {
+        // Clear everything including search input
+        clearFormForNewSearch();
+        var statusDiv = document.getElementById('woSearchStatus');
+        if (statusDiv) statusDiv.innerHTML = '';
+        var woIdInput = document.getElementById('woSearchInput');
+        if (woIdInput) woIdInput.value = '';
+        
+        // Show form and make WO Number editable for new WO
+        var form = document.getElementById('woForm');
+        if (form) form.style.display = 'block';
+        
+        var woNumberInput = document.getElementById('workNumberInput');
+        if (woNumberInput) {
+          woNumberInput.removeAttribute('readonly');
+          woNumberInput.placeholder = 'Enter new Work Number';
+          woNumberInput.style.backgroundColor = '#ffffff';
+          woNumberInput.style.color = '#1f2937';
+          woNumberInput.style.fontStyle = 'normal';
+          woNumberInput.style.cursor = 'text';
+        }
+        
+        var assemblyNumberInput = document.getElementById('assemblyNumberInput');
+        if (assemblyNumberInput) {
+          assemblyNumberInput.removeAttribute('readonly');
+          assemblyNumberInput.placeholder = 'Start typing assembly number...';
+          assemblyNumberInput.style.backgroundColor = '#ffffff';
+          assemblyNumberInput.style.color = '#1f2937';
+          assemblyNumberInput.style.fontStyle = 'normal';
+          assemblyNumberInput.style.cursor = 'text';
+        }
+        
+        lastSearchedWO = '';
+      } catch (e) {
+        console.error('showNewWorkOrderForm error:', e);
+      }
+      return false;
+    }
+
+    function showFormForEdit() {
+      try {
+        // Show form but keep WO Number readonly for editing
+        var form = document.getElementById('woForm');
+        if (form) form.style.display = 'block';
+        
+        var woNumberInput = document.getElementById('workNumberInput');
+        if (woNumberInput) {
+          woNumberInput.setAttribute('readonly', 'readonly');
+          woNumberInput.placeholder = 'Filled from search - not editable';
+        }
+        
+        var assemblyNumberInput = document.getElementById('assemblyNumberInput');
+        if (assemblyNumberInput) {
+          assemblyNumberInput.setAttribute('readonly', 'readonly');
+          assemblyNumberInput.placeholder = 'Filled from search - not editable';
+        }
+      } catch (e) {
+        console.error('showFormForEdit error:', e);
+      }
+    }
+
+    function hideForm() {
+      try {
+        var form = document.getElementById('woForm');
+        if (form) form.style.display = 'none';
+      } catch (e) {
+        console.error('hideForm error:', e);
+      }
+    }
+
+    function clearForm() {
+      try {
+        // Clear everything including search input and hide form
+        clearFormForNewSearch();
+        var statusDiv = document.getElementById('woSearchStatus');
+        if (statusDiv) statusDiv.innerHTML = '';
+        var woIdInput = document.getElementById('woSearchInput');
+        if (woIdInput) woIdInput.value = '';
+        hideForm();
+        lastSearchedWO = '';
+      } catch (e) {
+        console.error('clearForm error:', e);
+      }
+      return false;
+    }
+
+    // Assembly number lookup functions
+    var assemblyTimeout = null;
+    
+    function handleAssemblyInput(event) {
+      // Clear any existing timeout
+      if (assemblyTimeout) {
+        clearTimeout(assemblyTimeout);
+      }
+      
+      // Set a new timeout to lookup after 500ms of no typing
+      assemblyTimeout = setTimeout(function() {
+        lookupAssemblyDescription();
+      }, 500);
+    }
+
+    function lookupAssemblyDescription() {
+      var assemblyInput = document.getElementById('assemblyNumberInput');
+      var descDiv = document.getElementById('assemblyDescription');
+      var assemblyNumber = assemblyInput.value.trim();
+      
+      if (!assemblyNumber) {
+        descDiv.textContent = '';
+        return;
+      }
+      
+      // Don't lookup if assembly number is too short
+      if (assemblyNumber.length < 3) {
+        descDiv.textContent = '';
+        return;
+      }
+      
+      descDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Looking up assembly...';
+      
+      fetch('/get_parts.xml?PART=' + encodeURIComponent(assemblyNumber))
+        .then(function(response) {
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          return response.text();
+        })
+        .then(function(xmlText) {
+          try {
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(xmlText, 'application/xml');
+            
+            // Check for errors
+            var errorEl = doc.querySelector('error');
+            if (errorEl) {
+              descDiv.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> ' + errorEl.textContent;
+              return;
+            }
+            
+            // Extract description
+            var descEl = doc.querySelector('Part Description');
+            if (descEl && descEl.textContent.trim()) {
+              descDiv.innerHTML = '<i class="fas fa-check" style="color: #22c55e;"></i> ' + descEl.textContent.trim();
+            } else {
+              descDiv.innerHTML = '<i class="fas fa-question-circle" style="color: #f59e0b;"></i> Assembly found but no description available';
+            }
+          } catch (e) {
+            console.error('XML parsing error:', e);
+            descDiv.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> Error parsing response';
+          }
+        })
+        .catch(function(error) {
+          console.error('Assembly lookup error:', error);
+          descDiv.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> Error looking up assembly';
+        });
+    }
+
+    // Set today's date as default for WO Date
+    try {
+      var today = new Date().toISOString().split('T')[0];
+      document.getElementById('woDateInput').value = today;
+    } catch (e) {
+      console.error('Date initialization error:', e);
+    }
+  </script>
+</body>
+</html>

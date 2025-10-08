@@ -1,0 +1,67 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+*
+* GET_SHIPVIA.XML - Retrieve single shipvia record or all records
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'SHIPVIAS' TO SHIPVIASF ELSE STOP 201,'SHIPVIAS'
+
+PL_GETVAR SHIPVIA_CODE FROM 'shipvia_code' ELSE SHIPVIA_CODE = ''
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+
+IF SHIPVIA_CODE <> '' THEN
+    * Get single record
+    XML.RESPONSE = XML.RESPONSE : '<shipvia_response>'
+    READ SHIPVIA.RECORD FROM SHIPVIASF, SHIPVIA_CODE ELSE
+        XML.RESPONSE = XML.RESPONSE : '<error>Ship Via not found</error>'
+        XML.RESPONSE = XML.RESPONSE : '</shipvia_response>'
+        GOTO WRITE_RESPONSE
+    END
+    
+    XML.RESPONSE = XML.RESPONSE : '<shipvia>'
+    XML.RESPONSE = XML.RESPONSE : '<code>' : SHIPVIA_CODE : '</code>'
+    XML.RESPONSE = XML.RESPONSE : '<shipvia_code>' : SHIPVIA_CODE : '</shipvia_code>'
+    XML.RESPONSE = XML.RESPONSE : '<name>' : SHIPVIA.RECORD<1> : '</name>'
+    XML.RESPONSE = XML.RESPONSE : '<shipvia_name>' : SHIPVIA.RECORD<1> : '</shipvia_name>'
+    XML.RESPONSE = XML.RESPONSE : '<description>' : SHIPVIA.RECORD<2> : '</description>'
+    XML.RESPONSE = XML.RESPONSE : '<shipvia_description>' : SHIPVIA.RECORD<2> : '</shipvia_description>'
+    XML.RESPONSE = XML.RESPONSE : '</shipvia>'
+    XML.RESPONSE = XML.RESPONSE : '</shipvia_response>'
+END ELSE
+    * Get all records
+    XML.RESPONSE = XML.RESPONSE : '<shipvias>'
+    SL = \SSELECT SHIPVIAS\
+    EXECUTE SL
+    
+    RECORD_COUNT = 0
+    10 READNEXT SHIPVIA_ID THEN
+        READ SHIPVIA.RECORD FROM SHIPVIASF, SHIPVIA_ID ELSE
+            GOTO 10
+        END
+        
+        RECORD_COUNT = RECORD_COUNT + 1
+        
+        XML.RESPONSE = XML.RESPONSE : '<shipvia>'
+        XML.RESPONSE = XML.RESPONSE : '<code>' : SHIPVIA_ID : '</code>'
+        XML.RESPONSE = XML.RESPONSE : '<shipvia_code>' : SHIPVIA_ID : '</shipvia_code>'
+        XML.RESPONSE = XML.RESPONSE : '<name>' : SHIPVIA.RECORD<1> : '</name>'
+        XML.RESPONSE = XML.RESPONSE : '<shipvia_name>' : SHIPVIA.RECORD<1> : '</shipvia_name>'
+        XML.RESPONSE = XML.RESPONSE : '<description>' : SHIPVIA.RECORD<2> : '</description>'
+        XML.RESPONSE = XML.RESPONSE : '<shipvia_description>' : SHIPVIA.RECORD<2> : '</shipvia_description>'
+        XML.RESPONSE = XML.RESPONSE : '</shipvia>'
+        
+        GOTO 10
+    END
+    
+    XML.RESPONSE = XML.RESPONSE : '<total_records>' : RECORD_COUNT : '</total_records>'
+    XML.RESPONSE = XML.RESPONSE : '</shipvias>'
+END
+
+WRITE_RESPONSE:
+WRITE XML.RESPONSE ON XMLDATAF,'SHIPVIA.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/SHIPVIA.XML','',ERR)
+RETURN
+</PRE>

@@ -1,0 +1,48 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'VENDOR' TO VENDORF ELSE STOP 201,'VENDOR'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+* Get parameters from URL
+PL_GETVAR VENDOR_NUMBER FROM 'VENDOR_NUMBER' ELSE VENDOR_NUMBER = '262780'
+
+VENDOR_NUMBER = TRIM(VENDOR_NUMBER)
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM:'<vendor_debug>' 
+
+*REM Read VENDOR record for debugging
+READ VENDOR.RECORD FROM VENDORF, VENDOR_NUMBER ELSE
+    XML.RESPONSE = XML.RESPONSE :XAM: '<error>Vendor not found: ' : VENDOR_NUMBER : '</error>'
+    GOTO DONE
+END
+
+XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_number>' : VENDOR_NUMBER : '</vendor_number>'
+
+* Debug all fields 1-20 to see what's in each position
+FOR I = 1 TO 20
+    FIELD_VALUE = VENDOR.RECORD<I>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<field' : I : '>' : FIELD_VALUE : '</field' : I : '>'
+NEXT I
+
+DONE:
+*REM Complete XML response
+XML.RESPONSE = XML.RESPONSE :XAM: '</vendor_debug>'
+ 
+*REM Output the XML
+    WRITE XML.RESPONSE ON XMLDATAF,'VENDOR_DEBUG.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/VENDOR_DEBUG.XML','',ERR)
+    RETURN
+</pre>

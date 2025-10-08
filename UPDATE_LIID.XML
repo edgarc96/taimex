@@ -1,0 +1,138 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+* UPDATE_LIID.XML - Update ID counter in LIID database after using an ID
+* Usage: UPDATE_LIID.XML?TYPE=CUSTOMER&ID=123
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'LIID' TO LIIDF ELSE STOP 201,'LIID'
+
+* Pick/BASIC separator constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+CRLF = CHAR(13):CHAR(10)
+
+* Get request parameters
+PL_GETVAR ID_TYPE FROM 'TYPE' ELSE ID_TYPE = 'CUSTOMER'
+PL_GETVAR USED_ID FROM 'ID' ELSE USED_ID = ''
+
+* Clean and validate parameters
+ID_TYPE = TRIM(ID_TYPE)
+ID_TYPE = OCONV(ID_TYPE, "MCU")
+USED_ID = TRIM(USED_ID)
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>':CRLF
+XML.RESPONSE = XML.RESPONSE:'<liid_update_response>':CRLF
+
+* Validate parameters
+IF ID_TYPE = '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<status>error</status>'
+    XML.RESPONSE = XML.RESPONSE : '<message>No ID type provided</message>'
+    GOTO FINISH_OUTPUT
+END
+
+IF USED_ID = '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<status>error</status>'
+    XML.RESPONSE = XML.RESPONSE : '<message>Missing required ID parameter</message>'
+    FIELD_VALUE = ID_TYPE
+    GOSUB CLEAN_FIELD
+    XML.RESPONSE = XML.RESPONSE : '<id_type>' : FIELD_VALUE : '</id_type>'
+    GOTO FINISH_OUTPUT
+END
+
+* Validate that ID is numeric
+IF NOT(NUM(USED_ID)) THEN
+    XML.RESPONSE = XML.RESPONSE : '<status>error</status>'
+    XML.RESPONSE = XML.RESPONSE : '<message>ID must be numeric</message>'
+    FIELD_VALUE = ID_TYPE
+    GOSUB CLEAN_FIELD
+    XML.RESPONSE = XML.RESPONSE : '<id_type>' : FIELD_VALUE : '</id_type>'
+    FIELD_VALUE = USED_ID
+    GOSUB CLEAN_FIELD
+    XML.RESPONSE = XML.RESPONSE : '<invalid_id>' : FIELD_VALUE : '</invalid_id>'
+    GOTO FINISH_OUTPUT
+END
+* Read the current record for the specified type
+READ LIID.RECORD FROM LIIDF, ID_TYPE ELSE
+    * If record doesn't exist, create it with the used ID
+    GOTO CREATE_RECORD_WITH_ID
+END
+
+* Get current ID from record
+CURRENT_ID = LIID.RECORD<1>
+
+* Update the record if the used ID is >= current ID
+IF NUM(CURRENT_ID) AND NUM(USED_ID) THEN
+    IF USED_ID >= CURRENT_ID THEN
+        LIID.RECORD<1> = USED_ID
+        LIID.RECORD<4> = DATE()  ; * Last update date
+        LIID.RECORD<5> = TIME()  ; * Last update time
+        
+        WRITE LIID.RECORD ON LIIDF, ID_TYPE
+    END
+END
+
+GOTO OUTPUT_SUCCESS
+
+CREATE_RECORD_WITH_ID:
+* Create new record with the used ID
+LIID.RECORD = ''
+LIID.RECORD<1> = USED_ID      ; * Current highest ID
+LIID.RECORD<2> = DATE()       ; * Creation date
+LIID.RECORD<3> = TIME()       ; * Creation time
+LIID.RECORD<4> = DATE()       ; * Last update date
+LIID.RECORD<5> = TIME()       ; * Last update time
+
+WRITE LIID.RECORD ON LIIDF, ID_TYPE
+
+GOTO OUTPUT_SUCCESS
+
+OUTPUT_SUCCESS:
+* Clean values for XML output
+FIELD_VALUE = ID_TYPE
+GOSUB CLEAN_FIELD
+CLEAN_TYPE = FIELD_VALUE
+
+FIELD_VALUE = USED_ID
+GOSUB CLEAN_FIELD
+CLEAN_ID = FIELD_VALUE
+
+XML.RESPONSE = XML.RESPONSE : '<status>success</status>'
+XML.RESPONSE = XML.RESPONSE : '<id_type>' : CLEAN_TYPE : '</id_type>'
+XML.RESPONSE = XML.RESPONSE : '<updated_id>' : CLEAN_ID : '</updated_id>'
+XML.RESPONSE = XML.RESPONSE : '<message>ID counter updated successfully</message>'
+XML.RESPONSE = XML.RESPONSE : '<update_date>' : OCONV(DATE(), "D2/") : '</update_date>'
+XML.RESPONSE = XML.RESPONSE : '<update_time>' : OCONV(TIME(), "MTS") : '</update_time>'
+
+GOTO FINISH_OUTPUT
+
+* Subroutine to clean field data
+CLEAN_FIELD:
+    * Remove control characters
+    CONVERT CHAR(0) TO '' IN FIELD_VALUE
+    CONVERT CHAR(1) TO '' IN FIELD_VALUE
+    CONVERT CHAR(2) TO '' IN FIELD_VALUE
+    CONVERT CHAR(3) TO '' IN FIELD_VALUE
+    CONVERT CHAR(4) TO '' IN FIELD_VALUE
+    CONVERT CHAR(5) TO '' IN FIELD_VALUE
+    * Escape XML characters
+    CONVERT '&' TO '&amp;' IN FIELD_VALUE
+    CONVERT '<' TO '&lt;' IN FIELD_VALUE
+    CONVERT '>' TO '&gt;' IN FIELD_VALUE
+    CONVERT '"' TO '&quot;' IN FIELD_VALUE
+    CONVERT CHAR(39) TO '&apos;' IN FIELD_VALUE
+    RETURN
+
+FINISH_OUTPUT:
+XML.RESPONSE = XML.RESPONSE:'</liid_update_response>':CRLF
+
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_LIID.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_LIID.XML','',ERR)
+RETURN
+</pre>

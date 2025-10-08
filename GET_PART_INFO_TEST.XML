@@ -1,0 +1,99 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+*
+* GET_PART_INFO_TEST.XML - Simple test version to debug part lookup
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO' TO POF ELSE STOP 201,'PO'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253) 
+XSM = CHAR(252)
+
+* Get parameters from URL
+PL_GETVAR PART_NUMBER FROM 'PART_NUMBER' ELSE PART_NUMBER = ''
+PL_GETVAR PART FROM 'PART' ELSE PART = PART_NUMBER
+
+PART = TRIM(PART)
+
+* Add XML header
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<parts>'
+
+* Validate parameter
+IF PART = "" THEN
+    XML.RESPONSE = XML.RESPONSE : XAM : '<error>Missing parameter: PART_NUMBER or PART</error>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '</parts>'
+    WRITE XML.RESPONSE ON XMLDATAF,'PART_INFO_TEST.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/PART_INFO_TEST.XML','',ERR)
+    RETURN
+END
+
+* Enhanced search - check multiple fields and look for exact match
+RECORDS_CHECKED = 0
+SAMPLE_PARTS = ''
+FOUND_MATCH = 0
+FOUND_IN_FIELD = ''
+
+SELECT POF TO PO_LIST
+LOOP
+    READNEXT PO_ID FROM PO_LIST ELSE GOTO DONE_SAMPLING
+    READ PO.RECORD FROM POF, PO_ID ELSE CONTINUE
+    
+    RECORDS_CHECKED = RECORDS_CHECKED + 1
+    
+    * Check field 32 (main part field)
+    PART_FIELD = PO.RECORD<32>
+    IF PART_FIELD <> '' THEN
+        IF SAMPLE_PARTS <> '' THEN SAMPLE_PARTS = SAMPLE_PARTS : ','
+        SAMPLE_PARTS = SAMPLE_PARTS : PART_FIELD
+        
+        * Check for exact match (case sensitive for now)
+        IF INDEX(PART_FIELD, PART, 1) > 0 THEN
+            FOUND_MATCH = 1
+            FOUND_IN_FIELD = 'field_32'
+            GOTO DONE_SAMPLING
+        END
+    END
+    
+    * Also check a few other common part number fields
+    FOR FIELD_NUM = 30 TO 35
+        CHECK_FIELD = PO.RECORD<FIELD_NUM>
+        IF CHECK_FIELD <> '' AND INDEX(CHECK_FIELD, PART, 1) > 0 THEN
+            FOUND_MATCH = 1
+            FOUND_IN_FIELD = 'field_' : FIELD_NUM
+            GOTO DONE_SAMPLING
+        END
+    NEXT FIELD_NUM
+    
+    IF RECORDS_CHECKED >= 10 THEN GOTO DONE_SAMPLING
+REPEAT
+
+DONE_SAMPLING:
+
+* Build enhanced response with match info
+XML.RESPONSE = XML.RESPONSE : XAM : '<part>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<search_term>' : PART : '</search_term>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<records_checked>' : RECORDS_CHECKED : '</records_checked>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<sample_parts>' : SAMPLE_PARTS : '</sample_parts>'
+IF FOUND_MATCH THEN
+    XML.RESPONSE = XML.RESPONSE : XAM : '<found>true</found>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<found_in>' : FOUND_IN_FIELD : '</found_in>'
+END ELSE
+    XML.RESPONSE = XML.RESPONSE : XAM : '<found>false</found>'
+END
+XML.RESPONSE = XML.RESPONSE : XAM : '</part>'
+
+XML.RESPONSE = XML.RESPONSE : XAM : '</parts>'
+
+* Output XML
+WRITE XML.RESPONSE ON XMLDATAF,'PART_INFO_TEST.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/PART_INFO_TEST.XML','',ERR)
+RETURN
+</PRE>

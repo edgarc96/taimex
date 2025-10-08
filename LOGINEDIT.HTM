@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TAIMEX - Enterprise System Access</title>
+  <style>
+    /* Fonts */
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700&display=swap");
+
+    /* Minimalist TAIMEX Color Palette */
+    :root {
+      --taimex-navy:       #1e293b;
+      --taimex-blue:       #334155;
+      --taimex-accent:     #1e40af;
+      --taimex-gradient:   linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      --glass-bg:          rgba(255, 255, 255, 0.95);
+      --glass-border:      rgba(203, 213, 225, 0.3);
+      --text-primary:      #1e293b;
+      --text-secondary:    #64748b;
+      --success:           #059669;
+      --danger:            #dc2626;
+      --warning:           #d97706;
+    }
+
+    /* Base */
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background image with blur effect */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url('http://54.189.226.145/uploads/assets/images/taimex_stamping.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      filter: blur(3px);
+      transform: scale(1.1);
+      z-index: 1;
+    }
+
+    /* Overlay for better contrast */
+    body::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        135deg, 
+        rgba(30, 41, 59, 0.7) 0%, 
+        rgba(51, 65, 85, 0.6) 50%, 
+        rgba(30, 64, 175, 0.5) 100%
+      );
+      z-index: 2;
+    }
+
+    /* Animated gradient overlay for extra visual interest */
+    .animated-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(
+        ellipse at center,
+        rgba(30, 64, 175, 0.1) 0%,
+        rgba(30, 41, 59, 0.2) 50%,
+        rgba(0, 0, 0, 0.3) 100%
+      );
+      animation: subtleShift 15s ease-in-out infinite;
+      z-index: 3;
+    }
+
+    @keyframes subtleShift {
+      0%, 100% { 
+        background: radial-gradient(
+          ellipse at 30% 40%,
+          rgba(30, 64, 175, 0.1) 0%,
+          rgba(30, 41, 59, 0.2) 50%,
+          rgba(0, 0, 0, 0.3) 100%
+        );
+      }
+      50% { 
+        background: radial-gradient(
+          ellipse at 70% 60%,
+          rgba(30, 64, 175, 0.15) 0%,
+          rgba(30, 41, 59, 0.15) 50%,
+          rgba(0, 0, 0, 0.25) 100%
+        );
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Login container */
+    .login-container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 400px;
+      padding: 0 20px;
+    }
+
+    /* Enhanced glass effect for the card */
+    .login-card {
+      padding: 60px 50px;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.15),
+        0 15px 30px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      position: relative;
+      animation: slideUp 0.8s ease-out;
+    }
+
+    /* Logo and branding */
+    .logo-section {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .logo-container {
+      display: inline-block;
+      padding: 20px 30px;
+      background: linear-gradient(135deg, var(--taimex-navy) 0%, var(--taimex-blue) 100%);
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 
+        0 10px 25px rgba(30, 41, 59, 0.2),
+        0 5px 15px rgba(30, 41, 59, 0.1);
+    }
+
+    .logo-image {
+      height: 50px;
+      width: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .logo-fallback {
+      font-family: 'Poppins', sans-serif;
+      font-size: 2.2em;
+      font-weight: 600;
+      color: white;
+      margin: 0;
+      letter-spacing: -0.5px;
+      display: none;
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 1em;
+      font-weight: 400;
+    }
+
+    /* Error message styling */
+    .error-message {
+      background: rgba(220, 38, 38, 0.1);
+      border: 1px solid rgba(220, 38, 38, 0.2);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      color: #dc2626;
+      font-size: 0.9em;
+      font-weight: 500;
+      text-align: center;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Form styling */
+    .form-group {
+      margin-bottom: 30px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--text-primary);
+      font-weight: 500;
+      font-size: 0.95em;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 18px 20px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      font-size: 1em;
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+      font-weight: 400;
+      backdrop-filter: blur(10px);
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--taimex-accent);
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .form-group input::placeholder {
+      color: #94a3b8;
+      font-weight: 400;
+    }
+
+    .form-group input.error {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08);
+    }
+
+    /* Enhanced login button */
+    .btn-login {
+      width: 100%;
+      padding: 18px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1em;
+      font-weight: 600;
+      color: white;
+      background: linear-gradient(135deg, var(--taimex-accent) 0%, #1d4ed8 100%);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+      position: relative;
+      box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3);
+    }
+
+    .btn-login:hover:not(:disabled) {
+      background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(30, 64, 175, 0.4);
+    }
+
+    .btn-login:active {
+      transform: translateY(0);
+    }
+
+    .btn-login:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Footer */
+    .login-footer {
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 30px;
+      border-top: 1px solid rgba(226, 232, 240, 0.5);
+    }
+
+    .login-footer p {
+      color: var(--text-secondary);
+      font-size: 0.85em;
+      font-weight: 400;
+    }
+
+    /* Responsive design */
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 40px 30px;
+        margin: 20px;
+        border-radius: 16px;
+      }
+      
+      .logo-fallback {
+        font-size: 2.2em;
+      }
+      
+      .form-group input {
+        padding: 16px 18px;
+      }
+      
+      .btn-login {
+        padding: 16px;
+      }
+    }
+
+    /* Loading animation */
+    .loading {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="animated-overlay"></div>
+  
+  <div class="login-container">
+    <div class="login-card">
+      <div class="logo-section">
+        <div class="logo-container">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" 
+               alt="TAIMEX" 
+               class="logo-image" 
+               onerror="showFallbackLogo(this)" />
+          <h1 class="logo-fallback" id="fallbackLogo">TAIMEX</h1>
+        </div>
+        <div class="subtitle">Enterprise Resource Planning</div>
+      </div>
+      
+      <!-- Error Message Display -->
+      <div class="error-message" id="errorMessage"></div>
+      
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="initials">User Initials</label>
+          <input type="text" 
+                 id="initials" 
+                 name="INITIALS" 
+                 placeholder="Enter your initials" 
+                 value=""
+                 maxlength="10"
+                 style="text-transform: uppercase;"
+                 required />
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Personal Code</label>
+          <input type="password" 
+                 id="password" 
+                 name="PWD" 
+                 placeholder="Enter your personal code" 
+                 required />
+        </div>
+        
+        <button type="submit" class="btn-login">
+          <span class="loading"></span>
+          <span class="btn-text">Sign In</span>
+        </button>
+      </form>
+      
+      <div class="login-footer">
+        <p>&copy; 2025 TAIMEX. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Logo fallback function
+    function showFallbackLogo(img) {
+      img.style.display = 'none';
+      document.getElementById('fallbackLogo').style.display = 'block';
+    }
+
+    // Show error message
+    function showError(message) {
+      const errorMsg = document.getElementById('errorMessage');
+      errorMsg.textContent = message;
+      errorMsg.classList.add('show');
+      
+      // Auto-hide error after 10 seconds
+      setTimeout(() => {
+        errorMsg.classList.remove('show');
+      }, 10000);
+    }
+
+    // Hide error message
+    function hideError() {
+      const errorMsg = document.getElementById('errorMessage');
+      errorMsg.classList.remove('show');
+    }
+
+    // Login function via AJAX
+    function performLogin(initials, password) {
+      const button = document.querySelector('.btn-login');
+      const loading = button.querySelector('.loading');
+      const text = button.querySelector('.btn-text');
+      
+      // Show loading state
+      loading.style.display = 'inline-block';
+      text.textContent = 'Signing in...';
+      button.disabled = true;
+      
+      // Prepare form data
+      const formData = new URLSearchParams();
+      formData.append('INITIALS', initials.toUpperCase());
+      formData.append('PWD', password);
+      formData.append('LOGIN', 'LOGIN');
+      
+      // Make AJAX request
+      fetch('LOGIN.XML', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString()
+      })
+      .then(response => response.text())
+      .then(xmlText => {
+        console.log('Login response:', xmlText);
+        
+        // Parse XML response
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+        
+        const success = xmlDoc.querySelector('success')?.textContent === 'true';
+        const message = xmlDoc.querySelector('message')?.textContent || '';
+        const redirectUrl = xmlDoc.querySelector('redirect_url')?.textContent || '';
+        const userName = xmlDoc.querySelector('user_name')?.textContent || '';
+        
+        if (success) {
+          // Store user info in BOTH sessionStorage AND cookies for reliability
+          sessionStorage.setItem('userInitials', initials.toUpperCase());
+          sessionStorage.setItem('userName', userName || initials.toUpperCase());
+          
+          // Set cookies that persist across pages
+          document.cookie = `userInitials=${initials.toUpperCase()}; path=/; max-age=86400`;
+          document.cookie = `userName=${encodeURIComponent(userName || initials.toUpperCase())}; path=/; max-age=86400`;
+          
+          console.log('✅ Login successful!');
+          console.log('✅ Stored in sessionStorage:', initials.toUpperCase());
+          console.log('✅ Stored in cookies:', document.cookie);
+          
+          text.textContent = 'Success! Redirecting...';
+          
+          // Redirect immediately
+          setTimeout(() => {
+            console.log('✅ Redirecting to SO_EDIT.HTM...');
+            window.location.href = '/SO_EDIT.HTM';
+          }, 300);
+        } else {
+          // Show error
+          showError(message || 'Login failed. Please try again.');
+          
+          // Reset button
+          loading.style.display = 'none';
+          text.textContent = 'Sign In';
+          button.disabled = false;
+          
+          // Add error styling to inputs
+          document.querySelectorAll('input').forEach(input => {
+            input.classList.add('error');
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Login error:', error);
+        showError('Connection error. Please try again.');
+        
+        // Reset button
+        loading.style.display = 'none';
+        text.textContent = 'Sign In';
+        button.disabled = false;
+      });
+    }
+
+    // Form submission
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const initials = document.getElementById('initials').value.trim();
+      const password = document.getElementById('password').value.trim();
+      
+      // Hide any existing errors
+      hideError();
+      
+      // Basic validation
+      if (!initials || !password) {
+        showError('Please enter both initials and password');
+        
+        // Add error styling
+        if (!initials) document.getElementById('initials').classList.add('error');
+        if (!password) document.getElementById('password').classList.add('error');
+        
+        return false;
+      }
+      
+      // Perform login
+      performLogin(initials, password);
+    });
+
+    // Auto-uppercase initials input
+    document.getElementById('initials').addEventListener('input', function(e) {
+      e.target.value = e.target.value.toUpperCase();
+      e.target.classList.remove('error');
+      hideError();
+    });
+
+    // Remove error styling when user starts typing in password
+    document.getElementById('password').addEventListener('input', function(e) {
+      e.target.classList.remove('error');
+      hideError();
+    });
+
+    // Input focus effects
+    document.querySelectorAll('input').forEach(input => {
+      input.addEventListener('focus', function() {
+        this.parentElement.style.transform = 'translateY(-1px)';
+        this.classList.remove('error');
+      });
+      
+      input.addEventListener('blur', function() {
+        this.parentElement.style.transform = 'translateY(0)';
+      });
+    });
+
+    // Auto-focus on initials field
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('initials').focus();
+    });
+
+    // Make functions globally available
+    window.showFallbackLogo = showFallbackLogo;
+  </script>
+</body>
+</html>     

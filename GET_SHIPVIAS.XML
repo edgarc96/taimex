@@ -1,0 +1,42 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+*
+* GET_SHIPVIAS.XML - Retrieve all SHIPVIAS records for SO_EDIT.HTM
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'SHIPVIAS' TO SHIPVIASF ELSE STOP 201,'SHIPVIAS'
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : '<shipvias>'
+
+* Read all SHIPVIAS records
+SL = \SSELECT SHIPVIAS\
+EXECUTE SL
+
+RECORD_COUNT = 0
+10 READNEXT SHIPVIA_ID THEN
+    READ SHIPVIA.RECORD FROM SHIPVIASF, SHIPVIA_ID ELSE
+        GOTO 10
+    END
+    
+    RECORD_COUNT = RECORD_COUNT + 1
+    
+    XML.RESPONSE = XML.RESPONSE : '<shipvia>'
+    XML.RESPONSE = XML.RESPONSE : '<shipvia_code>' : SHIPVIA_ID : '</shipvia_code>'
+    XML.RESPONSE = XML.RESPONSE : '<shipvia_name>' : SHIPVIA.RECORD<1> : '</shipvia_name>'
+    XML.RESPONSE = XML.RESPONSE : '<shipvia_description>' : SHIPVIA.RECORD<2> : '</shipvia_description>'
+    XML.RESPONSE = XML.RESPONSE : '</shipvia>'
+    
+    GOTO 10
+END
+
+XML.RESPONSE = XML.RESPONSE : '<total_records>' : RECORD_COUNT : '</total_records>'
+XML.RESPONSE = XML.RESPONSE : '</shipvias>'
+
+WRITE XML.RESPONSE ON XMLDATAF,'SHIPVIAS.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/SHIPVIAS.XML','',ERR)
+RETURN
+</PRE>

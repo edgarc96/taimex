@@ -1,0 +1,78 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+
+INCLUDE PLBASIC BP.INCLUDES PLW.INCLUDES
+
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'MTLTRANS' TO MTLTRANSF ELSE
+  EXECUTE 'CREATE-FILE MTLTRANS'
+  OPEN 'MTLTRANS' TO MTLTRANSF ELSE STOP 201,'MTLTRANS'
+END
+
+* Get parameters from URL
+PL_GETVAR CODE FROM 'CODE' ELSE CODE = ''
+PL_GETVAR DESCRIPTION FROM 'DESCRIPTION' ELSE DESCRIPTION = ''
+PL_GETVAR TYPE_IN FROM 'TYPE' ELSE TYPE_IN = ''
+PL_GETVAR REFERENCE FROM 'REFERENCE' ELSE REFERENCE = ''
+PL_GETVAR DATECODE FROM 'DATECODE' ELSE DATECODE = ''
+PL_GETVAR NOTES FROM 'NOTES' ELSE NOTES = ''
+
+CODE = TRIM(CODE)
+DESCRIPTION = TRIM(DESCRIPTION)
+TYPE_IN = TRIM(TYPE_IN)
+REFERENCE = TRIM(REFERENCE)
+DATECODE = TRIM(DATECODE)
+NOTES = TRIM(NOTES)
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Validate required parameter
+IF CODE = '' THEN
+  XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>' : @AM
+  XML.RESPONSE := '<update><status>error</status><message>Missing CODE</message></update>'
+  WRITE XML.RESPONSE ON XMLDATAF,'PREVIEW'
+  ERR = ''
+  CALL PLW.PAGE('/XMLDATA/PREVIEW','',ERR)
+  RETURN
+END
+
+* Read existing record or create new one
+RECORD_KEY = CODE
+READ RECORD FROM MTLTRANSF, RECORD_KEY ELSE RECORD = ''
+
+* Update fields (only if parameter is provided)
+IF DESCRIPTION # '' THEN RECORD<3> = DESCRIPTION
+IF TYPE_IN # '' THEN RECORD<6> = TYPE_IN
+IF REFERENCE # '' THEN RECORD<7> = REFERENCE
+IF DATECODE # '' THEN RECORD<8> = DATECODE
+IF NOTES # '' THEN RECORD<9> = NOTES
+
+* Skip writing to database - only write to PREVIEW file
+* WRITE RECORD ON MTLTRANSF, RECORD_KEY
+
+* Build success response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>' : @AM
+XML.RESPONSE := '<update>' : @AM
+XML.RESPONSE := '<status>success</status>' : @AM
+XML.RESPONSE := '<transaction>' : @AM
+XML.RESPONSE :=   '<Code>' : RECORD_KEY : '</Code>' : @AM
+XML.RESPONSE :=   '<Description>' : RECORD<3> : '</Description>' : @AM
+XML.RESPONSE :=   '<Type>' : RECORD<6> : '</Type>' : @AM
+XML.RESPONSE :=   '<Reference>' : RECORD<7> : '</Reference>' : @AM
+XML.RESPONSE :=   '<DateCode>' : RECORD<8> : '</DateCode>' : @AM
+XML.RESPONSE :=   '<Notes>' : RECORD<9> : '</Notes>' : @AM
+XML.RESPONSE := '</transaction>' : @AM
+XML.RESPONSE := '</update>' : @AM
+
+* Write to MTLTRANS database
+OPEN 'MTLTRANS' TO MTLTRANSF ELSE STOP 201,'MTLTRANS'
+WRITE RECORD ON MTLTRANSF,RECORD_KEY
+CLOSE MTLTRANSF
+
+* Write response and serve page
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_RESPONSE'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_RESPONSE','',ERR)
+RETURN
+</PRE>
+                                                                                                                                                                          

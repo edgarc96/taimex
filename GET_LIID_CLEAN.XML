@@ -1,0 +1,54 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+* GET_LIID_CLEAN.XML - Read and increment LIID
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'LIID' TO LIIDF ELSE GOTO NO_LIID
+
+CRLF = CHAR(13):CHAR(10)
+PL_GETVAR ID_TYPE FROM 'TYPE' ELSE ID_TYPE = 'SO'
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+ID_TYPE = TRIM(ID_TYPE)
+ID_TYPE = OCONV(ID_TYPE, "MCU")
+
+* Read current ID from LIID
+READ LIID.REC FROM LIIDF, ID_TYPE ELSE GOTO NO_RECORD
+
+LAST.ID = LIID.REC<1>
+IF LAST.ID = '' THEN LAST.ID = 0
+LAST.ID = LAST.ID + 0
+NEW.NUM = LAST.ID + 1
+
+* Update LIID record
+LIID.REC<1> = NEW.NUM
+WRITE LIID.REC ON LIIDF, ID_TYPE
+GOTO SEND_RESPONSE
+
+NO_RECORD:
+* Create new record starting at 1 for SO, 96451 for PO
+IF ID_TYPE = 'SO' THEN NEW.NUM = 1 ELSE NEW.NUM = 96451
+LIID.REC = ''
+LIID.REC<1> = NEW.NUM
+WRITE LIID.REC ON LIIDF, ID_TYPE
+GOTO SEND_RESPONSE
+
+NO_LIID:
+* LIID file doesn't exist, return error
+NEW.NUM = 0
+
+SEND_RESPONSE:
+XML.OUT = '<?xml version="1.0" encoding="UTF-8"?>':CRLF
+XML.OUT := '<liid_response>':CRLF
+XML.OUT := '<status>success</status>':CRLF
+XML.OUT := '<id_type>':ID_TYPE:'</id_type>':CRLF
+XML.OUT := '<next_id>':NEW.NUM:'</next_id>':CRLF
+XML.OUT := '</liid_response>':CRLF
+
+WRITE XML.OUT ON XMLDATAF,'RESPONSE.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/RESPONSE.XML','',ERR)
+RETURN
+</pre>

@@ -1,0 +1,181 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+* GET_PART.XML - Read PARTS database by Part Number
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PARTS' TO PARTSF ELSE GOTO NO_PARTS_FILE
+
+* Define constants
+CRLF = CHAR(13):CHAR(10)
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+* Get parameter from URL
+PL_GETVAR PART_NUMBER FROM 'PART_NUMBER' ELSE PART_NUMBER = ''
+PL_GETVAR PART FROM 'PART' ELSE PART = PART_NUMBER
+
+PART = TRIM(PART)
+PART = OCONV(PART, "MCU")
+
+* Add XML header
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>':CRLF
+XML.RESPONSE := '<part_info>':CRLF
+
+* Validate parameter
+IF PART = "" THEN
+  XML.RESPONSE := '<error>Missing parameter: PART_NUMBER or PART</error>':CRLF
+  XML.RESPONSE := '<status>error</status>':CRLF
+  XML.RESPONSE := '</part_info>':CRLF
+  WRITE XML.RESPONSE ON XMLDATAF,'PART_INFO.XML'
+  ERR = ''
+  CALL PLW.PAGE('/XMLDATA/PART_INFO.XML','',ERR)
+  RETURN
+END
+
+* Try to read PARTS record (try multiple case variations)
+READ PARTS.RECORD FROM PARTSF, PART ELSE
+  * Try without case conversion
+  READ PARTS.RECORD FROM PARTSF, OCONV(PART, 'MCL') ELSE
+    * Try original case from input
+    PL_GETVAR ORIGINAL_PART FROM 'PART_NUMBER' ELSE ORIGINAL_PART = ''
+    READ PARTS.RECORD FROM PARTSF, ORIGINAL_PART ELSE GOTO PART_NOT_FOUND
+  END
+END
+
+* Extract fields from PARTS record (actual PARTS database structure):
+PART_DESC = PARTS.RECORD<1>          ; * Description
+REFERENCE_CODE = PARTS.RECORD<2>     ; * Reference/Code
+PRODUCT_TIME = PARTS.RECORD<3>       ; * Product Time / Category
+LEAD_TIME = PARTS.RECORD<6>          ; * Lead Time
+COMMODITY_CODE = PARTS.RECORD<7>     ; * Commodity Code
+SAFETY_STOCK = PARTS.RECORD<12>      ; * Safety Stock
+SUPPLIER_NUMBER = PARTS.RECORD<19>   ; * Supplier Number
+PO_DESCRIPTION = PARTS.RECORD<21>    ; * PO Description
+PART_UOM = PARTS.RECORD<24>          ; * Unit of Measure
+PART_STATUS = PARTS.RECORD<30>       ; * Part Status
+
+* Clean fields (remove control characters that are illegal in XML)
+* Remove each control character individually
+FOR J = 0 TO 31
+  CTRL_CH = CHAR(J)
+  PART_DESC        = CHANGE(PART_DESC, CTRL_CH, '')
+  PART_STATUS      = CHANGE(PART_STATUS, CTRL_CH, '')
+  PART_UOM         = CHANGE(PART_UOM, CTRL_CH, '')
+  PO_DESCRIPTION   = CHANGE(PO_DESCRIPTION, CTRL_CH, '')
+  REFERENCE_CODE   = CHANGE(REFERENCE_CODE, CTRL_CH, '')
+  COMMODITY_CODE   = CHANGE(COMMODITY_CODE, CTRL_CH, '')
+  PRODUCT_TIME     = CHANGE(PRODUCT_TIME, CTRL_CH, '')
+  LEAD_TIME        = CHANGE(LEAD_TIME, CTRL_CH, '')
+  SAFETY_STOCK     = CHANGE(SAFETY_STOCK, CTRL_CH, '')
+  SUPPLIER_NUMBER  = CHANGE(SUPPLIER_NUMBER, CTRL_CH, '')
+NEXT J
+* Also remove CHAR(127) (DEL)
+PART_DESC        = CHANGE(PART_DESC, CHAR(127), '')
+PART_STATUS      = CHANGE(PART_STATUS, CHAR(127), '')
+PART_UOM         = CHANGE(PART_UOM, CHAR(127), '')
+PO_DESCRIPTION   = CHANGE(PO_DESCRIPTION, CHAR(127), '')
+REFERENCE_CODE   = CHANGE(REFERENCE_CODE, CHAR(127), '')
+COMMODITY_CODE   = CHANGE(COMMODITY_CODE, CHAR(127), '')
+PRODUCT_TIME     = CHANGE(PRODUCT_TIME, CHAR(127), '')
+LEAD_TIME        = CHANGE(LEAD_TIME, CHAR(127), '')
+SAFETY_STOCK     = CHANGE(SAFETY_STOCK, CHAR(127), '')
+SUPPLIER_NUMBER  = CHANGE(SUPPLIER_NUMBER, CHAR(127), '')
+
+* Additional cleaning for known mojibake artifacts sometimes present
+PART_DESC        = CHANGE(PART_DESC, 'Ã', '')
+PO_DESCRIPTION   = CHANGE(PO_DESCRIPTION, 'Ã', '')
+REFERENCE_CODE   = CHANGE(REFERENCE_CODE, 'Ã', '')
+COMMODITY_CODE   = CHANGE(COMMODITY_CODE, 'Ã', '')
+
+* XML escape ALL fields that will be output
+PART_DESC        = CHANGE(PART_DESC, '&', '&amp;')
+PART_DESC        = CHANGE(PART_DESC, '<', '&lt;')
+PART_DESC        = CHANGE(PART_DESC, '>', '&gt;')
+PO_DESCRIPTION   = CHANGE(PO_DESCRIPTION, '&', '&amp;')
+PO_DESCRIPTION   = CHANGE(PO_DESCRIPTION, '<', '&lt;')
+PO_DESCRIPTION   = CHANGE(PO_DESCRIPTION, '>', '&gt;')
+PART_STATUS      = CHANGE(PART_STATUS, '&', '&amp;')
+PART_STATUS      = CHANGE(PART_STATUS, '<', '&lt;')
+PART_STATUS      = CHANGE(PART_STATUS, '>', '&gt;')
+PART_UOM         = CHANGE(PART_UOM, '&', '&amp;')
+PART_UOM         = CHANGE(PART_UOM, '<', '&lt;')
+PART_UOM         = CHANGE(PART_UOM, '>', '&gt;')
+REFERENCE_CODE   = CHANGE(REFERENCE_CODE, '&', '&amp;')
+REFERENCE_CODE   = CHANGE(REFERENCE_CODE, '<', '&lt;')
+REFERENCE_CODE   = CHANGE(REFERENCE_CODE, '>', '&gt;')
+PRODUCT_TIME     = CHANGE(PRODUCT_TIME, '&', '&amp;')
+PRODUCT_TIME     = CHANGE(PRODUCT_TIME, '<', '&lt;')
+PRODUCT_TIME     = CHANGE(PRODUCT_TIME, '>', '&gt;')
+LEAD_TIME        = CHANGE(LEAD_TIME, '&', '&amp;')
+LEAD_TIME        = CHANGE(LEAD_TIME, '<', '&lt;')
+LEAD_TIME        = CHANGE(LEAD_TIME, '>', '&gt;')
+COMMODITY_CODE   = CHANGE(COMMODITY_CODE, '&', '&amp;')
+COMMODITY_CODE   = CHANGE(COMMODITY_CODE, '<', '&lt;')
+COMMODITY_CODE   = CHANGE(COMMODITY_CODE, '>', '&gt;')
+SAFETY_STOCK     = CHANGE(SAFETY_STOCK, '&', '&amp;')
+SAFETY_STOCK     = CHANGE(SAFETY_STOCK, '<', '&lt;')
+SAFETY_STOCK     = CHANGE(SAFETY_STOCK, '>', '&gt;')
+SUPPLIER_NUMBER  = CHANGE(SUPPLIER_NUMBER, '&', '&amp;')
+SUPPLIER_NUMBER  = CHANGE(SUPPLIER_NUMBER, '<', '&lt;')
+SUPPLIER_NUMBER  = CHANGE(SUPPLIER_NUMBER, '>', '&gt;')
+
+* Build XML response
+XML.RESPONSE := '<part>':CRLF
+XML.RESPONSE := '<part_number>':PART:'</part_number>':CRLF
+XML.RESPONSE := '<description>':PART_DESC:'</description>':CRLF
+XML.RESPONSE := '<status>':PART_STATUS:'</status>':CRLF
+XML.RESPONSE := '<uom>':PART_UOM:'</uom>':CRLF
+XML.RESPONSE := '<reference_code>':REFERENCE_CODE:'</reference_code>':CRLF
+XML.RESPONSE := '<product_time>':PRODUCT_TIME:'</product_time>':CRLF
+XML.RESPONSE := '<lead_time>':LEAD_TIME:'</lead_time>':CRLF
+XML.RESPONSE := '<commodity_code>':COMMODITY_CODE:'</commodity_code>':CRLF
+XML.RESPONSE := '<safety_stock>':SAFETY_STOCK:'</safety_stock>':CRLF
+XML.RESPONSE := '<supplier_number>':SUPPLIER_NUMBER:'</supplier_number>':CRLF
+XML.RESPONSE := '<po_description>':PO_DESCRIPTION:'</po_description>':CRLF
+XML.RESPONSE := '</part>':CRLF
+XML.RESPONSE := '<status>found</status>':CRLF
+GOTO OUTPUT
+
+PART_NOT_FOUND:
+* Part not found - return empty structure
+XML.RESPONSE := '<part>':CRLF
+XML.RESPONSE := '<part_number></part_number>':CRLF
+XML.RESPONSE := '<description></description>':CRLF
+XML.RESPONSE := '<status></status>':CRLF
+XML.RESPONSE := '<uom></uom>':CRLF
+XML.RESPONSE := '<reference_code></reference_code>':CRLF
+XML.RESPONSE := '<product_time></product_time>':CRLF
+XML.RESPONSE := '<lead_time></lead_time>':CRLF
+XML.RESPONSE := '<commodity_code></commodity_code>':CRLF
+XML.RESPONSE := '<safety_stock></safety_stock>':CRLF
+XML.RESPONSE := '<supplier_number></supplier_number>':CRLF
+XML.RESPONSE := '<po_description></po_description>':CRLF
+XML.RESPONSE := '</part>':CRLF
+XML.RESPONSE := '<status>not_found</status>':CRLF
+XML.RESPONSE := '<message>Part ':PART:' not found in PARTS database</message>':CRLF
+GOTO OUTPUT
+
+NO_PARTS_FILE:
+* PARTS file doesn't exist
+XML.RESPONSE := '<error>Cannot open PARTS database</error>':CRLF
+XML.RESPONSE := '<status>error</status>':CRLF
+
+OUTPUT:
+* Complete XML response
+XML.RESPONSE := '</part_info>':CRLF
+
+* Output XML with unique filename to avoid cache
+TIMESTAMP = OCONV(DATE():'*':TIME(),'MCL')
+FILENAME = 'PART_' : TIMESTAMP : '.XML'
+WRITE XML.RESPONSE ON XMLDATAF,FILENAME
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/':FILENAME,'',ERR)
+RETURN
+
+</pre>

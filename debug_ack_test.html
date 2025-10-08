@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Acknowledgment Test</title>
+    <script>
+        // Test the acknowledgment population with console logging
+        function testAckPopulation() {
+            console.log('=== TESTING ACKNOWLEDGMENT POPULATION ===');
+            
+            // Sample acknowledgment data (what would come from a PO with ACK data)
+            const sampleAcknowledments = {
+                ack_line: [{
+                    ack_entry: [
+                        { date: '12/15/2024', quantity: '100' },
+                        { date: '01/20/2025', quantity: '50' }
+                    ]
+                }]
+            };
+            
+            console.log('Sample acknowledgment data:', sampleAcknowledments);
+            
+            // Simulate the population logic
+            if (sampleAcknowledments && sampleAcknowledments.ack_line) {
+                console.log('✅ Acknowledgment data found');
+                const ackLines = Array.isArray(sampleAcknowledments.ack_line) ? sampleAcknowledments.ack_line : [sampleAcknowledments.ack_line];
+                
+                let fieldIndex = 1;
+                for (const ackLine of ackLines) {
+                    if (ackLine.ack_entry) {
+                        const ackEntries = Array.isArray(ackLine.ack_entry) ? ackLine.ack_entry : [ackLine.ack_entry];
+                        
+                        for (const entry of ackEntries) {
+                            console.log(`Field ${fieldIndex}: Date=${entry.date}, Qty=${entry.quantity}`);
+                            fieldIndex++;
+                        }
+                    }
+                }
+            } else {
+                console.log('❌ No acknowledgment data (like PO 96450)');
+            }
+            
+            // Test with empty data (PO 96450 scenario)
+            console.log('\n=== TESTING WITH EMPTY DATA (PO 96450) ===');
+            const emptyAcknowledments = null;
+            if (emptyAcknowledments && emptyAcknowledments.ack_line) {
+                console.log('✅ Would populate fields');
+            } else {
+                console.log('❌ No acknowledgment data - fields will be empty (EXPECTED for PO 96450)');
+            }
+        }
+        
+        window.onload = testAckPopulation;
+    </script>
+</head>
+<body>
+    <h2>Debug Acknowledgment Test</h2>
+    <p>Check the browser console (F12) for test results.</p>
+</body>
+</html>

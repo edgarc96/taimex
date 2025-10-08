@@ -1,0 +1,71 @@
+<pre>
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO2' TO PO2F ELSE STOP 201,'PO2'
+
+* Define constants
+XAM = CHAR(10)
+
+* Get parameters from URL
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = ''
+PO_NUMBER = TRIM(PO_NUMBER)
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response with line numbers for debug
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<!-- Line 2 --><purchaseorders>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<!-- Line 3 --><po>'
+
+IF PO_NUMBER = '' THEN
+    XML.RESPONSE = XML.RESPONSE : XAM : '<!-- Line 4 --><error>No PO number provided</error>'
+    GOTO FINISH_OUTPUT
+END
+
+READ PO.RECORD FROM PO2F, PO_NUMBER ELSE
+    XML.RESPONSE = XML.RESPONSE : XAM : '<!-- Line 5 --><error>PO not found</error>'
+    GOTO FINISH_OUTPUT
+END
+
+* Clean PO_NUMBER to avoid XML issues
+PO_NUMBER_CLEAN = PO_NUMBER
+CONVERT '&' TO '&amp;' IN PO_NUMBER_CLEAN
+CONVERT '<' TO '&lt;' IN PO_NUMBER_CLEAN
+CONVERT '>' TO '&gt;' IN PO_NUMBER_CLEAN
+
+* Get basic fields and clean them
+PO_DATE_RAW = PO.RECORD<1>
+BUYER_RAW = PO.RECORD<8>
+VENDOR_RAW = PO.RECORD<2>
+
+* Clean all fields
+CONVERT '&' TO '&amp;' IN PO_DATE_RAW
+CONVERT '<' TO '&lt;' IN PO_DATE_RAW
+CONVERT '>' TO '&gt;' IN PO_DATE_RAW
+
+CONVERT '&' TO '&amp;' IN BUYER_RAW
+CONVERT '<' TO '&lt;' IN BUYER_RAW
+CONVERT '>' TO '&gt;' IN BUYER_RAW
+
+CONVERT '&' TO '&amp;' IN VENDOR_RAW
+CONVERT '<' TO '&lt;' IN VENDOR_RAW
+CONVERT '>' TO '&gt;' IN VENDOR_RAW
+
+XML.RESPONSE = XML.RESPONSE : XAM : '<!-- Line 6 --><po_number>' : PO_NUMBER_CLEAN : '</po_number>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<!-- Line 7 --><po_date>' : PO_DATE_RAW : '</po_date>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<!-- Line 8 --><buyer>' : BUYER_RAW : '</buyer>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<!-- Line 9 --><vendor_number>' : VENDOR_RAW : '</vendor_number>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<!-- Line 10 --><status>found_with_data</status>'
+
+FINISH_OUTPUT:
+XML.RESPONSE = XML.RESPONSE : XAM : '<!-- Line 11 --></po>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<!-- Line 12 --></purchaseorders>'
+
+DELETE XMLDATAF, 'GET_PO2_MINIMAL.XML'
+WRITE XML.RESPONSE ON XMLDATAF, 'GET_PO2_MINIMAL.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/GET_PO2_MINIMAL.XML', '', ERR)
+RETURN
+</pre>

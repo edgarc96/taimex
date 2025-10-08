@@ -1,0 +1,96 @@
+PicLan-IP/BASIC ^ ^
+
+XMLDATA_OK = 1
+OPEN 'XMLDATA' TO XMLDATAF ELSE XMLDATA_OK = 0
+OPEN 'OPERS' TO OPERSF ELSE OPERS_OK = 0
+CRLF = CHAR(13):CHAR(10)
+
+* 1) Leer parámetro
+INITIALS = ''
+PL_GETVAR INITIALS FROM 'INITIALS' ELSE INITIALS = ''
+INITIALS = OCONV(INITIALS, "MCU")
+INITIALS = TRIM(INITIALS)
+IF INITIALS = '' THEN INITIALS = 'NA'
+
+* 2) Resolver nombre (dinámico)
+*    2.1 Primero acepta NAME directo desde el query (OP_EDIT)
+NAME = ''
+PL_GETVAR NAME FROM 'NAME' ELSE NAME = ''
+NAME = TRIM(NAME)
+IF NAME # '' THEN GOTO BUILD_XML
+
+* 2.0 Modo lista completa (SELECT ALL)
+LIST = ''
+PL_GETVAR LIST FROM 'LIST' ELSE LIST = ''
+LISTF = TRIM(OCONV(LIST, "MCU"))
+IF LISTF = '1' OR LISTF = 'Y' OR LISTF = 'YES' OR LISTF = 'T' OR LISTF = 'TRUE' THEN GOTO LIST_ALL
+
+*    2.2 Si no vino por query, buscar en archivo plano dentro de XMLDATA
+*        Formato de líneas:  INITIALS|NAME   (también acepta , ; o TAB como separador)
+USERDATA = ''
+
+READ OPREC FROM OPERSF,INITIALS ELSE GOTO NO_USER_FOUND
+NAME = OPREC<1>
+*
+NO_USER_FOUND:
+IF NAME = '' THEN NAME = 'Desconocido'
+
+* --- Listar todos los usuarios desde OPERS (fuente de verdad) ---
+LIST_ALL:
+ XML = '<?xml version="1.0" encoding="UTF-8"?>' : CRLF
+ XML = XML : '<Users>' : CRLF
+ 
+ * Iterar sobre todos los registros en OPERS
+ SELECT OPERSF
+ LOOP
+    READNEXT KEY ELSE EXIT
+    READ OPREC FROM OPERSF, KEY ELSE CONTINUE
+    UINI = OCONV(TRIM(KEY), "MCU")
+    UNAM = TRIM(OPREC<1>)
+    IF UNAM = '' THEN UNAM = 'Sin Nombre'
+    XML = XML : '  <User>' : CRLF
+    XML = XML : '    <Initials>' : UINI : '</Initials>' : CRLF
+    XML = XML : '    <Name>' : UNAM : '</Name>' : CRLF
+    XML = XML : '    <Active>1</Active>' : CRLF
+    XML = XML : '  </User>' : CRLF
+ REPEAT
+ 
+ XML = XML : '</Users>' : CRLF
+ 
+ IF XMLDATA_OK THEN
+    OUTFILE = 'USERS_ALL.XML'
+    WRITE XML ON XMLDATAF, OUTFILE
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/' : OUTFILE, '', ERR)
+    RETURN
+ END
+ 
+ PL_ADD_HDR '"Content-Type: application/xml"'
+ PRINT XML
+ RETURN
+
+BUILD_XML:
+
+* 3) Construir XML
+XML = '<?xml version="1.0" encoding="UTF-8"?>' : CRLF
+XML = XML : '<Users>' : CRLF
+XML = XML : '  <User>' : CRLF
+XML = XML : '    <Initials>' : INITIALS : '</Initials>' : CRLF
+XML = XML : '    <Name>' : NAME : '</Name>' : CRLF
+XML = XML : '    <Active>1</Active>' : CRLF
+XML = XML : '  </User>' : CRLF
+XML = XML : '</Users>' : CRLF
+
+* 4) Guardar y servir SIN imprimir nada antes (con fallback si no hay XMLDATA)
+IF XMLDATA_OK THEN
+   OUTFILE = 'USER_' : INITIALS : '.XML'
+   WRITE XML ON XMLDATAF, OUTFILE
+   ERR = ''
+   CALL PLW.PAGE('/XMLDATA/' : OUTFILE, '', ERR)
+   RETURN
+END
+
+* Fallback directo en memoria
+PL_ADD_HDR '"Content-Type: application/xml"'
+PRINT XML
+RETURN

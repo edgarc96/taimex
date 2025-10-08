@@ -1,0 +1,104 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+* Test acknowledgment parsing logic
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+
+* Pick/BASIC separator constants
+XAM = CHAR(254)
+XVM = CHAR(253)  
+XSM = CHAR(252)
+
+* Test data similar to what we're seeing
+TEST_ACK_FIELD = '2025-09-18*332025-09-18*722025-09-18*722025-09-12*40'
+
+* Initialize variables
+FORMATTED_DATE = ''
+JULIAN_DAY = ''
+ACK_DATE = ''
+ACK_QTY = ''
+REST = ''
+POS = 0
+NEXTCHAR = ''
+POSCOM = 0
+YEAR = ''
+MONTH = ''
+DAY = ''
+FIRST_MULTIVALUE = ''
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<ack_test>'
+
+* Add raw test data
+XML.RESPONSE = XML.RESPONSE : XAM : '<raw_test_data>' : TEST_ACK_FIELD : '</raw_test_data>'
+
+* Parse multivalue/subvalue structure to extract first date and qty
+FIRST_MULTIVALUE = FIELD(TEST_ACK_FIELD, XVM, 1)
+IF FIRST_MULTIVALUE = '' OR FIRST_MULTIVALUE = TEST_ACK_FIELD THEN
+    FIRST_MULTIVALUE = FIELD(TEST_ACK_FIELD, XAM, 1)
+    IF FIRST_MULTIVALUE = '' OR FIRST_MULTIVALUE = TEST_ACK_FIELD THEN
+        FIRST_MULTIVALUE = FIELD(TEST_ACK_FIELD, '*', 1)
+        IF FIRST_MULTIVALUE = '' OR FIRST_MULTIVALUE = TEST_ACK_FIELD THEN
+            FIRST_MULTIVALUE = TEST_ACK_FIELD
+        END
+    END
+END
+
+XML.RESPONSE = XML.RESPONSE : XAM : '<first_multivalue>' : FIRST_MULTIVALUE : '</first_multivalue>'
+
+* Enhanced parsing logic to handle concatenated date*qty pairs
+IF INDEX(FIRST_MULTIVALUE, '*', 1) > 0 THEN
+    ACK_DATE = FIELD(FIRST_MULTIVALUE, '*', 1)
+    
+    * Extract qty by finding everything after first date until next date pattern
+    REST = FIRST_MULTIVALUE
+    REST = FIELD(REST, ACK_DATE : '*', 2)
+    
+    * Now clean qty by removing any embedded date patterns
+    ACK_QTY = REST
+    IF INDEX(ACK_QTY, '*', 1) > 0 THEN
+        * Find position of next potential date pattern
+        POS = 1
+        QTY_CLEAN = ''
+        POSCOM = LEN(ACK_QTY)
+        FOR CHAR_IDX = 1 TO POSCOM
+            NEXTCHAR = ACK_QTY[CHAR_IDX,1]
+            IF NEXTCHAR MATCHES "0N":"1N":"2N":"3N":"4N":"5N":"6N":"7N":"8N":"9N" THEN
+                QTY_CLEAN = QTY_CLEAN : NEXTCHAR
+            END ELSE
+                IF NEXTCHAR = '*' OR NEXTCHAR = '-' THEN
+                    * Check if this starts a new date pattern (YYYY-MM-DD)
+                    IF CHAR_IDX < POSCOM - 8 THEN
+                        NEXT_SEGMENT = ACK_QTY[CHAR_IDX+1,10]
+                        IF NEXT_SEGMENT MATCHES "4N'-'2N'-'2N" THEN
+                            * This is start of new date, stop extracting qty
+                            CHAR_IDX = POSCOM + 1
+                        END ELSE
+                            IF NEXTCHAR <> '-' THEN QTY_CLEAN = QTY_CLEAN : NEXTCHAR
+                        END
+                    END ELSE
+                        IF NEXTCHAR <> '-' THEN QTY_CLEAN = QTY_CLEAN : NEXTCHAR
+                    END
+                END
+            END
+        NEXT CHAR_IDX
+        ACK_QTY = QTY_CLEAN
+    END
+END ELSE
+    ACK_DATE = FIRST_MULTIVALUE
+    ACK_QTY = ''
+END
+
+XML.RESPONSE = XML.RESPONSE : XAM : '<parsed_date>' : ACK_DATE : '</parsed_date>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<parsed_qty>' : ACK_QTY : '</parsed_qty>'
+
+* Complete XML response
+XML.RESPONSE = XML.RESPONSE : XAM : '</ack_test>'
+
+* Output the XML
+WRITE XML.RESPONSE ON XMLDATAF,'TEST_ACK_PARSING.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/TEST_ACK_PARSING.XML','',ERR)
+RETURN
+</pre>

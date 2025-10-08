@@ -1,0 +1,83 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO2' TO PO2F ELSE STOP 201,'PO2'
+OPEN 'CUSTOMER' TO CUSTOMERF ELSE STOP 201,'CUSTOMER'
+OPEN 'VENDOR' TO VENDORF ELSE STOP 201,'VENDOR'
+
+* Define constants
+XAM = CHAR(254)
+
+* Get parameters from URL
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = ''
+PL_GETVAR SHIPTO_CODE FROM 'SHIPTO_CODE' ELSE SHIPTO_CODE = ''
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<debug_shipto>' 
+
+* If PO_NUMBER provided, get ship_to from PO
+IF PO_NUMBER <> "" THEN
+    READ PO.RECORD FROM PO2F, PO_NUMBER ELSE
+        XML.RESPONSE = XML.RESPONSE : XAM : '<error>PO not found: ' : PO_NUMBER : '</error>'
+        GOTO FINISH_OUTPUT
+    END
+    SHIPTO_CODE = PO.RECORD<4>
+    XML.RESPONSE = XML.RESPONSE : XAM : '<po_number>' : PO_NUMBER : '</po_number>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<shipto_from_po>' : SHIPTO_CODE : '</shipto_from_po>'
+END
+
+* Debug ship to lookup - Try VENDOR database instead of CUSTOMER
+IF SHIPTO_CODE <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : XAM : '<shipto_code>' : SHIPTO_CODE : '</shipto_code>'
+    
+    * Try VENDOR database first
+    READ SHIPTO.RECORD FROM VENDORF, SHIPTO_CODE ELSE
+        XML.RESPONSE = XML.RESPONSE : XAM : '<vendor_lookup_failed>VENDOR record not found for: ' : SHIPTO_CODE : '</vendor_lookup_failed>'
+        * Fallback to CUSTOMER
+        READ SHIPTO.RECORD FROM CUSTOMERF, SHIPTO_CODE ELSE
+            XML.RESPONSE = XML.RESPONSE : XAM : '<error>Neither VENDOR nor CUSTOMER record found for: ' : SHIPTO_CODE : '</error>'
+            GOTO FINISH_OUTPUT
+        END
+        XML.RESPONSE = XML.RESPONSE : XAM : '<found_in_database>CUSTOMER</found_in_database>'
+        GOTO PROCESS_RECORD
+    END
+    XML.RESPONSE = XML.RESPONSE : XAM : '<found_in_database>VENDOR</found_in_database>'
+    
+    PROCESS_RECORD:
+    
+    XML.RESPONSE = XML.RESPONSE : XAM : '<customer_record_found>YES</customer_record_found>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<field1_name>' : SHIPTO.RECORD<1> : '</field1_name>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<field2_address1>' : SHIPTO.RECORD<2> : '</field2_address1>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<field3_address2>' : SHIPTO.RECORD<3> : '</field3_address2>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<field4_city>' : SHIPTO.RECORD<4> : '</field4_city>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<field5_state>' : SHIPTO.RECORD<5> : '</field5_state>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<field6_zip>' : SHIPTO.RECORD<6> : '</field6_zip>'
+    
+    * Check all fields to see what's available
+    FOR I = 1 TO 10
+        FIELD_VALUE = SHIPTO.RECORD<I>
+        IF FIELD_VALUE <> '' THEN
+            XML.RESPONSE = XML.RESPONSE : XAM : '<field' : I : '>' : FIELD_VALUE : '</field' : I : '>'
+        END
+    NEXT I
+    
+END ELSE
+    XML.RESPONSE = XML.RESPONSE : XAM : '<error>No SHIPTO_CODE provided</error>'
+END
+
+FINISH_OUTPUT:
+*REM Complete XML response
+XML.RESPONSE = XML.RESPONSE : XAM : '</debug_shipto>'
+ 
+*REM Output the XML
+    WRITE XML.RESPONSE ON XMLDATAF,'DEBUG_SHIPTO_LOOKUP.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/DEBUG_SHIPTO_LOOKUP.XML','',ERR)
+    RETURN
+</pre>

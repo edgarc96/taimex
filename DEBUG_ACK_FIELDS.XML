@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PROCESS>
+<PAGE_TITLE>Debug ACK Fields</PAGE_TITLE>
+<PROGRAM>
+<![CDATA[
+! Debug service to investigate ACK DATE and ACK QTY fields in PO records
+! Looking for acknowledgment related data
+
+! Get PO number from query string - default to 96450 for testing
+PO_NUMBER = OCONV(IN.QUERY, 'MCU')
+IF PO_NUMBER = '' THEN PO_NUMBER = '96450'
+
+! Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>' : XAM : '<debug_ack_fields>'
+
+IF PO_NUMBER = '' THEN
+    XML.RESPONSE = XML.RESPONSE :XAM: '<error>No PO number provided. Use ?PO_NUMBER=xxxxx</error>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '</debug_ack_fields>'
+    PRINT XML.RESPONSE
+    EXIT
+END
+
+XML.RESPONSE = XML.RESPONSE :XAM: '<po_number>' : PO_NUMBER : '</po_number>'
+
+! Open PO database
+OPEN 'PO' TO PO.FILE ELSE
+    XML.RESPONSE = XML.RESPONSE :XAM: '<error>Could not open PO file</error>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '</debug_ack_fields>'
+    PRINT XML.RESPONSE
+    EXIT
+END
+
+! Read PO record
+READ PO.RECORD FROM PO.FILE, PO_NUMBER ELSE
+    XML.RESPONSE = XML.RESPONSE :XAM: '<error>PO not found: ' : PO_NUMBER : '</error>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '</debug_ack_fields>'
+    PRINT XML.RESPONSE
+    EXIT
+END
+
+XML.RESPONSE = XML.RESPONSE :XAM: '<fields_analysis>'
+
+! Check fields that might contain ACK data (common fields for acknowledgments)
+! Check fields 45-60 for potential ACK fields
+FOR FIELD_NUM = 45 TO 60
+    FIELD_DATA = PO.RECORD<FIELD_NUM>
+    FIELD_LENGTH = LEN(FIELD_DATA)
+    
+    ! Count multivalues and subvalues
+    MV_COUNT = DCOUNT(FIELD_DATA, XVM)
+    SV_COUNT = 0
+    IF MV_COUNT > 0 THEN
+        SV_COUNT = DCOUNT(FIELD_DATA<1,1>, XSM)
+    END
+    
+    ! Check if field contains date-like data (8 digits) or numeric data
+    HAS_DATE_PATTERN = 0
+    HAS_NUMERIC = 0
+    DISPLAY_DATA = FIELD_DATA
+    
+    IF FIELD_LENGTH > 0 THEN
+        ! Check for 8-digit date pattern (YYYYMMDD or MMDDYYYY)
+        IF FIELD_DATA MATCHES '8N' THEN HAS_DATE_PATTERN = 1
+        IF NUM(FIELD_DATA) THEN HAS_NUMERIC = 1
+        
+        ! Limit display data for readability
+        IF FIELD_LENGTH > 100 THEN
+            DISPLAY_DATA = FIELD_DATA[1,100] : '...(truncated)'
+        END
+        
+        ! Replace control characters for XML safety
+        DISPLAY_DATA = CONVERT(XAM, '@AM@', DISPLAY_DATA)
+        DISPLAY_DATA = CONVERT(XVM, '@VM@', DISPLAY_DATA)
+        DISPLAY_DATA = CONVERT(XSM, '@SM@', DISPLAY_DATA)
+    END
+    
+    XML.RESPONSE = XML.RESPONSE :XAM: '<field>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<number>' : FIELD_NUM : '</number>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<length>' : FIELD_LENGTH : '</length>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<mv_count>' : MV_COUNT : '</mv_count>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<sv_count>' : SV_COUNT : '</sv_count>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<has_date_pattern>' : HAS_DATE_PATTERN : '</has_date_pattern>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<has_numeric>' : HAS_NUMERIC : '</has_numeric>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<data>' : DISPLAY_DATA : '</data>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '</field>'
+NEXT FIELD_NUM
+
+XML.RESPONSE = XML.RESPONSE :XAM: '</fields_analysis>'
+
+! Also check some earlier fields that might contain ACK data
+XML.RESPONSE = XML.RESPONSE :XAM: '<additional_fields>'
+
+! Check field 49 specifically (acknowledgments field from GET_PO_LINES.XML)
+FIELD_49 = PO.RECORD<49>
+XML.RESPONSE = XML.RESPONSE :XAM: '<field_49_acknowledgments>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<length>' : LEN(FIELD_49) : '</length>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<mv_count>' : DCOUNT(FIELD_49, XVM) : '</mv_count>'
+
+IF LEN(FIELD_49) > 0 THEN
+    XML.RESPONSE = XML.RESPONSE :XAM: '<raw_data>' : CONVERT(XAM:XVM:XSM, '@AM@':'@VM@':'@SM@', FIELD_49) : '</raw_data>'
+    
+    ! Parse the acknowledgment data like GET_PO_LINES.XML does
+    ACK_LINES = DCOUNT(FIELD_49, XVM)
+    XML.RESPONSE = XML.RESPONSE :XAM: '<parsed_lines>'
+    FOR I = 1 TO ACK_LINES
+        ACK_LINE_DATA = FIELD_49<1,I>
+        XML.RESPONSE = XML.RESPONSE :XAM: '<line_' : I : '>'
+        IF ACK_LINE_DATA <> '' THEN
+            ACK_ENTRIES = DCOUNT(ACK_LINE_DATA, XSM)
+            XML.RESPONSE = XML.RESPONSE :XAM: '<entries_count>' : ACK_ENTRIES : '</entries_count>'
+            FOR J = 1 TO ACK_ENTRIES
+                ACK_ENTRY = ACK_LINE_DATA<1,1,J>
+                IF ACK_ENTRY <> '' THEN
+                    ACK_DATE = FIELD(ACK_ENTRY, '*', 1)
+                    ACK_QTY = FIELD(ACK_ENTRY, '*', 2)
+                    XML.RESPONSE = XML.RESPONSE :XAM: '<entry_' : J : '>'
+                    XML.RESPONSE = XML.RESPONSE :XAM: '<raw_entry>' : ACK_ENTRY : '</raw_entry>'
+                    XML.RESPONSE = XML.RESPONSE :XAM: '<date>' : ACK_DATE : '</date>'
+                    XML.RESPONSE = XML.RESPONSE :XAM: '<formatted_date>' : OCONV(ACK_DATE, 'D-') : '</formatted_date>'
+                    XML.RESPONSE = XML.RESPONSE :XAM: '<quantity>' : ACK_QTY : '</quantity>'
+                    XML.RESPONSE = XML.RESPONSE :XAM: '</entry_' : J : '>'
+                END
+            NEXT J
+        END
+        XML.RESPONSE = XML.RESPONSE :XAM: '</line_' : I : '>'
+    NEXT I
+    XML.RESPONSE = XML.RESPONSE :XAM: '</parsed_lines>'
+ELSE
+    XML.RESPONSE = XML.RESPONSE :XAM: '<message>Field 49 is empty - no acknowledgment data</message>'
+END
+
+XML.RESPONSE = XML.RESPONSE :XAM: '</field_49_acknowledgments>'
+
+XML.RESPONSE = XML.RESPONSE :XAM: '</additional_fields>'
+
+XML.RESPONSE = XML.RESPONSE :XAM: '</debug_ack_fields>'
+
+! Output the XML
+PRINT XML.RESPONSE
+]]>
+</PROGRAM>
+</PROCESS>

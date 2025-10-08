@@ -1,0 +1,107 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO' TO POF ELSE STOP 201,'PO'
+* Try different possible database names for BUYER
+OPEN 'BUYERS' TO BUYERF ELSE
+    OPEN 'EMPLOYEE' TO BUYERF ELSE
+        OPEN 'USERS' TO BUYERF ELSE
+            OPEN 'PERSONNEL' TO BUYERF ELSE BUYERF = ''
+        END
+    END
+END
+* Try different possible database names for SHIPTO
+OPEN 'SHIPTO' TO SHIPTOF ELSE
+    OPEN 'CUSTOMER' TO SHIPTOF ELSE
+        OPEN 'CUSTOMERS' TO SHIPTOF ELSE
+            OPEN 'ADDRESSES' TO SHIPTOF ELSE SHIPTOF = ''
+        END
+    END
+END
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+* Get parameters from URL
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = '96540'
+
+PO_NUMBER = TRIM(PO_NUMBER)
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM:'<debug_buyer_shipto>' 
+
+*REM Read PO record first
+READ PO.RECORD FROM POF, PO_NUMBER ELSE
+    XML.RESPONSE = XML.RESPONSE :XAM: '<error>PO not found: ' : PO_NUMBER : '</error>'
+    GOTO DONE
+END
+
+XML.RESPONSE = XML.RESPONSE :XAM: '<po_number>' : PO_NUMBER : '</po_number>'
+
+* Get BUYER field from PO <8>
+BUYER_CODE = PO.RECORD<8>
+XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_code_from_po>' : BUYER_CODE : '</buyer_code_from_po>'
+
+* Get SHIP TO field from PO <4>
+SHIPTO_CODE = PO.RECORD<4>
+XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_code_from_po>' : SHIPTO_CODE : '</shipto_code_from_po>'
+
+* Try to read from BUYER database
+XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_debug>'
+IF BUYERF = '' THEN
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_database_not_found>No buyer database found</buyer_database_not_found>'
+    GOTO BUYER_END
+END
+READ BUYER.RECORD FROM BUYERF, BUYER_CODE ELSE
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_not_found>Buyer not found: ' : BUYER_CODE : '</buyer_not_found>'
+    GOTO BUYER_END
+END
+
+* Debug BUYER fields 1-10
+FOR I = 1 TO 10
+    FIELD_VALUE = BUYER.RECORD<I>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_field' : I : '>' : FIELD_VALUE : '</buyer_field' : I : '>'
+NEXT I
+
+BUYER_END:
+XML.RESPONSE = XML.RESPONSE :XAM: '</buyer_debug>'
+
+* Try to read from SHIPTO database
+XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_debug>'
+IF SHIPTOF = '' THEN
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_database_not_found>No shipto database found</shipto_database_not_found>'
+    GOTO SHIPTO_END
+END
+READ SHIPTO.RECORD FROM SHIPTOF, SHIPTO_CODE ELSE
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_not_found>ShipTo not found: ' : SHIPTO_CODE : '</shipto_not_found>'
+    GOTO SHIPTO_END
+END
+
+* Debug SHIPTO fields 1-10
+FOR I = 1 TO 10
+    FIELD_VALUE = SHIPTO.RECORD<I>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_field' : I : '>' : FIELD_VALUE : '</shipto_field' : I : '>'
+NEXT I
+
+SHIPTO_END:
+XML.RESPONSE = XML.RESPONSE :XAM: '</shipto_debug>'
+
+
+DONE:
+*REM Complete XML response
+XML.RESPONSE = XML.RESPONSE :XAM: '</debug_buyer_shipto>'
+ 
+*REM Output the XML
+    WRITE XML.RESPONSE ON XMLDATAF,'BUYER_SHIPTO_DEBUG.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/BUYER_SHIPTO_DEBUG.XML','',ERR)
+    RETURN
+</pre>

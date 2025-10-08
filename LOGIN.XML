@@ -1,0 +1,112 @@
+<pre>
+PicLan-IP/BASIC ^ ^
+*
+* LOGIN.XML - User Authentication System
+* Validates users against OPERS database
+* Creates session and redirects to appropriate menu
+*
+INCLUDE PLBASIC BP.INCLUDES PLW.INCLUDES
+
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Get login parameters
+PL_GETVAR INITIALS FROM 'INITIALS' ELSE INITIALS = ''
+INITIALS = OCONV(INITIALS,'MCU')
+PL_GETVAR PWD FROM 'PWD' ELSE PWD = ''
+PL_GETVAR LOGIN FROM 'LOGIN' ELSE LOGIN = ''
+LOGIN = OCONV(LOGIN,'MCU')
+
+* Initialize response
+MSG = ''
+SUCCESS = 0
+REDIRECT_URL = ''
+
+* Session management
+SESSION_DATA = ''
+SESSION_NAME = 'TAIMEX_SESSION_ID'
+
+PL_GET_COOKIE SESSION_ID FROM SESSION_NAME THEN
+  * Read existing session data
+  CALL SESSIONSTART(SESSION_DATA, SESSION_ID)
+  * Mark as not authenticated initially
+  SESSION_DATA<1> = 'false'
+END ELSE
+  * Generate new session ID
+  SESSION_ID = ''
+  CALL SESSIONGENERATEID(SESSION_ID)
+END
+
+* Validate login credentials
+IF LOGIN <> '' AND INITIALS <> '' AND PWD <> '' THEN
+  READ OPER FROM OPERSF, INITIALS ELSE OPER = ''
+  
+  IF OPER = '' THEN
+    MSG = 'Invalid user - User not found in system'
+    GOTO SEND_RESPONSE
+  END
+  
+  * Validate password
+  PICKPWD = OPER<2>
+  IF PICKPWD <> PWD THEN
+    MSG = 'Invalid password - Please check your credentials'
+    GOTO SEND_RESPONSE
+  END
+  
+  * Check if user has menu access
+  MENU = OPER<12>
+  IF MENU = '' THEN
+    MSG = 'Access denied - User has no configured web menu'
+    GOTO SEND_RESPONSE
+  END
+  
+  * Success - Set session data
+  LOGIN_AUTH = 'true'
+  LOGIN_USER = INITIALS
+  LOGIN_NAME = OPER<1>
+  
+  SESSION_DATA<1> = 'true'
+  SESSION_DATA<2> = LOGIN_USER
+  SESSION_DATA<3> = LOGIN_NAME
+  CALL SESSIONSAVE(SESSION_DATA, SESSION_ID)
+  
+  * Set session cookie
+  COOKIE_VALUE = 'Set-Cookie: ' : SESSION_NAME : '=' : SESSION_ID : '; path=/; HttpOnly'
+  PL_ADD_HDR COOKIE_VALUE
+  
+  * Success response
+  SUCCESS = 1
+  MSG = 'Login successful'
+  * TEMPORARY: Redirect directly to SO_EDIT.HTM instead of MENU
+  REDIRECT_URL = '/SO_EDIT.HTM'
+  
+END ELSE
+  MSG = 'Please enter both initials and password'
+END
+
+SEND_RESPONSE:
+* Send XML response
+XML_RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML_RESPONSE := '<login_response>'
+XML_RESPONSE := '<success>'
+IF SUCCESS THEN
+  XML_RESPONSE := 'true'
+END ELSE
+  XML_RESPONSE := 'false'
+END
+XML_RESPONSE := '</success>'
+XML_RESPONSE := '<message>' : MSG : '</message>'
+XML_RESPONSE := '<initials>' : INITIALS : '</initials>'
+IF SUCCESS THEN
+  XML_RESPONSE := '<redirect_url>' : REDIRECT_URL : '</redirect_url>'
+  XML_RESPONSE := '<user_name>' : SESSION_DATA<3> : '</user_name>'
+END
+XML_RESPONSE := '</login_response>'
+
+WRITE XML_RESPONSE ON XMLDATAF,'RESPONSE.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/RESPONSE.XML','',ERR)
+RETURN
+END

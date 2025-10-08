@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Unit Prices</title>
+</head>
+<body>
+    <h2>Debug Unit Price Fields</h2>
+    <div id="results"></div>
+    
+    <script>
+    function debugUnitPrices() {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'GET_PO.XML?PO_NUMBER=1001', true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                const resultsDiv = document.getElementById('results');
+                if (xhr.status === 200) {
+                    resultsDiv.innerHTML = '<h3>XML Response:</h3><pre>' + xhr.responseText + '</pre>';
+                    
+                    // Parse and check debug fields
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xhr.responseText, 'text/xml');
+                    const lineItems = xmlDoc.querySelectorAll('line_item');
+                    
+                    resultsDiv.innerHTML += '<h3>Debug Fields Analysis:</h3>';
+                    
+                    lineItems.forEach((item, index) => {
+                        const partNumber = item.querySelector('part_number')?.textContent || '';
+                        const unitPrice = item.querySelector('unit_price')?.textContent || '';
+                        
+                        // Get all debug fields
+                        const debugFields = {
+                            field26: item.querySelector('debug_field26')?.textContent || 'empty',
+                            field26_line: item.querySelector('debug_field26_line')?.textContent || 'empty', 
+                            field26_subval: item.querySelector('debug_field26_subval')?.textContent || 'empty',
+                            field35: item.querySelector('debug_field35')?.textContent || 'empty',
+                            field35_line: item.querySelector('debug_field35_line')?.textContent || 'empty',
+                            field35_subval: item.querySelector('debug_field35_subval')?.textContent || 'empty',
+                            field36: item.querySelector('debug_field36')?.textContent || 'empty',
+                            field36_line: item.querySelector('debug_field36_line')?.textContent || 'empty',
+                            field36_subval: item.querySelector('debug_field36_subval')?.textContent || 'empty',
+                            field37: item.querySelector('debug_field37')?.textContent || 'empty',
+                            field37_line: item.querySelector('debug_field37_line')?.textContent || 'empty',
+                            field37_subval: item.querySelector('debug_field37_subval')?.textContent || 'empty'
+                        };
+                        
+                        resultsDiv.innerHTML += `<div style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
+                            <h4>Line ${index + 1}: ${partNumber} (Unit Price: ${unitPrice})</h4>
+                            <table border="1" style="border-collapse: collapse; width: 100%;">
+                                <tr><th>Field</th><th>Full Field</th><th>Line Data</th><th>Subvalue</th></tr>
+                                <tr><td>Field 26</td><td>${debugFields.field26}</td><td>${debugFields.field26_line}</td><td><strong>${debugFields.field26_subval}</strong></td></tr>
+                                <tr><td>Field 35</td><td>${debugFields.field35}</td><td>${debugFields.field35_line}</td><td><strong>${debugFields.field35_subval}</strong></td></tr>
+                                <tr><td>Field 36</td><td>${debugFields.field36}</td><td>${debugFields.field36_line}</td><td><strong>${debugFields.field36_subval}</strong></td></tr>
+                                <tr><td>Field 37</td><td>${debugFields.field37}</td><td>${debugFields.field37_line}</td><td><strong>${debugFields.field37_subval}</strong></td></tr>
+                            </table>
+                        </div>`;
+                    });
+                } else {
+                    resultsDiv.innerHTML = '<p>Error: ' + xhr.status + ' - ' + xhr.statusText + '</p>';
+                }
+            }
+        };
+        xhr.send();
+    }
+    
+    // Auto-run debug
+    window.onload = debugUnitPrices;
+    </script>
+</body>
+</html>

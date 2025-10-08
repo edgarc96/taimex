@@ -1,0 +1,164 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'CUSTOMER' TO CUSTOMERF ELSE STOP 201,'CUSTOMER'
+
+* Define constants
+XAM = CHAR(254)
+
+* Get Bill To code from URL
+PL_GETVAR BILLTO_CODE FROM 'CODE' ELSE BILLTO_CODE = ''
+BILLTO_CODE = TRIM(BILLTO_CODE)
+
+* Set HTTP header
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM:'<customer>' 
+
+* Try direct read of customer by ID
+IF BILLTO_CODE <> "" THEN
+    READ CUSTOMER.RECORD FROM CUSTOMERF, BILLTO_CODE THEN
+        * Customer found - extract and clean all fields
+        XML.RESPONSE = XML.RESPONSE :XAM: '<customer_code>' : BILLTO_CODE : '</customer_code>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<customer_number>' : CUSTOMER.RECORD<0> : '</customer_number>'
+        
+        * CUSTOMER NAME <1> - Clean special characters
+        CUST_NAME = CUSTOMER.RECORD<1>
+        * Remove ALL control and non-ASCII characters
+        CLEANED_NAME = ''
+        FOR I = 1 TO LEN(CUST_NAME)
+            CHAR_CODE = SEQ(CUST_NAME[I,1])
+            * Keep only printable ASCII (32-126) and common extended (128-255 safe)
+            IF CHAR_CODE >= 32 AND CHAR_CODE <= 126 THEN
+                CLEANED_NAME = CLEANED_NAME : CUST_NAME[I,1]
+            END ELSE IF CHAR_CODE > 126 AND CHAR_CODE < 253 THEN
+                * Replace problematic chars with space
+                CLEANED_NAME = CLEANED_NAME : ' '
+            END
+        NEXT I
+        * Trim and collapse multiple spaces
+        CLEANED_NAME = TRIM(CLEANED_NAME)
+        XML.RESPONSE = XML.RESPONSE :XAM: '<customer_name><![CDATA[' : CLEANED_NAME : ']]></customer_name>'
+        
+        * STREET ADDRESSES <2> - Multivalue field, separate each line
+        * First multivalue = Street 1, Second multivalue = Street 2, etc.
+        XVM = CHAR(253)
+        STREET_COUNT = DCOUNT(CUSTOMER.RECORD<2>, XVM)
+        
+        * STREET 1 <2,1> - First line of street address
+        STREET1 = CUSTOMER.RECORD<2,1>
+        CLEANED_STREET1 = ''
+        FOR I = 1 TO LEN(STREET1)
+            CHAR_CODE = SEQ(STREET1[I,1])
+            IF CHAR_CODE >= 32 AND CHAR_CODE <= 126 THEN
+                CLEANED_STREET1 = CLEANED_STREET1 : STREET1[I,1]
+            END ELSE IF CHAR_CODE > 126 AND CHAR_CODE < 253 THEN
+                CLEANED_STREET1 = CLEANED_STREET1 : ' '
+            END
+        NEXT I
+        CLEANED_STREET1 = TRIM(CLEANED_STREET1)
+        XML.RESPONSE = XML.RESPONSE :XAM: '<customer_street1><![CDATA[' : CLEANED_STREET1 : ']]></customer_street1>'
+        
+        * STREET 2 <2,2> - Second line of street address if exists
+        STREET2 = ''
+        IF STREET_COUNT >= 2 THEN
+            STREET2 = CUSTOMER.RECORD<2,2>
+            CLEANED_STREET2 = ''
+            FOR I = 1 TO LEN(STREET2)
+                CHAR_CODE = SEQ(STREET2[I,1])
+                IF CHAR_CODE >= 32 AND CHAR_CODE <= 126 THEN
+                    CLEANED_STREET2 = CLEANED_STREET2 : STREET2[I,1]
+                END ELSE IF CHAR_CODE > 126 AND CHAR_CODE < 253 THEN
+                    CLEANED_STREET2 = CLEANED_STREET2 : ' '
+                END
+            NEXT I
+            STREET2 = TRIM(CLEANED_STREET2)
+        END
+        XML.RESPONSE = XML.RESPONSE :XAM: '<customer_street2><![CDATA[' : STREET2 : ']]></customer_street2>'
+        
+        * LEGACY FIELDS (for backward compatibility) - Use Street 1 only
+        XML.RESPONSE = XML.RESPONSE :XAM: '<customer_address><![CDATA[' : CLEANED_STREET1 : ']]></customer_address>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<customer_address1><![CDATA[' : CLEANED_STREET1 : ']]></customer_address1>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<customer_address2><![CDATA[' : STREET2 : ']]></customer_address2>'
+        
+        * CITY/STATE/ZIP <3> - Parse and separate
+        CITY_STATE_ZIP = CUSTOMER.RECORD<3>
+        * Clean non-ASCII characters
+        CLEANED_CITY = ''
+        FOR I = 1 TO LEN(CITY_STATE_ZIP)
+            CHAR_CODE = SEQ(CITY_STATE_ZIP[I,1])
+            IF CHAR_CODE >= 32 AND CHAR_CODE <= 126 THEN
+                CLEANED_CITY = CLEANED_CITY : CITY_STATE_ZIP[I,1]
+            END ELSE IF CHAR_CODE > 126 AND CHAR_CODE < 253 THEN
+                CLEANED_CITY = CLEANED_CITY : ' '
+            END
+        NEXT I
+        CITY_STATE_ZIP = TRIM(CLEANED_CITY)
+        
+        * Output full field
+        XML.RESPONSE = XML.RESPONSE :XAM: '<customer_city><![CDATA[' : CITY_STATE_ZIP : ']]></customer_city>'
+        
+        * Try to parse CITY, STATE, ZIP
+        PARSED_CITY = ''
+        PARSED_STATE = ''
+        PARSED_ZIP = ''
+        
+        IF INDEX(CITY_STATE_ZIP, ',', 1) > 0 THEN
+            PARSED_CITY = TRIM(FIELD(CITY_STATE_ZIP, ',', 1))
+            REST = TRIM(FIELD(CITY_STATE_ZIP, ',', 2))
+            IF REST <> '' THEN
+                WORD_COUNT = DCOUNT(REST, ' ')
+                IF WORD_COUNT >= 2 THEN
+                    PARSED_STATE = FIELD(REST, ' ', 1)
+                    PARSED_ZIP = FIELD(REST, ' ', 2)
+                END ELSE IF WORD_COUNT = 1 THEN
+                    IF LEN(REST) = 2 THEN
+                        PARSED_STATE = REST
+                    END ELSE
+                        PARSED_ZIP = REST
+                    END
+                END
+            END
+        END ELSE
+            WORD_COUNT = DCOUNT(CITY_STATE_ZIP, ' ')
+            IF WORD_COUNT >= 3 THEN
+                PARSED_ZIP = FIELD(CITY_STATE_ZIP, ' ', WORD_COUNT)
+                PARSED_STATE = FIELD(CITY_STATE_ZIP, ' ', WORD_COUNT - 1)
+                PARSED_CITY = ''
+                FOR W = 1 TO WORD_COUNT - 2
+                    IF W > 1 THEN PARSED_CITY = PARSED_CITY : ' '
+                    PARSED_CITY = PARSED_CITY : FIELD(CITY_STATE_ZIP, ' ', W)
+                NEXT W
+            END ELSE
+                PARSED_CITY = CITY_STATE_ZIP
+            END
+        END
+        
+        XML.RESPONSE = XML.RESPONSE :XAM: '<customer_state>' : PARSED_STATE : '</customer_state>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<customer_zip>' : PARSED_ZIP : '</customer_zip>'
+        
+        XML.RESPONSE = XML.RESPONSE :XAM: '<status>found</status>'
+    END ELSE
+        * Customer not found
+        XML.RESPONSE = XML.RESPONSE :XAM: '<customer_code>' : BILLTO_CODE : '</customer_code>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<status>not_found</status>'
+    END
+END ELSE
+    XML.RESPONSE = XML.RESPONSE :XAM: '<status>no_code_provided</status>'
+END
+
+* Close XML
+XML.RESPONSE = XML.RESPONSE :XAM: '</customer>'
+
+* Output XML
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+WRITE XML.RESPONSE ON XMLDATAF,'BILLTO.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/BILLTO.XML','',ERR)
+RETURN
+
+END
+</pre>
