@@ -414,7 +414,7 @@
         <button type="submit" name="GON1" value="Next" class="btn btn-primary" tabindex="2">
           Next
         </button>
-        <button type="submit" name="CANCEL2" value="Cancel" class="btn btn-secondary" tabindex="3">
+        <button type="submit" name="CANCEL4" value="Cancel" class="btn btn-secondary" tabindex="3">
           Cancel
         </button>
       </div>
@@ -475,11 +475,11 @@ PicLan-IP/BASIC ^ ^
 PL_GETVAR PARTNUM FROM 'PARTNUM' ELSE PARTNUM = ''
 PL_GETVAR QTY FROM 'QTY' ELSE QTY = ''
 PL_GETVAR DCODE FROM 'DCODE' ELSE DCODE = ''
-PL_GETVAR CANCEL2 FROM 'CANCEL2' ELSE CANCEL2 = ''
+PL_GETVAR CANCEL4 FROM 'CANCEL4' ELSE CANCEL4 = ''
 PL_GETVAR COO FROM 'COO' ELSE COO = ''
 PL_GETVAR GON1 FROM 'GON1' ELSE GON1 = ''
 *
-IF CANCEL2 NE &quot;&quot; THEN
+IF CANCEL4 NE &quot;&quot; THEN
    ERR = ''
    CALL PLW.PAGE('STOCKMENU.HTM','',ERR)
    RETURN
