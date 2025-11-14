@@ -15,6 +15,22 @@ This skill should be active whenever you:
 - Modernize legacy templates
 - Receive requests about "plantillas", "templates", "forms", or "páginas HTML"
 
+## Quick Reference Card
+
+### Essential Form Elements
+- **Form action**: Always use "EDIT" suffix → `/PAGEEDIT.HTM`
+- **Primary button**: `name="OK"` `tabindex="2"`
+- **Cancel button**: `name="CANCEL2"` `tabindex="3"`
+- **Input pattern**: `id="lowercase"` `name="UPPERCASE"` `value="^UPPERCASE^"`
+
+### Common Issues Checklist
+- ✅ Sidebar close handler included?
+- ✅ Auto-focus JavaScript added?
+- ✅ All redirects use "EDIT" suffix?
+- ✅ Template variables use `^VAR^` syntax?
+- ✅ Backend PicLan-IP/BASIC preserved?
+- ✅ Tab index sequence correct?
+
 ## Template Structure
 
 All HTML templates in this project follow a hybrid structure:
