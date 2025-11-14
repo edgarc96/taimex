@@ -29,7 +29,9 @@ This skill should be active whenever you:
 - ✅ All redirects use "EDIT" suffix?
 - ✅ Template variables use `^VAR^` syntax?
 - ✅ Backend PicLan-IP/BASIC preserved?
+- ✅ Backend quotes use `&quot;&quot;` not `""`?
 - ✅ Tab index sequence correct?
+- ✅ No duplicate validations? (Check backend first!)
 
 ## Template Structure
 
@@ -384,6 +386,81 @@ IF DCODE NE &quot;&quot; THEN
 - SIEMPRE revisar el código backend al modernizar templates legacy
 - Buscar todas las instancias de `""` y reemplazar con `&quot;&quot;`
 - Aplicar esta regla a TODAS las comparaciones de strings vacíos en PicLan-IP/BASIC
+
+### ⚠️ PATRÓN: No Duplicar Validaciones del Backend en JavaScript
+
+**Problema**: Agregar validaciones JavaScript cuando el backend ya tiene validaciones implementadas puede causar conflictos, bloqueos innecesarios, o comportamiento inconsistente.
+
+**Regla**: Si el backend PicLan-IP/BASIC ya tiene validaciones, **NO las repliques en JavaScript**.
+
+**Razón**:
+- El backend ya maneja los errores correctamente (ej. redirigiendo a páginas de error)
+- Duplicar validaciones crea mantenimiento doble
+- Las validaciones del frontend pueden bloquear casos válidos que el backend manejaría correctamente
+- La lógica de negocio debe vivir en UN solo lugar (el backend)
+
+**Solución**: Dejar que el formulario se envíe libremente al backend:
+
+```javascript
+❌ INCORRECTO (validación duplicada):
+form.addEventListener('submit', function(e) {
+  var submitButton = e.submitter;
+
+  if (submitButton && submitButton.name === 'OK') {
+    if (dcodeField.value.trim() === '' || dcodeField.value === '^DCODE^') {
+      e.preventDefault();
+      alert('Please enter a Date Code');
+      return;
+    }
+
+    // Validando formato que el backend ya valida
+    var dcodeValue = dcodeField.value.trim();
+    if (dcodeValue.length !== 4 || !/^\d{4}$/.test(dcodeValue)) {
+      e.preventDefault();
+      alert('Date Code must be 4 digits in YYWW format');
+      return;
+    }
+  }
+});
+
+✅ CORRECTO (dejar que el backend valide):
+form.addEventListener('submit', function(e) {
+  // El formulario se envía directamente
+  // El backend valida en PicLan-IP/BASIC:
+  // - IF LEN(DCODE) = 4 THEN ... ELSE error
+  // - CALL PLW.PAGE('PALMERROR2.HTM','',ERR)
+});
+```
+
+**Cuándo SÍ agregar validaciones JavaScript**:
+- Solo para mejorar UX básica (ej. evitar enviar formularios completamente vacíos)
+- Cuando NO exista validación equivalente en el backend
+- Para feedback visual inmediato (ej. resaltar campos requeridos)
+
+**Cuándo NO agregar validaciones JavaScript**:
+- Si el backend ya tiene la validación implementada
+- Si el backend redirige a páginas de error específicas (ej. PALMERROR2.HTM)
+- Si no estás 100% seguro de la lógica de validación
+
+**Ejemplo de código backend que YA valida**:
+```basic
+IF DCODE NE &quot;&quot; THEN
+   IF LEN(DCODE) = 4 THEN
+      NULL
+   END ELSE
+      MSG = 'DATE CODE MUST BE IN FORMAT YYWW'
+      PL_PUTVAR MSG IN 'MSG' ELSE NULL
+      CALL PLW.PAGE('PALMERROR2.HTM','',ERR)
+      RETURN
+   END
+```
+
+Si ves este patrón en el backend, **NO agregues validación JavaScript equivalente**.
+
+**IMPORTANTE**:
+- Siempre revisar el código PicLan-IP/BASIC antes de agregar validaciones JavaScript
+- La regla de oro: **Una sola fuente de verdad** (Single Source of Truth)
+- Cuando tengas duda, deja que el backend maneje las validaciones
 
 ## Modernization Process for Legacy Files
 
