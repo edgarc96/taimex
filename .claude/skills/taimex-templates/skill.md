@@ -29,6 +29,7 @@ This skill should be active whenever you:
 - ✅ All redirects use "EDIT" suffix?
 - ✅ Template variables use `^VAR^` syntax?
 - ✅ Backend PicLan-IP/BASIC preserved?
+- ✅ Backend tag is `<pre>` (lowercase), NOT `<PRE>`?
 - ✅ Backend quotes use `&quot;&quot;` not `""`?
 - ✅ Tab index sequence correct?
 - ✅ No duplicate validations? (Check backend first!)
@@ -193,10 +194,10 @@ All HTML templates in this project follow a hybrid structure:
 
 ### 6. Backend Logic (PicLan-IP/BASIC)
 
-Always placed at the bottom in `<PRE>` tags:
+Always placed at the bottom in `<pre>` tags (lowercase):
 
 ```html
-<PRE>
+<pre>
 PicLan-IP/BASIC ^ ^
 *
  PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
@@ -208,19 +209,19 @@ PicLan-IP/BASIC ^ ^
 PL_GETVAR FIELDNAME FROM 'FIELDNAME' ELSE FIELDNAME = ''
 PL_GETVAR CANCEL2 FROM 'CANCEL2' ELSE CANCEL2 = ''
 *
-IF CANCEL2 NE "" THEN
+IF CANCEL2 NE &quot;&quot; THEN
    ERR = ''
    CALL PLW.PAGE('PREVIOUSPAGE.HTM','',ERR)
    RETURN
 END
 *
-IF FIELDNAME NE "" THEN
+IF FIELDNAME NE &quot;&quot; THEN
    * Process the data here
    ERR = ''
    CALL PLW.PAGE('NEXTPAGE.HTM','',ERR)
    RETURN
 END
-</PRE>
+</pre>
 ```
 
 ## Key Conventions
@@ -389,6 +390,34 @@ IF DCODE NE &quot;&quot; THEN
 - SIEMPRE revisar el código backend al modernizar templates legacy
 - Buscar todas las instancias de `""` y reemplazar con `&quot;&quot;`
 - Aplicar esta regla a TODAS las comparaciones de strings vacíos en PicLan-IP/BASIC
+
+### ❌ BUG: Error 500 - Tag `<pre>` Debe Ser Minúscula
+
+**Problema**: El servidor devuelve "500 INTERNAL ERROR - HTML In-Line BASIC error [PLW.BLD.FILE:6]" al cargar la página.
+
+**Causa**: PicLan-IP/BASIC es **case-sensitive** con el tag `<pre>`. Usar `<PRE>` en mayúscula rompe el parser.
+
+**Solución**: SIEMPRE usar `<pre>` y `</pre>` en **minúscula**:
+
+```html
+❌ INCORRECTO:
+<PRE>
+PicLan-IP/BASIC ^ ^
+...código BASIC...
+</PRE>
+
+✅ CORRECTO:
+<pre>
+PicLan-IP/BASIC ^ ^
+...código BASIC...
+</pre>
+```
+
+**IMPORTANTE**:
+- Este error es CRÍTICO y causa 500 INTERNAL ERROR
+- El tag DEBE ser exactamente `<pre>` (minúscula), NO `<PRE>`, `<Pre>`, o cualquier variación
+- PicLan-IP/BASIC solo reconoce `<pre>` en minúscula para identificar código inline
+- SIEMPRE usar minúscula al modernizar templates legacy
 
 ### ⚠️ PATRÓN: No Duplicar Validaciones del Backend en JavaScript
 
