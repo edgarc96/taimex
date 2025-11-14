@@ -450,33 +450,8 @@
       });
     }
 
-    // Form validation
-    var form = document.querySelector('form');
-    if (form) {
-      form.addEventListener('submit', function(e) {
-        var submitButton = e.submitter;
-
-        // Only validate if OK button was clicked
-        if (submitButton && submitButton.name === 'OK') {
-          if (dcodeField.value.trim() === '' || dcodeField.value === '^DCODE^') {
-            e.preventDefault();
-            alert('Please enter a Date Code');
-            dcodeField.focus();
-            return;
-          }
-
-          // Validate YYWW format (4 digits)
-          var dcodeValue = dcodeField.value.trim();
-          if (dcodeValue.length !== 4 || !/^\d{4}$/.test(dcodeValue)) {
-            e.preventDefault();
-            alert('Date Code must be 4 digits in YYWW format');
-            dcodeField.focus();
-            dcodeField.select();
-            return;
-          }
-        }
-      });
-    }
+    // No form validation needed - backend validates DCODE
+    // Backend checks: IF LEN(DCODE) = 4 THEN ... ELSE error
   })();
 </script>
 
