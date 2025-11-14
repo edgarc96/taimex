@@ -20,7 +20,7 @@ This skill should be active whenever you:
 ### Essential Form Elements
 - **Form action**: Always use "EDIT" suffix → `/PAGEEDIT.HTM`
 - **Primary button**: `name="OK"` `tabindex="2"`
-- **Cancel button**: `name="CANCEL2"` `tabindex="3"`
+- **Cancel button**: `name="CANCEL#"` (match backend - CANCEL2, CANCEL3, CANCEL4, etc.) `tabindex="3"`
 - **Input pattern**: `id="lowercase"` `name="UPPERCASE"` `value="^UPPERCASE^"`
 
 ### Common Issues Checklist
@@ -237,7 +237,10 @@ END
 
 ### Button Naming
 - Primary action: `name="OK"` or descriptive name like `name="PRINT"`
-- Cancel action: `name="CANCEL2"` (standard across all forms)
+- Cancel action: `name="CANCEL#"` where # is dynamic (CANCEL2, CANCEL3, CANCEL4, etc.)
+  - **CRITICAL**: Match the cancel button name to what the backend PicLan-IP/BASIC expects
+  - Check backend code: `PL_GETVAR CANCEL3 FROM 'CANCEL3'` means use `name="CANCEL3"`
+  - **DO NOT** force all cancel buttons to be CANCEL2
 
 ### Tab Index
 1. First input field: `tabindex="1"`
@@ -461,6 +464,49 @@ Si ves este patrón en el backend, **NO agregues validación JavaScript equivale
 - Siempre revisar el código PicLan-IP/BASIC antes de agregar validaciones JavaScript
 - La regla de oro: **Una sola fuente de verdad** (Single Source of Truth)
 - Cuando tengas duda, deja que el backend maneje las validaciones
+
+### ⚠️ PATRÓN: Nombre Dinámico del Botón Cancel
+
+**Regla CRÍTICA**: El nombre del botón cancel es **dinámico** y debe coincidir **exactamente** con lo que el backend PicLan-IP/BASIC espera.
+
+**Problema**: Cambiar todos los botones cancel a `CANCEL2` rompe el flujo cuando el backend espera `CANCEL3`, `CANCEL4`, etc.
+
+**Solución**: Siempre revisar el código backend ANTES de definir el nombre del botón:
+
+```basic
+❌ INCORRECTO (forzar CANCEL2 sin revisar backend):
+<button name="CANCEL2" ...>Cancel</button>
+
+Backend espera:
+PL_GETVAR CANCEL3 FROM 'CANCEL3' ELSE CANCEL3 = ''
+IF CANCEL3 NE "" THEN ...
+
+Resultado: El botón Cancel NO funciona ❌
+
+✅ CORRECTO (match con el backend):
+Backend dice:
+PL_GETVAR CANCEL3 FROM 'CANCEL3' ELSE CANCEL3 = ''
+
+Frontend debe usar:
+<button name="CANCEL3" ...>Cancel</button>
+```
+
+**Proceso**:
+1. **Leer el backend PRIMERO**
+2. Buscar línea: `PL_GETVAR CANCEL# FROM 'CANCEL#'`
+3. Usar ese mismo número en el frontend
+4. No cambiar nombres arbitrariamente
+
+**Ejemplos reales**:
+- Si backend tiene `CANCEL2` → usa `name="CANCEL2"`
+- Si backend tiene `CANCEL3` → usa `name="CANCEL3"`
+- Si backend tiene `CANCEL4` → usa `name="CANCEL4"`
+
+**IMPORTANTE**:
+- No hay un estándar fijo para el número
+- El número puede ser diferente en cada página
+- Siempre confiar en lo que el backend espera
+- Cuando modernicez legacy, preserva el número original del CANCEL
 
 ## Modernization Process for Legacy Files
 
