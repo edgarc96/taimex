@@ -35,86 +35,111 @@
 
     /* Hidden checkbox for sidebar toggle */
     #sb-toggle {
-      display: none;
+      position: absolute;
+      left: -9999px;
     }
 
     /* Header */
     .header {
-      background: var(--bg-card);
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-      padding: 1rem 1.5rem;
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 10px 20px;
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.35);
+      position: relative;
+      z-index: 50;
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      font-size: 1.5em;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
     }
 
     .header-left {
       display: flex;
       align-items: center;
-      gap: 1rem;
-    }
-
-    .hamburger-menu {
-      font-size: 1.5rem;
-      cursor: pointer;
-      padding: 0.5rem;
-      border-radius: 8px;
-      transition: background 0.2s;
-      user-select: none;
-    }
-
-    .hamburger-menu:hover {
-      background: var(--bg-body);
+      gap: 14px;
     }
 
     .logo-section img {
-      height: 40px;
+      height: 36px;
       width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+
+    .title-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
     .title-section h2 {
-      font-size: 1.125rem;
+      font-size: 0.95rem;
       font-weight: 600;
-      color: var(--text-primary);
+      letter-spacing: 0.3px;
     }
 
     .title-section p {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
+      font-size: 0.75rem;
+      opacity: 0.9;
     }
 
     /* Sidebar Overlay */
     .sidebar-overlay {
-      display: none;
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
       background: rgba(0, 0, 0, 0.5);
-      z-index: 998;
-      backdrop-filter: blur(2px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+      z-index: 1500;
+      pointer-events: none;
     }
 
     #sb-toggle:checked ~ .sidebar-overlay {
-      display: block;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
     }
 
     /* Sidebar */
     .sidebar {
       position: fixed;
-      left: -280px;
       top: 0;
-      width: 280px;
+      left: -300px;
+      width: 300px;
       height: 100vh;
-      background: var(--bg-card);
-      box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, .08);
+      backdrop-filter: blur(1px);
+      -webkit-backdrop-filter: blur(1px);
+      color: white;
       transition: left 0.3s ease;
-      z-index: 999;
-      overflow-y: auto;
+      z-index: 2000;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
     }
 
     #sb-toggle:checked ~ .sidebar {
@@ -122,72 +147,100 @@
     }
 
     .sidebar-header {
-      padding: 1.5rem;
-      border-bottom: 1px solid #e2e8f0;
-      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
     }
 
     .sidebar-header h3 {
-      color: white;
-      font-size: 1.25rem;
+      font-size: 1.2em;
+      color: #fff;
+      margin: 0;
       font-weight: 600;
     }
 
     .sidebar-content {
-      padding: 1rem 0;
+      padding: 24px;
+      flex: 1;
+      overflow-y: auto;
     }
 
     .sidebar-menu {
       list-style: none;
+      padding: 0;
+      margin: 0;
     }
 
     .sidebar-menu li {
-      margin: 0;
+      margin-bottom: 8px;
     }
 
     .sidebar-menu label {
       display: block;
-      padding: 0.875rem 1.5rem;
-      color: var(--text-primary);
+      padding: 12px 16px;
+      color: #f3f4f6;
       text-decoration: none;
-      transition: all 0.2s;
-      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s ease;
       font-weight: 500;
+      cursor: pointer;
     }
 
     .sidebar-menu label:hover {
-      background: var(--bg-body);
-      color: var(--accent-blue);
-      padding-left: 2rem;
+      background-color: rgba(30, 64, 175, 0.1);
+      color: #fff;
+    }
+
+    .sidebar-menu label.active {
+      background-color: rgba(30, 64, 175, 0.2);
+      color: #93c5fd;
     }
 
     /* Main Content */
     .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem 1.5rem;
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: var(--bg-body);
     }
 
     .card {
+      width: 100%;
+      max-width: 620px;
       background: var(--bg-card);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-card);
-      padding: 2rem;
-      margin-bottom: 2rem;
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
 
     .card-header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
       text-align: center;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 2px solid var(--bg-body);
     }
 
     .card-header h1 {
       font-size: 1.5rem;
       font-weight: 700;
       color: var(--text-primary);
-      margin-bottom: 0.5rem;
+    }
+
+    .card-header p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
     }
 
     .info-box {
@@ -312,12 +365,12 @@
 
     /* Responsive */
     @media (max-width: 768px) {
-      .container {
-        padding: 1rem;
+      .main-content {
+        padding: 12px;
       }
 
       .card {
-        padding: 1.5rem;
+        padding: 20px 24px;
       }
 
       .data-display {
@@ -350,23 +403,22 @@
   </div>
 </aside>
 
-<!-- Header -->
-<header class="header">
-  <div class="header-left">
-    <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">☰</label>
-    <div class="logo-section">
-      <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL">
-    </div>
-  </div>
-  <div class="title-section">
-    <h2>TAIMEX - Shipping Labels</h2>
-    <p>Inner Box Label</p>
-  </div>
-</header>
-
-<!-- Main Content -->
 <div class="container">
-  <div class="card">
+  <header class="header">
+    <div class="header-left">
+      <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">☰</label>
+      <div class="logo-section">
+        <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL">
+      </div>
+    </div>
+    <div class="title-section">
+      <h2>TAIMEX - Shipping Labels</h2>
+      <p>Inner Box Label</p>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section class="card">
     <div class="card-header">
       <h1>Print Inner Box Label</h1>
     </div>
@@ -425,7 +477,8 @@
       <input type="hidden" name="DCODE" value="^DCODE^">
       <input type="hidden" name="COO" value="^COO^">
     </form>
-  </div>
+    </section>
+  </main>
 </div>
 
 <script>
@@ -498,3 +551,4 @@ END
 
 </body>
 </html>
+     
