@@ -361,6 +361,30 @@ if (checkbox) {
 - El `checkbox` debe estar declarado FUERA del bloque `if (overlay && checkbox)` para que esté disponible en el scope del event listener de menuLabels.
 - El overlay debe ser un `<div>` (NO un `<label>`) para que JavaScript maneje el cierre correctamente sin comportamiento de toggle.
 
+### ❌ BUG: Error 500 en PicLan-IP/BASIC - Comillas Dobles
+
+**Problema**: El servidor devuelve "500 INTERNAL ERROR" al cargar la página.
+
+**Causa**: Usar comillas dobles directas `""` en el código PicLan-IP/BASIC dentro de HTML causa errores de parsing.
+
+**Solución**: SIEMPRE usar HTML entities `&quot;` en lugar de comillas dobles `"` en el código BASIC:
+
+```basic
+❌ INCORRECTO:
+IF CANCEL2 NE "" THEN
+IF DCODE NE "" THEN
+
+✅ CORRECTO:
+IF CANCEL2 NE &quot;&quot; THEN
+IF DCODE NE &quot;&quot; THEN
+```
+
+**IMPORTANTE**:
+- Este error es CRÍTICO y causa que la página no cargue
+- SIEMPRE revisar el código backend al modernizar templates legacy
+- Buscar todas las instancias de `""` y reemplazar con `&quot;&quot;`
+- Aplicar esta regla a TODAS las comparaciones de strings vacíos en PicLan-IP/BASIC
+
 ## Modernization Process for Legacy Files
 
 When modernizing legacy HTML files (files without "EDIT" suffix):
