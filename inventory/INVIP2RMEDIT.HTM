@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TAIMEX - Inventory Inquiry</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-body: #f1f5f9;
+      --bg-card: #ffffff;
+      --sidebar-width: 300px;
+      --sidebar-bg: rgba(15, 23, 42, 0.92);
+      --sidebar-border: rgba(255, 255, 255, 0.12);
+      --accent-blue: #1d4ed8;
+      --accent-muted: #64748b;
+      --danger: #dc2626;
+      --danger-bg: rgba(220, 38, 38, 0.12);
+      --danger-border: rgba(220, 38, 38, 0.35);
+      --info-bg: rgba(30, 64, 175, 0.1);
+      --info-border: rgba(30, 64, 175, 0.2);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --shadow-card: 0 18px 46px rgba(15, 23, 42, 0.18);
+      --radius-lg: 20px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.35);
+      position: relative;
+      z-index: 50;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .logo-section img {
+      height: 36px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+
+    .title-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 14px;
+    }
+
+    .title-section h2 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .title-section p {
+      font-size: 0.78rem;
+      color: rgba(226, 232, 240, 0.8);
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      font-size: 1.1em;
+      line-height: 1;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .hamburger-menu svg {
+      width: 1em;
+      height: 1em;
+      fill: currentColor;
+      display: inline-block;
+      vertical-align: -0.125em;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      background: var(--bg-body);
+    }
+
+    .inventory-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: visible;
+    }
+
+    .inventory-card {
+      width: 100%;
+      max-width: 640px;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .card-header p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .inventory-form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .form-group input {
+      padding: 12px 16px;
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      background: #ffffff;
+      color: var(--text-primary);
+      font-family: inherit;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+      background: #fff;
+    }
+
+    .primary-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .secondary-actions {
+      display: none;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      min-width: 120px;
+    }
+
+    .btn-primary {
+      background: #1d4ed8;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(29, 78, 216, 0.4);
+    }
+
+    .btn-primary:hover {
+      background: #1e40af;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(29, 78, 216, 0.5);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(29, 78, 216, 0.3);
+    }
+
+    .btn-secondary {
+      background: #64748b;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(100, 116, 139, 0.3);
+    }
+
+    .btn-secondary:hover {
+      background: #475569;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(100, 116, 139, 0.4);
+    }
+
+    .btn-secondary:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(100, 116, 139, 0.2);
+    }
+
+    .message-area {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--info-border);
+      background: var(--info-bg);
+      color: #1e3a8a;
+      font-size: 0.9rem;
+    }
+
+    .message-area.error {
+      border-color: var(--danger-border);
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    .no-results-section {
+      text-align: center;
+      padding: 32px 24px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 12px;
+      border: 2px dashed #cbd5e1;
+    }
+
+    .no-results-icon {
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(100, 116, 139, 0.25);
+      font-size: 2rem;
+      color: white;
+      font-weight: 700;
+    }
+
+    .no-results-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .no-results-message {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .no-results-message strong {
+      color: var(--accent-blue);
+      font-weight: 700;
+    }
+
+    .no-results-actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .result-section {
+      display: none;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .result-header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
+      color: white;
+      padding: 16px 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25);
+    }
+
+    .result-header h2 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      opacity: 0.9;
+    }
+
+    .result-part-number {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .data-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .data-card {
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px 18px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .data-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 100%;
+      background: var(--accent-blue);
+      transition: width 0.3s ease;
+    }
+
+    .data-card:hover {
+      border-color: var(--accent-blue);
+      box-shadow: 0 4px 16px rgba(30, 64, 175, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .data-card:hover::before {
+      width: 6px;
+    }
+
+    .data-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .data-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.3;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      background: #dcfce7;
+      color: #166534;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .inspection-section {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 2px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 16px 20px;
+    }
+
+    .inspection-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .inspection-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--accent-blue);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .inspection-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .inspection-content {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Sidebar */
+    #sb-toggle {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .sidebar {
+      position: fixed !important;
+      top: 0;
+      left: -300px;
+      width: 300px;
+      height: 100vh;
+      background: rgba(255, 255, 255, .08) !important;
+      backdrop-filter: blur(1px) !important;
+      -webkit-backdrop-filter: blur(1px) !important;
+      color: white !important;
+      transition: left 0.3s ease;
+      z-index: 2000;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+      overflow-y: auto;
+    }
+
+    .sidebar.active { 
+      left: 0 !important; 
+    }
+
+    .sidebar-overlay {
+      position: fixed !important;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 1500;
+      pointer-events: none;
+    }
+
+    .sidebar-overlay.active {
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto;
+    }
+
+    #sb-toggle:checked ~ .sidebar {
+      left: 0 !important;
+    }
+
+    #sb-toggle:checked ~ .sidebar-overlay {
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto;
+    }
+
+    .sidebar-content { 
+      padding: 24px !important; 
+    }
+
+    .sidebar-header {
+      padding: 20px !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar-header h3 {
+      font-size: 1.2em !important;
+      color: #fff;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .sidebar-menu {
+      list-style: none !important;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-menu li { 
+      margin-bottom: 8px !important; 
+    }
+
+    .sidebar-menu a, .sidebar-menu label {
+      display: block !important;
+      padding: 12px 16px !important;
+      color: #f3f4f6 !important;
+      text-decoration: none !important;
+      border-radius: 8px !important;
+      transition: all 0.2s ease !important;
+      font-weight: 500 !important;
+      cursor: pointer !important;
+    }
+
+    .sidebar-menu a:hover, .sidebar-menu label:hover {
+      background-color: rgba(30, 64, 175, 0.1) !important;
+      color: #fff !important;
+    }
+
+    .sidebar-menu a.active, .sidebar-menu label.active {
+      background-color: rgba(30, 64, 175, 0.2) !important;
+      color: #93c5fd !important;
+    }
+
+
+    .sidebar-menu label { 
+      cursor: pointer !important; 
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 8px 16px;
+      }
+
+      .title-section {
+        text-align: left;
+        align-items: flex-start;
+      }
+
+      .title-row {
+        justify-content: flex-start;
+      }
+
+      .inventory-wrapper {
+        padding: 16px;
+      }
+
+      .inventory-card {
+        padding: 20px 18px;
+        border-radius: 12px;
+      }
+
+      .data-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .result-part-number {
+        font-size: 1.2rem;
+      }
+
+      .inspection-section {
+        padding: 14px 16px;
+      }
+
+      .inspection-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+      }
+
+      .primary-actions,
+      .secondary-actions {
+        width: 100%;
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .inventory-card {
+        padding: 18px 16px;
+        border-radius: 10px;
+      }
+
+      .card-header h1 {
+        font-size: 1.3rem;
+      }
+
+      .form-group input {
+        font-size: 0.95rem;
+        padding: 10px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <input type="checkbox" id="sb-toggle">
+  <label for="sb-toggle" class="sidebar-overlay" aria-hidden="true"></label>
+
+  <aside class="sidebar" aria-label="Main menu">
+    <div class="sidebar-header">
+      <h3>Menu</h3>
+    </div>
+    <div class="sidebar-content">
+      <ul class="sidebar-menu">
+        <li><label for="sb-toggle">Main Menu</label></li>
+        <li><label for="sb-toggle">Parts Management</label></li>
+        <li><label for="sb-toggle">Work Orders</label></li>
+        <li><label for="sb-toggle">Sales Orders</label></li>
+        <li><label for="sb-toggle">Stock Transactions</label></li>
+        <li><label for="sb-toggle" class="active">Inventory Inquiry</label></li>
+      </ul>
+    </div>
+  </aside>
+
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">
+          <svg viewBox="0 0 448 512" role="img" aria-hidden="true" focusable="false">
+            <path d="M0 96C0 78.3 14.3 64 32 64H416C433.7 64 448 78.3 448 96C448 113.7 433.7 128 416 128H32C14.3 128 0 113.7 0 96zM0 256C0 238.3 14.3 224 32 224H416C433.7 224 448 238.3 448 256C448 273.7 433.7 288 416 288H32C14.3 288 0 273.7 0 256zM448 416C448 433.7 433.7 448 416 448H32C14.3 448 0 433.7 0 416C0 398.3 14.3 384 32 384H416C433.7 384 448 398.3 448 416z"></path>
+          </svg>
+        </label>
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL" onerror="this.onerror=null;this.src='http://54.189.226.145/uploads/assets/images/taimex_logo.png';">
+        </div>
+      </div>
+      <div class="title-section">
+        <div class="title-row">
+          <div>
+            <h2>TAIMEX - Inventory Inquiry</h2>
+            <p>Raw Materials Management</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <section class="inventory-wrapper">
+        <div class="inventory-card">
+          <div class="card-header">
+            <h1>Raw Material Lookup</h1>
+            <p>Scan or enter part number to review current raw material availability and open inspections.</p>
+          </div>
+
+          <form method="GET" action="/INVIP2RMEDIT.HTM" name="inventoryForm" class="inventory-form">
+            <div class="form-group">
+              <label for="partNumber">
+                Part Number
+              </label>
+              <input type="text" id="partNumber" name="PARTNUM" value="^PARTNUM^" placeholder="Scan or type part number" autocomplete="off" inputmode="text">
+            </div>
+
+            <div class="primary-actions">
+              <button type="submit" name="OK" value="Search" class="btn btn-primary">
+                Search
+              </button>
+              <button type="submit" name="CLEAR" value="Clear" class="btn btn-secondary">
+                Clear
+              </button>
+            </div>
+
+            <div class="message-area" id="messageDisplay" role="alert" aria-live="polite">
+              <span id="messageText">^MSG^</span>
+            </div>
+
+
+            <!-- Hidden data for parsing -->
+            <div style="display:none;" id="resultData">^RAW(RESULT)^</div>
+
+            <!-- No Results Section -->
+            <div class="no-results-section" id="noResultsSection" style="display:none;">
+              <div class="no-results-icon">
+                !
+              </div>
+              <h2 class="no-results-title">No Items Found</h2>
+              <p class="no-results-message">No items were found based on your selection for part <strong id="noResultsPart">^PARTNUM^</strong></p>
+              <div class="no-results-actions">
+                <button type="submit" name="BACK" value="Back" class="btn btn-secondary">
+                  Back to Search
+                </button>
+                <button type="submit" name="CREATE" value="Add PullOrder" class="btn btn-primary">
+                  Add PullOrder
+                </button>
+              </div>
+            </div>
+
+            <div class="result-section" id="resultSection">
+              <div class="result-header">
+                <h2>Inventory Inquiry Result</h2>
+                <div class="result-part-number" id="resultPartNumber">^PARTNUM^</div>
+              </div>
+
+              <div class="data-grid" id="dataGrid">
+                <div class="data-card">
+                  <div class="data-label">
+                    Part Number
+                  </div>
+                  <div class="data-value" id="partNumberValue">^PARTNUM^</div>
+                </div>
+
+                <div class="data-card">
+                  <div class="data-label">
+                    Description
+                  </div>
+                  <div class="data-value" id="descriptionValue">N/A</div>
+                </div>
+
+                <div class="data-card">
+                  <div class="data-label">
+                    Status
+                  </div>
+                  <div class="data-value">
+                    <span class="status-badge" id="statusBadge">
+                      Active
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="inspection-section" id="inspectionBlock">
+                <div class="inspection-header">
+                  <div class="inspection-icon">
+                    ✓
+                  </div>
+                  <h3 class="inspection-title" id="inspectionTitle">^IQC^</h3>
+                </div>
+                <div class="inspection-content" id="inspectionData">^RAW(IQCDATA)^</div>
+              </div>
+
+              <div class="secondary-actions" id="secondaryActions">
+                <button type="submit" name="BACK" value="Back" class="btn btn-secondary">
+                  Back to Search
+                </button>
+                <button type="submit" name="CREATE" value="Add PullOrder" class="btn btn-primary">
+                  Add PullOrder
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const partField = document.getElementById('partNumber');
+      
+      if (partField) {
+        partField.focus();
+        if (partField.value.trim() !== '') {
+          partField.select();
+        }
+      }
+
+      const messageDisplay = document.getElementById('messageDisplay');
+      const messageText = document.getElementById('messageText');
+      if (messageDisplay && messageText) {
+        const rawMessage = messageText.textContent ? messageText.textContent.trim() : '';
+        if (rawMessage && rawMessage !== '^MSG^') {
+          messageDisplay.style.display = 'flex';
+          const normalized = rawMessage.toLowerCase();
+          if (normalized.includes('invalid') || normalized.includes('error') || normalized.includes('unable')) {
+            messageDisplay.classList.add('error');
+          }
+        } else {
+          messageDisplay.style.display = 'none';
+        }
+      }
+
+      const resultSection = document.getElementById('resultSection');
+      const noResultsSection = document.getElementById('noResultsSection');
+      const inspectionBlock = document.getElementById('inspectionBlock');
+      const inspectionTitle = document.getElementById('inspectionTitle');
+      const inspectionData = document.getElementById('inspectionData');
+
+      // Parse RESULT data and populate cards
+      const resultRaw = document.querySelector('#resultData');
+      let hasValidResults = false;
+      
+      if (resultRaw && resultRaw.textContent && resultRaw.textContent !== '^RAW(RESULT)^') {
+        const resultText = resultRaw.textContent.trim();
+        
+        // Check if there's actual data (not empty or just whitespace)
+        if (resultText && resultText.length > 0) {
+          hasValidResults = true;
+          const lines = resultText.split(/\r?\n/);
+          
+          lines.forEach(line => {
+            const trimmedLine = line.trim();
+            if (trimmedLine.includes('Description:')) {
+              const desc = trimmedLine.split('Description:')[1].trim();
+              const descEl = document.getElementById('descriptionValue');
+              if (descEl) descEl.textContent = desc || 'N/A';
+            }
+            if (trimmedLine.includes('Status:')) {
+              const status = trimmedLine.split('Status:')[1].trim();
+              const statusBadge = document.getElementById('statusBadge');
+              if (statusBadge) {
+                if (status.toLowerCase() === 'active') {
+                  statusBadge.textContent = 'Active';
+                  statusBadge.style.background = '#dcfce7';
+                  statusBadge.style.color = '#166534';
+                } else {
+                  statusBadge.textContent = status;
+                  statusBadge.style.background = '#fee2e2';
+                  statusBadge.style.color = '#991b1b';
+                }
+              }
+            }
+          });
+        }
+      }
+
+      const hasInspectionTitle = inspectionTitle && inspectionTitle.textContent.trim() !== '' && inspectionTitle.textContent.trim() !== '^IQC^';
+      const hasInspectionData = inspectionData && inspectionData.textContent.trim() !== '' && inspectionData.textContent.trim() !== '^RAW(IQCDATA)^';
+      const hasInspection = hasInspectionTitle || hasInspectionData;
+
+      const forceShow = partField && partField.value.trim() !== '';
+
+      // Show appropriate section based on results
+      if (forceShow) {
+        if (hasValidResults || hasInspection) {
+          // Show results section
+          if (resultSection) resultSection.style.display = 'flex';
+          if (noResultsSection) noResultsSection.style.display = 'none';
+          if (inspectionBlock) {
+            inspectionBlock.style.display = hasInspection ? 'block' : 'none';
+          }
+        } else {
+          // Show no results section
+          if (resultSection) resultSection.style.display = 'none';
+          if (noResultsSection) noResultsSection.style.display = 'block';
+        }
+      } else {
+        // Hide both sections if no search was performed
+        if (resultSection) resultSection.style.display = 'none';
+        if (noResultsSection) noResultsSection.style.display = 'none';
+      }
+    });
+  </script>
+
+  <PRE>
+PicLan-IP/BASIC ^ ^
+*
+ PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+    ERR = '' ; INITIALS=  ''
+    CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+    RETURN
+ END
+*
+PL_GETVAR PARTNUM FROM 'PARTNUM' ELSE PARTNUM = ''
+PL_GETVAR BACK FROM 'BACK' ELSE BACK = ''
+PL_GETVAR CREATE FROM 'CREATE' ELSE CREATE = ''
+PL_GETVAR OK FROM 'OK' ELSE OK = ''
+PL_GETVAR CLEAR FROM 'CLEAR' ELSE CLEAR = ''
+*
+RESULT = ''
+IQC = ''
+IQCDATA = ''
+MSG = ''
+DESCR = ''
+TEST = ''
+PREC = ''
+*
+* Manejar CLEAR primero - resetear todo
+IF CLEAR NE '' THEN
+  PARTNUM = ''
+  MSG = ''
+  RESULT = ''
+  IQC = ''
+  IQCDATA = ''
+  CREATE = ''
+  BACK = ''
+  OK = ''
+  * Limpiar variables de sesión
+  PL_PUTVAR '' IN 'PARTNUM' ELSE NULL
+  PL_PUTVAR '' IN 'CREATE' ELSE NULL
+  PL_PUTVAR '' IN 'BACK' ELSE NULL
+  PL_PUTVAR '' IN 'OK' ELSE NULL
+  PL_PUTVAR '' IN 'CLEAR' ELSE NULL
+  GOTO 99
+END
+*
+IF BACK NE '' THEN
+  PL_PUTVAR PARTNUM IN 'PARTNUM' ELSE NULL
+  ERR = ''
+  CALL PLW.PAGE('INVIRMEDIT.HTM','',ERR)
+  RETURN
+END
+*
+IF CREATE NE '' THEN
+  PL_PUTVAR PARTNUM IN 'PARTNUM' ELSE NULL
+  ERR = ''
+  CALL PLW.PAGE('INVPULL1EDIT.HTM','',ERR)
+  RETURN
+END
+*
+* Si hay PARTNUM, generar resultados automáticamente
+PARTNUM = TRIM(PARTNUM)
+PARTSF.OPEN = 0
+INVF.OPEN = 0
+IF PARTNUM NE '' THEN
+  OPEN 'PARTS' TO PARTSF ELSE
+    MSG = 'UNABLE TO OPEN PARTS FILE'
+    GOTO 99
+  END
+  PARTSF.OPEN = 1
+  OPEN 'INV' TO INVF ELSE INVF.OPEN = 0
+  IF INVF.OPEN = 0 THEN INVF.OPEN = 0 ELSE INVF.OPEN = 1
+*
+  PREC = OCONV(PARTNUM,'TPARTS;X;;0')
+  IF PREC = '' AND PARTNUM[1,1] = 'P' THEN
+    PARTNUM = PARTNUM[2,99]
+  END
+  PARTNUM = TRIM(PARTNUM)
+*
+  READ TEST FROM PARTSF,PARTNUM ELSE
+    MSG = 'INVALID PART#'
+    CLOSE PARTSF
+    IF INVF.OPEN = 1 THEN CLOSE INVF
+    GOTO 99
+  END
+*
+  * Verificar si hay datos de inventario
+  IF INVF.OPEN = 1 THEN
+    READ INV FROM INVF,PARTNUM ELSE INV = ''
+  END ELSE
+    INV = ''
+  END
+  BOH = INV<1>
+  IF BOH = '' OR BOH = 0 THEN
+    * No hay inventario, dejar RESULT vacío para mostrar "No Results"
+    MSG = ''
+    RESULT = ''
+    IQC = ''
+    IQCDATA = ''
+  END ELSE
+    * Hay inventario, generar resultados
+    MSG = ''
+    DESCR = TEST<2>
+    IF DESCR = '' THEN DESCR = 'N/A'
+    RESULT = 'Part Number: ' : PARTNUM
+    RESULT = RESULT : CHAR(10) : 'Description: ' : DESCR
+    RESULT = RESULT : CHAR(10) : 'Status: Active'
+    IQC = 'Incoming Inspection'
+    IQCDATA = 'No open receipts at this time'
+  END
+*
+  * Cerrar archivos SIEMPRE
+  CLOSE PARTSF
+  IF INVF.OPEN = 1 THEN CLOSE INVF
+END
+*
+99 CONTINUE
+*
+* Si hay mensaje de error, redirigir a página de error
+IF MSG NE '' THEN
+  PL_PUTVAR MSG IN 'MSG' ELSE NULL
+  PL_PUTVAR PARTNUM IN 'PARTNUM' ELSE NULL
+  ERR = ''
+  CALL PLW.PAGE('PALMERROR2EDIT.HTM','',ERR)
+  RETURN
+END
+*
+PL_PUTVAR PARTNUM IN 'PARTNUM' ELSE NULL
+PL_PUTVAR '' IN 'MENU' ELSE NULL
+PL_PUTVAR '' IN 'CREATE' ELSE NULL
+PL_PUTVAR '' IN 'OK' ELSE NULL
+PL_PUTVAR '' IN 'CLEAR' ELSE NULL
+PL_PUTVAR MSG IN 'MSG' ELSE NULL
+PL_PUTVAR RESULT IN 'RESULT' ELSE NULL
+PL_PUTVAR IQC IN 'IQC' ELSE NULL
+PL_PUTVAR IQCDATA IN 'IQCDATA' ELSE NULL
+*
+  </PRE>
+</body>
+</html>

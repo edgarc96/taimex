@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TAIMEX - Stock Verification</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-body: #f1f5f9;
+      --bg-card: #ffffff;
+      --accent-blue: #1d4ed8;
+      --accent-green: #10b981;
+      --accent-red: #dc2626;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --shadow-card: 0 18px 46px rgba(15, 23, 42, 0.18);
+      --radius-lg: 20px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.35);
+      position: relative;
+      z-index: 50;
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      font-size: 1.5em;
+      line-height: 1;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-section img {
+      height: 36px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+
+    .title-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .title-section h2 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .title-section p {
+      font-size: 0.78rem;
+      color: rgba(226, 232, 240, 0.8);
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: var(--bg-body);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 600px;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .info-section {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border-left: 4px solid var(--accent-blue);
+      padding: 16px;
+      border-radius: 10px;
+    }
+
+    .info-row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 16px;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .info-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1e40af;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .info-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .part-number-large {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--accent-green);
+      text-align: center;
+      padding: 16px 0;
+      border: 2px dashed var(--accent-green);
+      border-radius: 10px;
+      background: rgba(16, 185, 129, 0.05);
+    }
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .form-group input {
+      padding: 12px 16px;
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      background: #fffbeb;
+      color: var(--text-primary);
+      font-family: inherit;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+      background: #fef9c3;
+    }
+
+    .message-area {
+      display: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .message-area.success {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+      display: block;
+    }
+
+    .message-area.error {
+      background: rgba(220, 38, 38, 0.1);
+      border-color: var(--accent-red);
+      color: var(--accent-red);
+      display: block;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      min-width: 120px;
+      flex: 1;
+    }
+
+    .btn-primary {
+      background: #10b981;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-primary:hover {
+      background: #059669;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    }
+
+    .btn-secondary {
+      background: #64748b;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(100, 116, 139, 0.3);
+    }
+
+    .btn-secondary:hover {
+      background: #475569;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(100, 116, 139, 0.4);
+    }
+
+    /* Sidebar */
+    #sb-toggle {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .sidebar {
+      position: fixed !important;
+      top: 0;
+      left: -300px;
+      width: 300px;
+      height: 100vh;
+      background: rgba(255, 255, 255, .08) !important;
+      backdrop-filter: blur(1px) !important;
+      -webkit-backdrop-filter: blur(1px) !important;
+      color: white !important;
+      transition: left 0.3s ease;
+      z-index: 2000;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+      overflow-y: auto;
+    }
+
+    .sidebar.active {
+      left: 0 !important;
+    }
+
+    .sidebar-overlay {
+      position: fixed !important;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 1500;
+      pointer-events: none;
+    }
+
+    .sidebar-overlay.active {
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto;
+    }
+
+    #sb-toggle:checked ~ .sidebar {
+      left: 0 !important;
+    }
+
+    #sb-toggle:checked ~ .sidebar-overlay {
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto;
+    }
+
+    .sidebar-content {
+      padding: 24px !important;
+    }
+
+    .sidebar-header {
+      padding: 20px !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar-header h3 {
+      font-size: 1.2em !important;
+      color: #fff;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .sidebar-menu {
+      list-style: none !important;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-menu li {
+      margin-bottom: 8px !important;
+    }
+
+    .sidebar-menu a, .sidebar-menu label {
+      display: block !important;
+      padding: 12px 16px !important;
+      color: #f3f4f6 !important;
+      text-decoration: none !important;
+      border-radius: 8px !important;
+      transition: all 0.2s ease !important;
+      font-weight: 500 !important;
+      cursor: pointer !important;
+    }
+
+    .sidebar-menu a:hover, .sidebar-menu label:hover {
+      background-color: rgba(30, 64, 175, 0.1) !important;
+      color: #fff !important;
+    }
+
+    .sidebar-menu a.active, .sidebar-menu label.active {
+      background-color: rgba(30, 64, 175, 0.2) !important;
+      color: #93c5fd !important;
+    }
+
+    .sidebar-menu label {
+      cursor: pointer !important;
+    }
+
+    /* Verification Success Overlay */
+    .verification-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .verification-overlay.show {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .verification-content {
+      text-align: center;
+      color: white;
+      transform: scale(0.8);
+      transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .verification-overlay.show .verification-content {
+      transform: scale(1);
+    }
+
+    .verification-circle {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      margin: 0 auto 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(16, 185, 129, 0.4);
+      animation: verifyPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes verifyPulse {
+      0%, 100% {
+        box-shadow: 0 20px 60px rgba(16, 185, 129, 0.4);
+      }
+      50% {
+        box-shadow: 0 20px 80px rgba(16, 185, 129, 0.6);
+      }
+    }
+
+    .verification-checkmark {
+      width: 70px;
+      height: 70px;
+      stroke: white;
+      stroke-width: 4;
+      stroke-linecap: round;
+      fill: none;
+      animation: drawVerify 0.8s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+      animation-delay: 0.3s;
+      opacity: 0;
+    }
+
+    @keyframes drawVerify {
+      0% {
+        stroke-dasharray: 1000;
+        stroke-dashoffset: 1000;
+        opacity: 1;
+      }
+      100% {
+        stroke-dasharray: 1000;
+        stroke-dashoffset: 0;
+        opacity: 1;
+      }
+    }
+
+    .verification-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #10b981;
+    }
+
+    .verification-message {
+      font-size: 1.1rem;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 8px;
+    }
+
+    .verification-submessage {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 8px 16px;
+      }
+
+      .title-section {
+        text-align: left;
+      }
+
+      .main-content {
+        padding: 16px;
+      }
+
+      .card {
+        padding: 20px 18px;
+      }
+
+      .info-row {
+        grid-template-columns: 100px 1fr;
+      }
+
+      .part-number-large {
+        font-size: 1.8rem;
+      }
+
+      .form-actions .btn {
+        min-width: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <input type="checkbox" id="sb-toggle">
+  <label for="sb-toggle" class="sidebar-overlay" aria-hidden="true"></label>
+
+  <aside class="sidebar" aria-label="Main menu">
+    <div class="sidebar-header">
+      <h3>Menu</h3>
+    </div>
+    <div class="sidebar-content">
+      <ul class="sidebar-menu">
+        <li><label for="sb-toggle">Main Menu</label></li>
+        <li><label for="sb-toggle">Parts Management</label></li>
+        <li><label for="sb-toggle">Work Orders</label></li>
+        <li><label for="sb-toggle">Sales Orders</label></li>
+        <li><label for="sb-toggle">Stock Transactions</label></li>
+        <li><label for="sb-toggle" class="active">Stock Check</label></li>
+      </ul>
+    </div>
+  </aside>
+
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">
+          ☰
+        </label>
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL">
+        </div>
+      </div>
+      <div class="title-section">
+        <h2>TAIMEX - Stock Check</h2>
+        <p>Verify Part Numbers</p>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <section class="card">
+        <div class="info-section">
+          <div class="info-row">
+            <div class="info-label">Pull-Sheet</div>
+            <div class="info-value">^SHIPNO^-^LINO^</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Bin Location</div>
+            <div class="info-value">^BINLOC^</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Pull Qty</div>
+            <div class="info-value">^QTY^</div>
+          </div>
+        </div>
+
+        <div class="part-number-large">
+          ^PARTNO^
+        </div>
+
+        <form method="GET" action="STOCKCHECKEDIT2.HTM" name="SCANPART" class="form">
+          <div class="form-group">
+            <label for="newpart">
+              Scan Box Part Number
+            </label>
+            <input type="text" id="newpart" name="NEWPART" value="" placeholder="Scan part number to verify" autocomplete="off" inputmode="text">
+          </div>
+
+          <div class="message-area" id="messageArea">
+            ^MSG^
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" name="OK" value="OK" class="btn btn-primary">
+              Verify
+            </button>
+            <button type="submit" name="CANCEL" value="CANCEL" class="btn btn-secondary">
+              Next Sheet
+            </button>
+          </div>
+
+          <!-- Hidden inputs -->
+          <input type="hidden" name="SHIPNO" value="^SHIPNO^">
+          <input type="hidden" name="LINO" value="^LINO^">
+          <input type="hidden" name="PARTNO" value="^PARTNO^">
+          <input type="hidden" name="SELECT" value="^SELECT^">
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <!-- Verification Success Overlay -->
+  <div class="verification-overlay" id="verificationOverlay">
+    <div class="verification-content">
+      <div class="verification-circle">
+        <svg class="verification-checkmark" viewBox="0 0 52 52">
+          <path d="M14 27l7.5 7.5L38 18" />
+        </svg>
+      </div>
+      <h2 class="verification-title">Verified!</h2>
+      <p class="verification-message">Part number confirmed</p>
+      <p class="verification-submessage">Continue to next item...</p>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      'use strict';
+      console.log('[STOCKCHECK v4.0 - TIMESTAMP: 2025-11-05-19:00] Script loaded');
+
+      var verificationOverlay = document.getElementById('verificationOverlay');
+      var messageArea = document.getElementById('messageArea');
+      var newpartField = document.getElementById('newpart');
+
+      // Get MSG from multiple sources
+      var urlParams = new URLSearchParams(window.location.search);
+      var msgFromURL = urlParams.get('MSG');
+      var msgFromHTML = messageArea ? messageArea.textContent.trim() : '';
+
+      console.log('[STOCKCHECK] MSG from URL:', msgFromURL);
+      console.log('[STOCKCHECK] MSG from HTML:', msgFromHTML);
+      console.log('[STOCKCHECK] msgFromHTML length:', msgFromHTML.length);
+      console.log('[STOCKCHECK] msgFromHTML charCodes:', Array.from(msgFromHTML).map(function(c) { return c.charCodeAt(0); }));
+
+      // Determine final MSG value - prioritize non-empty values
+      var finalMsg = '';
+
+      console.log('[STOCKCHECK] Checking msgFromURL...');
+      console.log('[STOCKCHECK] msgFromURL truthy?', !!msgFromURL);
+      console.log('[STOCKCHECK] msgFromURL !== ""?', msgFromURL !== '');
+
+      if (msgFromURL && msgFromURL !== '' && msgFromURL !== '^MSG^') {
+        console.log('[STOCKCHECK] Using msgFromURL');
+        finalMsg = msgFromURL;
+      } else {
+        console.log('[STOCKCHECK] Checking msgFromHTML...');
+        console.log('[STOCKCHECK] msgFromHTML truthy?', !!msgFromHTML);
+        console.log('[STOCKCHECK] msgFromHTML length > 0?', msgFromHTML.length > 0);
+
+        var hasCaret = msgFromHTML.indexOf(String.fromCharCode(94)) > -1;
+        console.log('[STOCKCHECK] Contains placeholder char?', hasCaret);
+
+        // Use msgFromHTML if it's not empty and doesn't contain placeholder characters
+        if (msgFromHTML && msgFromHTML.length > 0 && !hasCaret) {
+          console.log('[STOCKCHECK] Using msgFromHTML as finalMsg');
+          finalMsg = msgFromHTML;
+        } else {
+          console.log('[STOCKCHECK] Skipping msgFromHTML');
+        }
+      }
+
+      console.log('[STOCKCHECK] Final MSG:', finalMsg);
+      console.log('[STOCKCHECK] Final MSG length:', finalMsg.length);
+
+      if (finalMsg && finalMsg.toUpperCase() === 'VERIFIED') {
+        console.log('[STOCKCHECK] ✓✓✓ VERIFIED DETECTED - SHOWING ANIMATION ✓✓✓');
+
+        if (verificationOverlay) {
+          verificationOverlay.classList.add('show');
+        }
+
+        if (messageArea) {
+          messageArea.textContent = 'Part Verified!';
+          messageArea.classList.add('success');
+          messageArea.style.display = 'block';
+        }
+
+        setTimeout(function() {
+          console.log('[STOCKCHECK] Hiding overlay');
+          if (verificationOverlay) {
+            verificationOverlay.classList.remove('show');
+          }
+
+          if (newpartField) {
+            newpartField.value = '';
+            newpartField.focus();
+          }
+        }, 2500);
+
+      } else if (finalMsg && finalMsg !== '') {
+        console.log('[STOCKCHECK] Error message:', finalMsg);
+        if (messageArea) {
+          messageArea.textContent = finalMsg;
+          messageArea.classList.add('error');
+          messageArea.style.display = 'block';
+        }
+        if (newpartField) {
+          newpartField.focus();
+        }
+      } else {
+        console.log('[STOCKCHECK] No message, focusing field');
+        if (newpartField) {
+          newpartField.focus();
+        }
+      }
+    })();
+  </script>
+
+<pre>PicLan-IP/BASIC ^ ^
+*
+ PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+    ERR = '' ; INITIALS=  ''
+    CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+    RETURN
+ END
+ OPEN 'SOUNDS' TO SOUNDSF ELSE RETURN
+ OPEN 'INV' TO INVF ELSE
+    CLOSE SOUNDSF
+    RETURN
+ END
+ OPEN 'SHIPMENTS' TO SHIPF ELSE
+    CLOSE SOUNDSF
+    CLOSE INVF
+    RETURN
+ END
+*
+PL_GETVAR SHIPNO FROM 'SHIPNO' ELSE SHIPNO = ''
+PL_GETVAR PARTNO FROM 'PARTNO' ELSE PARTNO = ''
+PL_GETVAR MSG FROM 'MSG' ELSE MSG = ''
+PL_GETVAR SELECT FROM 'SELECT' ELSE SELECT = ''
+PL_GETVAR NEWPART FROM 'NEWPART' ELSE NEWPART = ''
+PL_GETVAR LINO FROM 'LINO' ELSE LINO = ''
+PL_GETVAR CANCEL FROM 'CANCEL' ELSE CANCEL = ''
+*
+READ SHIP FROM SHIPF,SHIPNO ELSE SHIP = ''
+QTY = SHIP&lt;14,LINO&gt;
+PARTNO_ORIG = PARTNO
+PARTNO = OCONV(PARTNO,'MCU')
+READ INV FROM INVF,PARTNO ELSE INV = ''
+BINLOC = INV&lt;8,1&gt;
+*
+PRINT '===== DEBUG START ====='
+PRINT 'NEWPART RAW = ':NEWPART
+PRINT 'PARTNO RAW  = ':PARTNO
+PRINT 'NEWPART LENGTH = ':LEN(NEWPART)
+*
+* Normalize NEWPART for comparison
+NEWPART_CLEAN = NEWPART
+* Remove leading '1P' prefix if present
+IF NEWPART_CLEAN[1,2]= '1P' THEN NEWPART_CLEAN = NEWPART_CLEAN[3,99]
+* Remove leading 'P' prefix if present
+IF NEWPART_CLEAN[1,1] = 'P' THEN NEWPART_CLEAN = NEWPART_CLEAN[2,99]
+*
+* Normalize PARTNO for comparison
+PARTNO_CLEAN = PARTNO
+IF PARTNO_CLEAN[1,2]= '1P' THEN PARTNO_CLEAN = PARTNO_CLEAN[3,99]
+IF PARTNO_CLEAN[1,1] = 'P' THEN PARTNO_CLEAN = PARTNO_CLEAN[2,99]
+*
+PRINT 'NEWPART_CLEAN = ':NEWPART_CLEAN
+PRINT 'PARTNO_CLEAN  = ':PARTNO_CLEAN
+PRINT 'MATCH = ':(OCONV(NEWPART_CLEAN,'MCU') = OCONV(PARTNO_CLEAN,'MCU'))
+PRINT '===== DEBUG END ====='
+SOUNDWAV = ''
+BEGIN CASE
+      CASE CANCEL NE ''
+           PRINT 'CANCEL BUTTON PRESSED - GOING BACK'
+           ERR = ''
+           CLOSE SOUNDSF
+           CLOSE INVF
+           CLOSE SHIPF
+           CALL PLW.PAGE('STOCKCHECKEDIT.HTM','',ERR)
+           RETURN
+      CASE NEWPART NE ''
+           PRINT 'ENTERING COMPARISON BLOCK'
+           IF OCONV(NEWPART_CLEAN,'MCU') NE OCONV(PARTNO_CLEAN,'MCU') THEN
+             NEWPART = ''
+             MSG = 'Invalid Part No.'
+             PRINT 'RESULT: INVALID'
+            END ELSE
+             MSG = 'VERIFIED'
+             NEWPART = ''
+             PRINT 'RESULT: VERIFIED'
+            END
+           PL_PUTVAR MSG IN 'MSG' ELSE NULL
+      CASE 1
+           PRINT 'NEWPART IS EMPTY - NO COMPARISON'
+END CASE
+
+*
+CLOSE SOUNDSF
+CLOSE INVF
+CLOSE SHIPF
+*
+</pre>
+
+
+</body>
+</html>
+          
+               

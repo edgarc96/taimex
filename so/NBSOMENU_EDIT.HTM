@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Order Menu - TAIMEX System</title>
+    <link rel="stylesheet" href="styles/nbmmedit.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="system-title">TAIMEX System</h1>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <section class="welcome-section">
+                <h2 class="welcome-title">Welcome <span class="user-name">^USER^</span></h2>
+                <p class="system-time" id="current-time"></p>
+            </section>
+
+            <section class="menu-section">
+                <form method="post" action="/NBSOMENU.HTM" name="SOMENU" class="menu-form">
+                    <div class="menu-grid">
+                        <button type="submit" name="MENU1" value="SO ENTRY" class="menu-btn sales-btn">
+                            <span class="btn-icon">📝</span>
+                            <span class="btn-text">SO ENTRY</span>
+                        </button>
+                        
+                        <button type="submit" name="MENU2" value="SO CHANGES/INQUIRY" class="menu-btn purchasing-btn">
+                            <span class="btn-icon">🔍</span>
+                            <span class="btn-text">SO CHANGES/INQUIRY</span>
+                        </button>
+                        
+                        <button type="submit" name="MENU4" value="SO COPY" class="menu-btn qc-btn">
+                            <span class="btn-icon">📋</span>
+                            <span class="btn-text">SO COPY</span>
+                        </button>
+                        
+                        <button type="submit" name="MENU3" value="MAIN MENU" class="menu-btn logout-btn">
+                            <span class="btn-icon">🏠</span>
+                            <span class="btn-text">MAIN MENU</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-text">© 2024 TAIMEX System. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Display current time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('current-time').textContent = timeString;
+        }
+        
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+        // Add interactive effects
+        document.querySelectorAll('.menu-btn').forEach(btn => {
+            btn.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+            });
+            
+            btn.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        
+    </script>
+
+    <!-- Server-side processing code (preserved from original) -->
+    <pre style="display:none;">PicLan-IP/BASIC ^ ^
+*
+    PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+        ERR = '' ; INITIALS=  ''
+         CALL PLW.PAGE('LOGIN.HTM','',ERR)
+        RETURN
+    END
+    PL_SET_COOKIE 'SONO' TO '' 
+    OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+    OPEN 'SOCHG' TO SOCHGF ELSE STOP 201,'SOCHG'
+    OPEN 'SOCART' TO SOCARTF ELSE STOP 201,'SOCART'
+    OPEN 'WSOACK' TO WSOACKF ELSE STOP 201,'WSOACK'
+*
+   READ OPER FROM OPERSF,INITIALS ELSE 
+        ERR = ''
+        CALL PLW.PAGE('LOGIN.HTM','',ERR)
+        RETURN
+   END
+*
+   USER = OPER<1>
+   PL_GETVAR OPTION FROM 'OPTION' ELSE OPTION = ''
+   PL_GETVAR CONTINUE FROM 'CONTINUE' ELSE CONTINUE = ''
+   PL_GETVAR MENU1 FROM 'MENU1' ELSE MENU1 = ''
+   PL_GETVAR MENU2 FROM 'MENU2' ELSE MENU2 = ''
+   PL_GETVAR MENU3 FROM 'MENU3' ELSE MENU3 = ''
+   PL_GETVAR MENU4 FROM 'MENU4' ELSE MENU4 = ''
+   PL_SET_COOKIE 'SESSIONID' TO ''
+   PL_SET_COOKIE 'VKEY' TO ''
+*
+*
+  IF MENU1 NE '' OR MENU2 NE '' OR MENU3 NE '' OR MENU4 NE '' THEN
+    BEGIN CASE
+          CASE OPTION = '1' OR MENU1 NE ''
+                SONO = 'NEW':INITIALS<1>
+                DELETE SOCHGF,SONO
+                DELETE WSOACKF,SONO
+                 PL_SET_COOKIE 'SONO' TO SONO
+                PL_PUTVAR SONO IN 'SONO' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('CUSTSEARCHSO_EDIT.HTM','',ERR)
+               RETURN
+          CASE OPTION = '2' OR MENU2 NE '' 
+                SONO = 'NEW':INITIALS<1>
+                DELETE SOCHGF,SONO
+                DELETE WSOACKF,SONO
+                SONO = ''
+                PL_SET_COOKIE 'SONO' TO SONO
+                ERR = ''
+                CALL PLW.PAGE('NBSOCHGID.HTM','',ERR)
+                RETURN
+           CASE MENU4 NE ''
+                SONO = 'NEW':INITIALS<1>
+                DELETE SOCHGF,SONO
+                DELETE WSOACKF,SONO
+                SONO = ''
+                PL_SET_COOKIE 'SONO' TO SONO
+                ERR = ''
+                CALL PLW.PAGE('NBSOCHGIDCOPY.HTM','',ERR)
+                RETURN
+           CASE OPTION = '5'
+                ERR = ''
+                CALL PLW.PAGE('NBSOCHGMAINDASH.HTM','',ERR)
+                RETURN
+           CASE OPTION = '99' OR MENU3 NE '' 
+              ERR = ''
+              PL_GET_COOKIE INX FROM 'INIT' ELSE NULL
+              PL_PUTVAR INITIALS IN 'INIT' ELSE NULL
+              PL_PUTVAR '' IN 'OPTION' ELSE NULL
+              PL_PUTVAR '' IN 'MENU3' ELSE NULL
+              PRINT 'INX = ':INX
+              CALL PLW.PAGE('NBSALES.HTM','',ERR)
+              RETURN
+    END CASE
+  END
+*
+*
+</pre>
+</body>
+</html>

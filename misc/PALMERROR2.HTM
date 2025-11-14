@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Inventory Error Redirect</title>
+</head>
+<body>
+  <PRE>
+PicLan-IP/BASIC ^ ^
+*
+PL_GETVAR MSG FROM 'MSG' ELSE MSG = ''
+PL_GETVAR PARTNUM FROM 'PARTNUM' ELSE PARTNUM = ''
+*
+* Exportar variables de vuelta
+PL_PUTVAR MSG IN 'MSG' ELSE NULL
+PL_PUTVAR PARTNUM IN 'PARTNUM' ELSE NULL
+*
+ERR = ''
+CALL PLW.PAGE('INVIRMEDIT.HTM','',ERR)
+RETURN
+*
+  </PRE>
+</body>
+</html>

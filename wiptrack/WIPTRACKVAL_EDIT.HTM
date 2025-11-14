@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TAIMEX - WIP TRACKING REVIEW</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100vh;
+      width: 100%;
+    }
+
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: #334155;
+    }
+
+    .container {
+      width: 100%;
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(30, 41, 59, 0.25);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo-section img {
+      height: 40px;
+    }
+
+    .title-section {
+      text-align: right;
+      flex: 1;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 15px;
+    }
+
+    .welcome-user span {
+      color: #cbd5e1;
+      font-size: 0.8em;
+      font-weight: 400;
+    }
+
+    .welcome-user strong {
+      color: #3b82f6;
+      margin-left: 4px;
+      font-weight: 600;
+    }
+
+    .title-section h2 {
+      font-size: 0.95em;
+      margin: 0;
+      font-weight: 500;
+      color: #cbd5e1;
+      letter-spacing: 0.3px;
+    }
+
+    .title-section p {
+      font-size: 0.75em;
+      margin: 2px 0 0 0;
+      color: #a2a8ba;
+      font-weight: 400;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 40px 20px;
+      background: #f8fafc;
+    }
+
+    .review-card {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border-top: 4px solid #f59e0b;
+    }
+
+    .card-title {
+      font-size: 28px;
+      color: #1e293b;
+      font-weight: 700;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border-left: 3px solid #2a5298;
+    }
+
+    .info-label {
+      font-size: 14px;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .info-value {
+      font-size: 14px;
+      color: #1e293b;
+      font-weight: 700;
+    }
+
+    .confirmation-box {
+      background: linear-gradient(135deg, #fef3c7 0%, #fef08a 100%);
+      border: 2px solid #f59e0b;
+      border-radius: 10px;
+      padding: 24px;
+      margin: 28px 0;
+      text-align: center;
+    }
+
+    .confirmation-box h3 {
+      font-size: 20px;
+      color: #92400e;
+      margin-bottom: 8px;
+    }
+
+    .confirmation-box p {
+      font-size: 14px;
+      color: #78350f;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 28px;
+    }
+
+    .btn {
+      padding: 14px 32px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border: none;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+    }
+
+    #sb-toggle {
+      display: none;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 300px;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(1px);
+      color: #fff;
+      transition: left 0.2s ease;
+      z-index: 2000;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.35);
+    }
+
+    #sb-toggle:checked ~ .sidebar {
+      left: 0;
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.55);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+      z-index: 1500;
+      pointer-events: none;
+    }
+
+    #sb-toggle:checked ~ .sidebar-overlay {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar-header h3 {
+      font-size: 1.2em;
+      color: #fff;
+      margin: 0;
+    }
+
+    .sidebar-content {
+      padding: 24px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-menu li {
+      margin-bottom: 8px;
+    }
+
+    .sidebar-menu label {
+      display: block;
+      padding: 12px 16px;
+      color: #f3f4f6;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .sidebar-menu label:hover {
+      background-color: rgba(30, 64, 175, 0.1);
+      color: #fff;
+    }
+
+    .sidebar-menu label.active {
+      background-color: rgba(30, 64, 175, 0.2);
+      color: #93c5fd;
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.2em;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .hamburger-menu svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+  </style>
+</head>
+<body>
+  <input type="checkbox" id="sb-toggle">
+  <label for="sb-toggle" class="sidebar-overlay" aria-hidden="true"></label>
+
+  <aside class="sidebar" aria-label="Main menu">
+    <div class="sidebar-header">
+      <h3>Menu</h3>
+    </div>
+    <div class="sidebar-content">
+      <ul class="sidebar-menu">
+        <li><label for="sb-toggle">Main Menu</label></li>
+        <li><label for="sb-toggle">Parts Management</label></li>
+        <li><label for="sb-toggle">Work Orders</label></li>
+        <li><label for="sb-toggle">Sales Orders</label></li>
+        <li><label for="sb-toggle">Stock Transactions</label></li>
+        <li><label for="sb-toggle" class="active">WIP Tracking</label></li>
+      </ul>
+    </div>
+  </aside>
+
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">
+          <svg viewBox="0 0 448 512" role="img" aria-hidden="true" focusable="false" width="20" height="20">
+            <path d="M0 96C0 78.3 14.3 64 32 64H416C433.7 64 448 78.3 448 96C448 113.7 433.7 128 416 128H32C14.3 128 0 113.7 0 96zM0 256C0 238.3 14.3 224 32 224H416C433.7 224 448 238.3 448 256C448 273.7 433.7 288 416 288H32C14.3 288 0 273.7 0 256zM448 416C448 433.7 433.7 448 416 448H32C14.3 448 0 433.7 0 416C0 398.3 14.3 384 32 384H416C433.7 384 448 398.3 448 416z"></path>
+          </svg>
+        </label>
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL">
+        </div>
+      </div>
+      <div class="title-section">
+        <div class="title-row">
+          <div class="welcome-user">
+            <span>Welcome,</span>
+            <strong>^OPERNAME^</strong>
+          </div>
+          <div>
+            <h2>TAIMEX - WIP TRACKING</h2>
+            <p>TAIMEX - MANAGEMENT</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div style="max-width: 800px; margin: 0 auto; width: 100%;">
+        
+        <!-- Welcome Banner -->
+        <div style="background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%); border: 2px solid #93c5fd; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px;">
+          <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #2a5298 0%, #1e3a8a 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; flex-shrink: 0;">
+            <i class="fas fa-user-check"></i>
+          </div>
+          <div style="flex: 1;">
+            <h3 style="font-size: 18px; color: #1e293b; margin-bottom: 4px; font-weight: 600;">WIP Tracking Review</h3>
+            <p style="color: #475569; font-size: 13px; margin: 0;">Please review the transaction details before confirming.</p>
+          </div>
+        </div>
+
+        <form method="post" name="getpage" action="/WIPTRACKVAL_EDIT.HTM">
+        <div class="review-card">
+          <h1 class="card-title">
+            <i class="fas fa-clipboard-check" style="color: #f59e0b; margin-right: 12px;"></i>
+            WIP Tracking - Review
+          </h1>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">WO:</span>
+              <span class="info-value">^WOID^</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">PN:</span>
+              <span class="info-value">^ASSY^</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">From Location:</span>
+              <span class="info-value">^WLOC^ ^WLOCD^</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">To Location:</span>
+              <span class="info-value">^NWLOC^ ^NWLOCD^</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Good Qty:</span>
+              <span class="info-value">^PASSQTY^</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Persons:</span>
+              <span class="info-value">^PEOPLE^</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Total Scrap:</span>
+              <span class="info-value">^TSCRAP^</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Scrap Qty 1:</span>
+              <span class="info-value">^SCRAPQ1^</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Scrap Qty 2:</span>
+              <span class="info-value">^SCRAPQ2^</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Scrap Qty 3:</span>
+              <span class="info-value">^SCRAPQ3^</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Scrap Qty 4:</span>
+              <span class="info-value">^SCRAPQ4^</span>
+            </div>
+          </div>
+
+          <div class="confirmation-box">
+            <h3><i class="fas fa-exclamation-triangle"></i> Confirmation Required</h3>
+            <p>Are you sure you want to proceed with this transaction?</p>
+          </div>
+
+          <div class="action-buttons">
+            <button type="submit" name="COMPLETEX" class="btn btn-success">
+              <i class="fas fa-check-circle"></i>
+              Yes - Proceed
+            </button>
+            <button type="submit" name="CANCEL" class="btn btn-danger">
+              <i class="fas fa-times-circle"></i>
+              Cancel
+            </button>
+          </div>
+        </div>
+
+        <input name="BADGEID" type="hidden" value="^BADGEID^">
+        <input name="WOID" type="hidden" value="^WOID^">
+        <input name="ASSY" type="hidden" value="^ASSY^">
+        <input name="WLOC" type="hidden" value="^WLOC^">
+        <input name="WLOCD" type="hidden" value="^WLOCD^">
+        <input name="PASSQTY" type="hidden" value="^PASSQTY^">
+        <input name="NOTES" type="hidden" value="^NOTES^">
+        <input name="TSCRAP" type="hidden" value="^TSCRAP^">
+        <input name="SCRAP1" type="hidden" value="^SCRAP1^">
+        <input name="SCRAP2" type="hidden" value="^SCRAP2^">
+        <input name="SCRAP3" type="hidden" value="^SCRAP3^">
+        <input name="SCRAP4" type="hidden" value="^SCRAP4^">
+        <input name="SCRAPQ1" type="hidden" value="^SCRAPQ1^">
+        <input name="SCRAPQ2" type="hidden" value="^SCRAPQ2^">
+        <input name="SCRAPQ3" type="hidden" value="^SCRAPQ3^">
+        <input name="SCRAPQ4" type="hidden" value="^SCRAPQ4^">
+        <input name="CANCEL" type="hidden" value="^CANCEL^">
+        <input name="PEOPLE" type="hidden" value="^PEOPLE^">
+      </form>
+    </main>
+  </div>
+
+  <PRE>
+PicLan-IP/BASIC ^ ^
+*
+   PRINT 'HI'
+      PL_GETVAR BADGEID FROM 'BADGEID' ELSE BADGEID = ''
+      PL_GETVAR UPDATE FROM 'UPDATE' ELSE UPDATE = ''
+      PL_GETVAR WOID FROM 'WOID' ELSE WOID = ''
+      PL_GETVAR PEOPLE FROM 'PEOPLE' ELSE PEOPLE = ''
+      PL_GETVAR CANCEL FROM 'CANCEL' ELSE CANCEL = ''
+      PL_GETVAR SUSPEND FROM 'SUSPEND' ELSE SUSPEND = ''
+      PL_GETVAR COMPLETEX FROM 'COMPLETEX' ELSE COMPLETEX = ''
+      PL_GETVAR SCRAP1 FROM 'SCRAP1' ELSE SCRAP1 = ''
+      PL_GETVAR SCRAP2 FROM 'SCRAP2' ELSE SCRAP2 = ''
+      PL_GETVAR SCRAP3 FROM 'SCRAP3' ELSE SCRAP3 = ''
+      PL_GETVAR SCRAP4 FROM 'SCRAP4' ELSE SCRAP4 = ''
+      PL_GETVAR SCRAPQ1 FROM 'SCRAPQ1' ELSE SCRAPQ1 = ''
+      PL_GETVAR SCRAPQ2 FROM 'SCRAPQ2' ELSE SCRAPQ2 = ''
+      PL_GETVAR SCRAPQ3 FROM 'SCRAPQ3' ELSE SCRAPQ3 = ''
+      PL_GETVAR SCRAPQ4 FROM 'SCRAPQ4' ELSE SCRAPQ4 = ''
+      PL_GETVAR NOTES FROM 'NOTES' ELSE NOTES = ''
+      PL_GETVAR PASSQTY FROM 'PASSQTY' ELSE PASSQTY = ''
+      PL_GETVAR WIPQTY FROM 'WIPQTY' ELSE WIPQTY = ''
+*
+      OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+      OPEN 'BADGES' TO BADGEF ELSE STOP 201,'BADGE'
+      OPEN 'WO' TO WOF ELSE STOP 201,'WO'
+      OPEN 'WIPLOC' TO WIPLOCF ELSE STOP 201,'WIPLOC'
+      OPEN 'WIPSTATUS' TO WIPSTATUSF ELSE STOP 201,'WIPSTATUS'
+      OPEN 'EOPS' TO EOPSF ELSE STOP 201,'EOPS'
+      OPEN 'EBOO' TO EBOOF ELSE STOP 201,'EBOO'
+      OPEN 'LIID' TO LIID.FILE ELSE STOP 201,'LIID'
+      OPEN 'STOCK' TO STOCKF ELSE STOP 201,'STOCK'
+      OPEN 'STOCKW' TO STOCKWF ELSE STOP 201,'STOCKW'
+
+      PL_GETVAR OPNO FROM 'OPNO' ELSE OPNO = ''
+      PL_GETVAR OPDESC FROM 'OPDESC' ELSE OPDESC = ''
+      PL_GETVAR LAST.STATUS FROM 'LAST.STATUS' ELSE LAST.STATUS = ''
+      IF PEOPLE = '' THEN PEOPLE = 1
+      PERSON.CNT = PEOPLE
+ *
+*     Initialize variables
+      NWLOC = ''
+      NWLOCD = ''
+      TSCRAP = 0
+      ASSY = ''
+      WLOC = ''
+      WLOCD = ''
+      WIPQTY = ''
+      WOREC = ''
+      WIPLOCREC = ''
+      OPREC = ''
+      BOO = ''
+      WIPSTATUS = ''
+      INIT = ''
+      ERR = ''
+      MSG = ''
+      OPERNAME = ''
+      ID = ''
+      WONO = ''
+      WIPLOC = ''
+      HIT = 0
+      I = 0
+      WN = ''
+      NWN = ''
+      BOOSEQ = ''
+*
+PRINT
+PRINT 'ENTERING CDA_WIPTRACKVAL.HTM'
+PRINT
+      IF CANCEL NE '' THEN
+         ERR = ''
+         BADGEID = ''
+         WOID = ''
+         CALL PLW.PAGE('WIPTRACK_EDIT.HTM','',ERR)
+         RETURN
+      END
+      MSG = ''
+      READ WOREC FROM WOF,WOID ELSE 
+         ERR = 'INVALID WORK ORDER NUMBER .. ':WOID
+         GOTO 99
+      END
+*
+      ID = WOID ; WONO = WOID
+      ASSY = WOREC<32>
+      WLOC = WOREC<90,1>
+      READ WIPLOCREC FROM WIPLOCF,WLOC ELSE WIPLOCREC = ''
+      WLOCD = WIPLOCREC<1>
+      WIPQTY = WOREC<91,1> 
+      IF PASSQTY = '' THEN PASSQTY = WIPQTY   
+*
+      INIT = FIELD(BADGEID,'|',1)
+      READ OPREC FROM OPERSF,INIT ELSE
+         MSG = 'INVALID OPERS INITIALS :':INIT
+         GOTO 99
+      END
+      OPERNAME = OPREC<1>
+      READ WIPSTATUS FROM WIPSTATUSF,WONO ELSE WIPSTATUS = ''
+      OPNO = WIPSTATUS<16,DCOUNT(WIPSTATUS<16>,@VM)>
+      READV OPDESC FROM EOPSF,OPNO,1 ELSE OPDESC = ''
+      LAST.STATUS = 'New'
+      IF WIPSTATUS<1> = 'P' THEN LAST.STATUS = 'Paused'
+      IF WIPSTATUS<1> = 'O' THEN LAST.STATUS = 'In Progress'
+
+      BOOSEQ = ''
+      READ BOO FROM EBOOF,WOREC<32> ELSE BOO = ''
+      FOR I = 1 TO DCOUNT(BOO<14>,@VM)
+          WN = BOO<14,I>
+          NWN = BOO<14,I+1>
+          IF NWN EQ '' THEN
+             BOOSEQ<1,-1> = WN
+          END ELSE
+             IF WN NE NWN THEN
+               BOOSEQ<1,-1> = WN
+             END
+          END
+      NEXT I
+      BOO<14> = BOOSEQ
+      LOCATE(WLOC,BOO<14>,1;HIT) THEN
+           WIPLOC = BOO<14,HIT>
+      END
+      NWLOC = BOO<14,HIT+1>
+      READV NWLOCD FROM WIPLOCF,NWLOC,1 ELSE NWLOCD = ''
+      IF NWLOC = '' THEN
+         NWLOC = 'PR'
+         NWLOCD = 'FINISHED GOODS'
+      END
+*
+*     Calculate total scrap
+      TSCRAP = 0
+      IF NUM(SCRAPQ1) THEN TSCRAP = TSCRAP + SCRAPQ1
+      IF NUM(SCRAPQ2) THEN TSCRAP = TSCRAP + SCRAPQ2
+      IF NUM(SCRAPQ3) THEN TSCRAP = TSCRAP + SCRAPQ3
+      IF NUM(SCRAPQ4) THEN TSCRAP = TSCRAP + SCRAPQ4
+*
+      IF COMPLETEX NE ''  THEN
+           WOID = TRIM(WOID)
+           WOID = OCONV(WOID,'MCU')
+           READ WOREC FROM WOF,WOID ELSE WOREC = ''
+           PL_GETVAR PEOPLE FROM 'PEOPLE' ELSE PEOPLE = 1
+           PL_GETVAR SCRAP1 FROM 'SCRAP1' ELSE SCRAP1 = ''
+           PL_GETVAR SCRAP2 FROM 'SCRAP2' ELSE SCRAP2 = ''
+           PL_GETVAR SCRAP3 FROM 'SCRAP3' ELSE SCRAP3 = ''
+           PL_GETVAR SCRAP4 FROM 'SCRAP4' ELSE SCRAP4 = ''
+           PL_GETVAR SCRAPQ1 FROM 'SCRAPQ1' ELSE SCRAPQ1 = ''
+           PL_GETVAR SCRAPQ2 FROM 'SCRAPQ2' ELSE SCRAPQ2 = ''
+           PL_GETVAR SCRAPQ3 FROM 'SCRAPQ3' ELSE SCRAPQ3 = ''
+           PL_GETVAR SCRAPQ4 FROM 'SCRAPQ4' ELSE SCRAPQ4 = ''
+           PL_GETVAR NOTES FROM 'NOTES' ELSE NOTES = ''
+           PL_GETVAR PASSQTY FROM 'PASSQTY' ELSE PASSQTY = ''
+           PL_GETVAR WOID FROM  'WOID' ELSE WOID = ''
+           PL_GETVAR BADGEID FROM 'BADGEID' ELSE BADGEID = ''    
+           PL_GETVAR ASSY FROM 'ASSY' ELSE ASSY = ''
+           PL_GETVAR PASSQTY FROM 'PASSQTY' ELSE PASSQTY = ''
+           PL_GETVAR WLOC FROM 'WLOC' ELSE WLOC = ''
+           PL_GETVAR WLOCD FROM 'WLOCD' ELSE WLOCD = ''
+           PL_PUTVAR WOID IN 'WOID' ELSE NULL
+           PL_PUTVAR ASSY IN 'ASSY' ELSE NULL
+           PL_PUTVAR WLOC IN 'WLOC' ELSE NULL
+           PL_PUTVAR WLOCD IN 'WLOCD' ELSE NULL
+           PL_PUTVAR PASSQTY IN 'PASSQTY' ELSE NULL
+           PL_PUTVAR NOTES IN 'NOTES' ELSE NULL
+           PL_PUTVAR TSCRAP IN 'TSCRAP' ELSE NULL
+           PL_PUTVAR SCRAP1 IN 'SCRAP1' ELSE NULL
+           PL_PUTVAR SCRAP2 IN 'SCRAP2' ELSE NULL
+           PL_PUTVAR SCRAP3 IN 'SCRAP3' ELSE NULL
+           PL_PUTVAR SCRAP4 IN 'SCRAP4' ELSE NULL
+           PL_PUTVAR SCRAPQ1 IN 'SCRAPQ1' ELSE NULL
+           PL_PUTVAR SCRAPQ2 IN 'SCRAPQ2' ELSE NULL
+           PL_PUTVAR SCRAPQ3 IN 'SCRAPQ3' ELSE NULL
+           PL_PUTVAR SCRAPQ4 IN 'SCRAPQ4' ELSE NULL
+           PL_PUTVAR PEOPLE IN 'PEOPLE' ELSE NULL
+           PL_PUTVAR BADGEID IN 'BADGEID' ELSE NULL
+           PL_PUTVAR '' IN 'COMPLETE' ELSE NULL
+           PL_PUTVAR '' IN 'CANCEL' ELSE NULL
+           ERR = ''
+           CALL PLW.PAGE('WIPTRACKFINAL_EDIT.HTM','',ERR)
+           RETURN
+        END
+*
+99 *
+*     Ensure variables have default values
+      IF NWLOC = '' THEN NWLOC = 'N/A'
+      IF NWLOCD = '' THEN NWLOCD = 'N/A'
+      IF TSCRAP = 0 OR TSCRAP = '' THEN TSCRAP = '0'
+      IF SCRAPQ1 = '' THEN SCRAPQ1 = '0'
+      IF SCRAPQ2 = '' THEN SCRAPQ2 = '0'
+      IF SCRAPQ3 = '' THEN SCRAPQ3 = '0'
+      IF SCRAPQ4 = '' THEN SCRAPQ4 = '0'
+      IF PASSQTY = '' THEN PASSQTY = '0'
+      IF PEOPLE = '' THEN PEOPLE = '1'
+      IF ASSY = '' THEN ASSY = 'N/A'
+      IF WLOC = '' THEN WLOC = 'N/A'
+      IF WLOCD = '' THEN WLOCD = 'N/A'
+      IF WOID = '' THEN WOID = 'N/A'
+      IF OPERNAME = '' THEN OPERNAME = 'OPERATOR'
+*
+  MSG = ERR
+  MSG = PL_AMTOCRLF(MSG)
+*
+*
+  </PRE>
+</body>
+</html>

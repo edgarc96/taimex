@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TAIMEX - Error</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-body: #f1f5f9;
+      --bg-card: #ffffff;
+      --accent-blue: #1d4ed8;
+      --danger: #dc2626;
+      --danger-bg: rgba(220, 38, 38, 0.1);
+      --danger-border: rgba(220, 38, 38, 0.3);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --shadow-card: 0 18px 46px rgba(15, 23, 42, 0.18);
+      --radius-lg: 20px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .error-container {
+      width: 100%;
+      max-width: 520px;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: 48px 40px;
+      text-align: center;
+    }
+
+    .error-icon {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 28px;
+      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);
+    }
+
+    .error-icon svg {
+      width: 60px;
+      height: 60px;
+      stroke: white;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .error-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+
+    .error-message {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--danger);
+      margin-bottom: 28px;
+      padding: 20px 24px;
+      background: var(--danger-bg);
+      border: 2px solid var(--danger-border);
+      border-radius: 12px;
+      line-height: 1.5;
+    }
+
+    .error-description {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 32px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      min-width: 160px;
+      background: #64748b;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(100, 116, 139, 0.3);
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: #475569;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(100, 116, 139, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(100, 116, 139, 0.2);
+    }
+
+    @media (max-width: 768px) {
+      .error-container {
+        padding: 36px 28px;
+      }
+
+      .error-title {
+        font-size: 1.5rem;
+      }
+
+      .error-message {
+        font-size: 1rem;
+      }
+
+      .btn {
+        width: 100%;
+        padding: 12px 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="error-container">
+    <div class="error-icon">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+    </div>
+
+    <h1 class="error-title">Error</h1>
+
+    <div class="error-message" id="errorMessage">
+      ^MSG^
+    </div>
+
+    <p class="error-description">
+      Please verify your information and try again. If the problem persists, contact support.
+    </p>
+
+    <form method="GET" action="/STOCKCHECKEDIT.HTM">
+      <input type="hidden" name="SHIPNO" value="^SHIPNO^">
+      <button type="submit" class="btn">
+        Try Again
+      </button>
+    </form>
+  </div>
+
+  <PRE>PicLan-IP/BASIC ^ ^
+*
+ PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+    ERR = '' ; INITIALS=  ''
+    CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+    RETURN
+ END
+*
+PL_GETVAR MSG FROM 'MSG' ELSE MSG = 'An error occurred'
+PL_GETVAR SHIPNO FROM 'SHIPNO' ELSE SHIPNO = ''
+*
+PL_PUTVAR MSG IN 'MSG' ELSE NULL
+PL_PUTVAR SHIPNO IN 'SHIPNO' ELSE NULL
+*
+  </PRE>
+</body>
+</html>

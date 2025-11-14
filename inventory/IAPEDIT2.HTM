@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TAIMEX - Virtual Warehouse Assignment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-body: #f1f5f9;
+      --bg-card: #ffffff;
+      --accent-blue: #1d4ed8;
+      --accent-red: #dc2626;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --shadow-card: 0 18px 46px rgba(15, 23, 42, 0.18);
+      --radius-lg: 20px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.35);
+      position: relative;
+      z-index: 50;
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      font-size: 1.5em;
+      line-height: 1;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-section img {
+      height: 36px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+
+    .title-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .title-section h2 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .title-section p {
+      font-size: 0.78rem;
+      color: rgba(226, 232, 240, 0.8);
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: var(--bg-body);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 640px;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card-header h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .card-header p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .dynamic-content {
+      padding: 16px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      min-width: 120px;
+      flex: 1;
+    }
+
+    .btn-primary {
+      background: #1d4ed8;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(29, 78, 216, 0.4);
+    }
+
+    .btn-primary:hover {
+      background: #1e40af;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(29, 78, 216, 0.5);
+    }
+
+    .btn-secondary {
+      background: #64748b;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(100, 116, 139, 0.3);
+    }
+
+    .btn-secondary:hover {
+      background: #475569;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(100, 116, 139, 0.4);
+    }
+
+    /* Sidebar */
+    #sb-toggle {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .sidebar {
+      position: fixed !important;
+      top: 0;
+      left: -300px;
+      width: 300px;
+      height: 100vh;
+      background: rgba(255, 255, 255, .08) !important;
+      backdrop-filter: blur(1px) !important;
+      -webkit-backdrop-filter: blur(1px) !important;
+      color: white !important;
+      transition: left 0.3s ease;
+      z-index: 2000;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+      overflow-y: auto;
+    }
+
+    .sidebar.active {
+      left: 0 !important;
+    }
+
+    .sidebar-overlay {
+      position: fixed !important;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 1500;
+      pointer-events: none;
+    }
+
+    .sidebar-overlay.active {
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto;
+    }
+
+    #sb-toggle:checked ~ .sidebar {
+      left: 0 !important;
+    }
+
+    #sb-toggle:checked ~ .sidebar-overlay {
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto;
+    }
+
+    .sidebar-content {
+      padding: 24px !important;
+    }
+
+    .sidebar-header {
+      padding: 20px !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar-header h3 {
+      font-size: 1.2em !important;
+      color: #fff;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .sidebar-menu {
+      list-style: none !important;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-menu li {
+      margin-bottom: 8px !important;
+    }
+
+    .sidebar-menu a, .sidebar-menu label {
+      display: block !important;
+      padding: 12px 16px !important;
+      color: #f3f4f6 !important;
+      text-decoration: none !important;
+      border-radius: 8px !important;
+      transition: all 0.2s ease !important;
+      font-weight: 500 !important;
+      cursor: pointer !important;
+    }
+
+    .sidebar-menu a:hover, .sidebar-menu label:hover {
+      background-color: rgba(30, 64, 175, 0.1) !important;
+      color: #fff !important;
+    }
+
+    .sidebar-menu a.active, .sidebar-menu label.active {
+      background-color: rgba(30, 64, 175, 0.2) !important;
+      color: #93c5fd !important;
+    }
+
+    .sidebar-menu label {
+      cursor: pointer !important;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 8px 16px;
+      }
+
+      .title-section {
+        text-align: left;
+      }
+
+      .main-content {
+        padding: 16px;
+      }
+
+      .card {
+        padding: 20px 18px;
+      }
+
+      .form-actions .btn {
+        flex: 1 1 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <input type="checkbox" id="sb-toggle">
+  <label for="sb-toggle" class="sidebar-overlay" aria-hidden="true"></label>
+
+  <aside class="sidebar" aria-label="Main menu">
+    <div class="sidebar-header">
+      <h3>Menu</h3>
+    </div>
+    <div class="sidebar-content">
+      <ul class="sidebar-menu">
+        <li><label for="sb-toggle">Main Menu</label></li>
+        <li><label for="sb-toggle">Parts Management</label></li>
+        <li><label for="sb-toggle">Work Orders</label></li>
+        <li><label for="sb-toggle">Sales Orders</label></li>
+        <li><label for="sb-toggle">Stock Transactions</label></li>
+        <li><label for="sb-toggle" class="active">Virtual Warehouse</label></li>
+      </ul>
+    </div>
+  </aside>
+
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">
+          ☰
+        </label>
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL">
+        </div>
+      </div>
+      <div class="title-section">
+        <h2>TAIMEX - Virtual Warehouse</h2>
+        <p>Assignment Selection</p>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <section class="card">
+        <div class="card-header">
+          <h1>Virtual Warehouse Assignment</h1>
+          <p>Liberty D.S. Only</p>
+        </div>
+
+        <form method="GET" action="/IAPEDIT2.HTM" class="form">
+          <input type="hidden" name="LOCTN" value="^LOCTN^">
+
+          <div class="dynamic-content">
+            ^RAW(VINTERFACE)^
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" name="MENU" value="Main Menu" class="btn btn-secondary">
+              Main Menu
+            </button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+<pre>PicLan-IP/BASIC ^ ^
+*
+PL_GETVAR LOCTN FROM 'LOCTN' ELSE LOCTN = ''
+PL_GETVAR MCODE FROM 'MCODE' ELSE MCODE = ''
+PL_GETVAR MENU FROM 'MENU' ELSE MENU = ''
+PL_GETVAR VWHSE FROM 'VWHSE' ELSE VWHSE = ''
+PL_GETVAR VSELECTED FROM 'VSELECTED' ELSE VSELECTED=''
+PL_GETVAR VYES FROM 'VYES' ELSE VYES=''
+PL_GETVAR VNO FROM 'VNO' ELSE VNO=''
+*
+BR='<':'br>'
+VINTERFACE=''
+VWHSE.SELECTOR=''
+IF MENU NE '' THEN 
+      ERR = ''
+      CALL PLW.PAGE('STOCKCHECK.HTM','',ERR)
+      RETURN
+END
+
+IF VSELECTED = '' THEN
+    VINTERFACE:='<p align="center">'
+    VINTERFACE:='Move into or out of VWHSE location? (LIBERTY D.S. ONLY!)':BR
+    VINTERFACE:='<input type="submit" value="Yes" name="VYES" tabindex="1" style="font-family: Verdana; font-size: 8pt; background-color: #99FF99">'
+    VINTERFACE:='<span style="width:50px;"></span>'
+    VINTERFACE:='<input type="submit" value="No" name="VNO" tabindex="1" style="font-family: Verdana; font-size: 8pt; background-color: #99FF99">'
+END
+
+IF VYES NE '' THEN
+    CALL BUILDVWHSESELECTOR('', VWHSE.SELECTOR)
+    VINTERFACE='<p>VWHSE: ':VWHSE.SELECTOR:BR
+    VINTERFACE:='<input type="hidden" name="VSELECTED" value="YES">'
+    VINTERFACE:='<input type="submit" value="Next" name="B1" tabindex="2" style="font-family: Verdana; font-size: 8pt; background-color: #99FF99">'
+END
+* disable Vwhse shipments 2019
+IF VNO NE '' OR VSELECTED NE '' OR 1=1 THEN
+   IF VWHSE = '000' OR VWHSE = '' THEN
+    PL_PUTVAR VWHSE IN 'VWHSE' ELSE NULL
+    
+    ERR = ''
+    CALL PLW.PAGE('IAP3.HTM','',ERR)
+    RETURN
+   END ELSE
+    MSG = 'VWHSE LOCATIONS ARE NOW ONLY FOR LIBERTY DROPSHIPS.'
+    PL_PUTVAR MSG IN 'MSG' ELSE NULL
+    ERR='';MSG=''
+    CALL PLW.PAGE('PALMERROR2.HTM','',ERR)
+    RETURN
+   END
+   
+END
+
+</pre>
+</body>
+
+
+</html>
+               

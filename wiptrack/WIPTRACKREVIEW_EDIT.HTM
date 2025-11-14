@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WIP Tracking - Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- Fallback fonts in case Google Fonts fails -->
+  <style>
+    /* Fallback font stack */
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    }
+  </style>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+    }
+
+    body {
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: #334155;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(30, 41, 59, 0.25);
+      position: relative;
+      z-index: 100;
+      width: 100%;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo-section img {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+
+    .title-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 16px;
+    }
+
+    .welcome-user {
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .welcome-user span {
+      color: #cbd5e1;
+      font-size: 0.8em;
+      font-weight: 400;
+    }
+
+    .welcome-user strong {
+      color: #3b82f6;
+      margin-left: 4px;
+      font-weight: 600;
+      font-size: 0.9em;
+    }
+
+    .title-section h2 {
+      font-size: 1em;
+      margin: 0;
+      font-weight: 600;
+      color: #f1f5f9;
+      letter-spacing: 0.3px;
+    }
+
+    .title-section p {
+      font-size: 0.8em;
+      margin: 0;
+      color: #a2a8ba;
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.2em;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .hamburger-menu svg {
+      width: 24px;
+      height: 24px;
+      fill: #fff;
+    }
+
+    .hamburger-menu svg path {
+      fill: #fff;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      width: 100%;
+      background: #f8fafc;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 300px;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(1px);
+      -webkit-backdrop-filter: blur(1px);
+      color: #fff;
+      transition: left 0.2s ease;
+      z-index: 2000;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar-header h3 {
+      font-size: 1.1em;
+      color: #fff;
+      margin: 0;
+    }
+
+    .sidebar-content {
+      padding: 24px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-menu li {
+      margin-bottom: 10px;
+    }
+
+    .sidebar-menu label {
+      display: block;
+      padding: 12px 16px;
+      color: #f3f4f6;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .sidebar-menu label:hover {
+      background-color: rgba(30, 64, 175, 0.12);
+      color: #fff;
+    }
+
+    .sidebar-menu label.active {
+      background-color: rgba(30, 64, 175, 0.25);
+      color: #93c5fd;
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.55);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+      z-index: 1500;
+      pointer-events: none;
+    }
+
+    #sb-toggle:checked ~ .sidebar {
+      left: 0;
+    }
+
+    #sb-toggle:checked ~ .sidebar-overlay {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    #sb-toggle {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .wip-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .wip-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .section-title h3 {
+      font-size: 1.2em;
+      color: #0f172a;
+      font-weight: 600;
+    }
+
+    .section-title p {
+      font-size: 0.9em;
+      color: #64748b;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.95em;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(29, 78, 216, 0.28);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 30px rgba(29, 78, 216, 0.35);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(71, 85, 105, 0.25);
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 26px rgba(71, 85, 105, 0.32);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(185, 28, 28, 0.25);
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 26px rgba(185, 28, 28, 0.32);
+    }
+
+    .process-box {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border: 1px solid #bbf7d0;
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .process-icon {
+      font-size: 48px;
+      color: #16a34a;
+      margin-bottom: 16px;
+    }
+
+    .process-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #15803d;
+      margin-bottom: 12px;
+    }
+
+    .process-message {
+      font-size: 16px;
+      color: #64748b;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%);
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .info-box-icon {
+      font-size: 24px;
+      color: #1e3a8a;
+      flex-shrink: 0;
+    }
+
+    .info-box-content strong {
+      display: block;
+      color: #1e293b;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 16px;
+    }
+
+    .info-box-content p {
+      color: #475569;
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .work-order-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .info-item {
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .info-item i {
+      color: #1e3a8a;
+      font-size: 18px;
+    }
+
+    .info-item .label {
+      font-size: 0.85em;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .info-item .value {
+      font-size: 1em;
+      color: #0f172a;
+      font-weight: 600;
+    }
+
+    .review-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    }
+
+    .review-table th {
+      background: #1e293b;
+      color: #fff;
+      padding: 16px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .review-table td {
+      padding: 16px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .review-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .review-table tr:hover {
+      background: #f8fafc;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.85em;
+      font-weight: 600;
+    }
+
+    .status-badge.complete {
+      background: rgba(34, 197, 94, 0.12);
+      color: #15803d;
+    }
+
+    .status-badge.pending {
+      background: rgba(250, 204, 21, 0.14);
+      color: #b45309;
+    }
+
+    .status-badge.in-progress {
+      background: rgba(59, 130, 246, 0.12);
+      color: #1e40af;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .title-section {
+        text-align: left;
+        align-items: flex-start;
+      }
+
+      .title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .wip-wrapper {
+        padding: 16px;
+      }
+
+      .process-box {
+        padding: 24px 16px;
+      }
+
+      .process-title {
+        font-size: 24px;
+      }
+
+      .work-order-info {
+        flex-direction: column;
+      }
+
+      .info-item {
+        min-width: auto;
+      }
+
+      .review-table {
+        font-size: 0.9em;
+      }
+
+      .review-table th,
+      .review-table td {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <input type="checkbox" id="sb-toggle">
+  <label for="sb-toggle" class="sidebar-overlay" aria-hidden="true"></label>
+
+  <aside class="sidebar" aria-label="Main menu">
+    <div class="sidebar-header">
+      <h3>Menu</h3>
+    </div>
+    <div class="sidebar-content">
+      <ul class="sidebar-menu">
+        <li><label for="sb-toggle">Main Menu</label></li>
+        <li><label for="sb-toggle">Parts Management</label></li>
+        <li><label for="sb-toggle">Work Orders</label></li>
+        <li><label for="sb-toggle">Sales Orders</label></li>
+        <li><label for="sb-toggle">Stock Transactions</label></li>
+        <li><label for="sb-toggle" class="active">WIP Tracking</label></li>
+      </ul>
+    </div>
+  </aside>
+
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">
+          <svg viewBox="0 0 448 512" role="img" aria-hidden="true" focusable="false" width="20" height="20">
+            <path d="M0 96C0 78.3 14.3 64 32 64H416C433.7 64 448 78.3 448 96C448 113.7 433.7 128 416 128H32C14.3 128 0 113.7 0 96zM0 256C0 238.3 14.3 224 32 224H416C433.7 224 448 238.3 448 256C448 273.7 433.7 288 416 288H32C14.3 288 0 273.7 0 256zM448 416C448 433.7 433.7 448 416 448H32C14.3 448 0 433.7 0 416C0 398.3 14.3 384 32 384H416C433.7 384 448 398.3 448 416z"></path>
+          </svg>
+        </label>
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL" onerror="this.onerror=null;this.src='http://54.189.226.145/uploads/assets/images/taimex_logo.png';">
+        </div>
+      </div>
+      <div class="title-section">
+        <div class="title-row">
+          <div class="welcome-user">
+            <span>Welcome,</span>
+            <strong id="currentUserDisplay">Operator</strong>
+          </div>
+          <div>
+            <h2>TAIMEX - WIP TRACKING</h2>
+            <p>TAIMEX - MANAGEMENT</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="wip-wrapper">
+        <div style="max-width: 1000px; margin: 20px auto; width: 100%;">
+          <!-- Process Card -->
+          <div class="process-box">
+            <div class="process-icon">
+              <i class="fas fa-clipboard-check"></i>
+            </div>
+            <h1 class="process-title">Work Order Review</h1>
+            <p class="process-message">
+              Please review all work order details before proceeding. Verify quantities, scrap codes, and notes are correct.
+            </p>
+          </div>
+
+          <!-- Work Order Info -->
+          <div class="wip-card">
+            <div class="section-title">
+              <h3>Work Order Information</h3>
+            </div>
+            <div class="work-order-info">
+              <div class="info-item">
+                <i class="fas fa-hashtag"></i>
+                <div>
+                  <div class="label">Work Order</div>
+                  <div class="value">^WOID^</div>
+                </div>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-cogs"></i>
+                <div>
+                  <div class="label">Assembly</div>
+                  <div class="value">^ASSY^</div>
+                </div>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <div>
+                  <div class="label">Location</div>
+                  <div class="value">^WLOC^ ^WLOCD^</div>
+                </div>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-balance-scale"></i>
+                <div>
+                  <div class="label">WIP Balance</div>
+                  <div class="value">^WIPQTY^</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review Table -->
+          <div class="wip-card">
+            <div class="section-title">
+              <h3>Operation Details</h3>
+            </div>
+            <table class="review-table">
+              <thead>
+                <tr>
+                  <th>Operation</th>
+                  <th>Description</th>
+                  <th>Status</th>
+                  <th>Quantity</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>^OPNO^</td>
+                  <td>^OPDESC^</td>
+                  <td>
+                    <span class="status-badge ^STATUS_CLASS^">
+                      <i class="fas fa-circle"></i>
+                      ^LAST.STATUS^
+                    </span>
+                  </td>
+                  <td>^PASSQTY^</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Info Box -->
+          <div class="info-box">
+            <div class="info-box-icon">
+              <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="info-box-content">
+              <strong>Review Confirmation</strong>
+              <p>Please verify all information above is correct before proceeding. Once approved, the work order operation will be finalized and inventory records will be updated.</p>
+            </div>
+          </div>
+
+          <!-- Review Form -->
+          <form method="post" name="getpage" action="/WIPTRACKREVIEW_EDIT.HTM">
+            <!-- Action Buttons -->
+            <div class="action-buttons" style="justify-content: center; margin-top: 24px;">
+              <button 
+                type="submit" 
+                name="APPROVE"
+                class="btn btn-primary">
+                <i class="fas fa-check-circle"></i>
+                Approve
+              </button>
+              <button 
+                type="submit"
+                name="EDIT"
+                class="btn btn-secondary">
+                <i class="fas fa-edit"></i>
+                Edit
+              </button>
+              <button 
+                type="submit"
+                name="CANCEL"
+                class="btn btn-danger">
+                <i class="fas fa-times-circle"></i>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Form with Hidden Fields -->
+  <form method="post" name="getpage" action="/WIPTRACKREVIEW_EDIT.HTM">
+    <input name="BADGEID" type="hidden" value="^BADGEID^">
+    <input name="WOID" type="hidden" value="^WOID^">
+    <input name="ASSY" type="hidden" value="^ASSY^">
+    <input name="WLOC" type="hidden" value="^WLOC^">
+    <input name="WLOCD" type="hidden" value="^WLOCD^">
+    <input name="WIPQTY" type="hidden" value="^WIPQTY^">
+    <input name="PASSQTY" type="hidden" value="^PASSQTY^">
+    <input name="OPNO" type="hidden" value="^OPNO^">
+    <input name="OPDESC" type="hidden" value="^OPDESC^">
+    <input name="LAST.STATUS" type="hidden" value="^LAST.STATUS^">
+    <input name="STATUS_CLASS" type="hidden" value="^STATUS_CLASS^">
+    <input name="PEOPLE" type="hidden" value="^PEOPLE^">
+  </form>
+
+  <div align="left">
+  <pre>
+PicLan-IP/BASIC ^ ^
+*
+      PL_GETVAR BADGEID FROM 'BADGEID' ELSE BADGEID = ''
+      PL_GETVAR UPDATE FROM 'UPDATE' ELSE UPDATE = ''
+      PL_GETVAR WOID FROM 'WOID' ELSE WOID = ''
+      PL_GETVAR PEOPLE FROM 'PEOPLE' ELSE PEOPLE = ''
+      PL_GETVAR CANCEL FROM 'CANCEL' ELSE CANCEL = ''
+      PL_GETVAR SUSPEND FROM 'SUSPEND' ELSE SUSPEND = ''
+      PL_GETVAR COMPLETE FROM 'COMPLETE' ELSE COMPLETE = ''
+      PL_GETVAR APPROVE FROM 'APPROVE' ELSE APPROVE = ''
+      PL_GETVAR EDIT FROM 'EDIT' ELSE EDIT = ''
+      PL_GETVAR NOTES FROM 'NOTES' ELSE NOTES = ''
+      PL_GETVAR PASSQTY FROM 'PASSQTY' ELSE PASSQTY = ''
+      PL_GETVAR WIPQTY FROM 'WIPQTY' ELSE WIPQTY = ''
+      OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+      OPEN 'BADGES' TO BADGEF ELSE STOP 201,'BADGE'
+      OPEN 'WO' TO WOF ELSE STOP 201,'WO'
+      OPEN 'WIPLOC' TO WIPLOCF ELSE STOP 201,'WIPLOC'
+      OPEN 'WIPSTATUS' TO WIPSTATUSF ELSE STOP 201,'WIPSTATUS'
+      OPEN 'EOPS' TO EOPSF ELSE STOP 201,'EOPS'
+      OPEN 'EBOO' TO EBOOF ELSE STOP 201,'EBOO'
+      OPEN 'LIID' TO LIID.FILE ELSE STOP 201,'LIID'
+      OPEN 'STOCK' TO STOCKF ELSE STOP 201,'STOCK'
+      OPEN 'STOCKW' TO STOCKWF ELSE STOP 201,'STOCKW'
+      PL_GETVAR OPNO FROM 'OPNO' ELSE OPNO = ''
+      PL_GETVAR OPDESC FROM 'OPDESC' ELSE OPDESC = ''
+      PL_GETVAR LAST.STATUS FROM 'LAST.STATUS' ELSE LAST.STATUS = ''
+      IF PEOPLE = '' THEN PEOPLE = 1
+      PERSON.CNT = PEOPLE
+      ERR = ''
+ *
+  PRINT 'ENTERING CDA_WIPTRACKREVIEW'
+*
+      ID = WOID ; WONO = WOID
+      READ WOREC FROM WOF,ID ELSE WOREC = ''
+      IF WOREC THEN
+          ASSY = WOREC<32>
+          WLOC = WOREC<90,1>
+          READ WIPLOCREC FROM WIPLOCF,WLOC ELSE WIPLOCREC = ''
+          WLOCD = WIPLOCREC<1>
+          WIPQTY = WOREC<91,1>
+          IF WIPQTY = '' THEN WIPQTY = 0
+          IF PASSQTY = '' THEN PASSQTY = WIPQTY
+      END
+*
+      INIT = FIELD(BADGEID,'|',1)
+      READ OPREC FROM OPERSF,INIT ELSE
+         MSG = 'INVALID OPERS INITIALS :':INIT
+         GOTO 99
+      END
+      OPERNAME = OPREC<1>
+     READ WIPSTATUS FROM WIPSTATUSF,WONO ELSE WIPSTATUS = ''
+      IF WIPSTATUS THEN
+          IF WIPSTATUS<16> NE '' THEN
+              OPNO = WIPSTATUS<16,DCOUNT(WIPSTATUS<16>,@VM)>
+              READV OPDESC FROM EOPSF,OPNO,1 ELSE OPDESC = ''
+          END ELSE
+              OPNO = ''
+              OPDESC = ''
+          END
+      END
+      LAST.STATUS = 'New'
+      STATUS.CLASS = 'in-progress'
+      IF WIPSTATUS<1> = 'P' THEN
+         LAST.STATUS = 'Paused'
+         STATUS.CLASS = 'pending'
+      END
+      IF WIPSTATUS<1> = 'O' THEN
+         LAST.STATUS = 'In Progress'
+         STATUS.CLASS = 'in-progress'
+      END
+      IF WIPSTATUS<1> = 'C' THEN
+         LAST.STATUS = 'Complete'
+         STATUS.CLASS = 'complete'
+      END
+
+     BOOSEQ = ''
+      IF WOREC THEN
+          READ BOO FROM EBOOF,WOREC<32> ELSE BOO = ''
+          IF BOO<14> NE '' THEN
+              FOR I = 1 TO DCOUNT(BOO<14>,@VM)
+                  WN = BOO<14,I>
+                  NWN = BOO<14,I+1>
+                  IF NWN EQ '' THEN
+                     BOOSEQ<1,-1> = WN
+                  END ELSE
+                     IF WN NE NWN THEN
+                       BOOSEQ<1,-1> = WN
+                     END
+                  END
+              NEXT I
+              BOO<14> = BOOSEQ
+          END
+      END
+
+      READ WIPS.REC FROM WIPSTATUSF,WONO ELSE WIPS.REC = ''
+*
+      IF APPROVE NE ''  THEN
+         READ WIPS.REC FROM WIPSTATUSF,WOID ELSE WIPS.REC = ''
+         IF WIPS.REC THEN
+             LI = ''
+             IF WIPS.REC<16> NE '' THEN
+                 OPNO = WIPS.REC<16,DCOUNT(WIPS.REC<16>,@VM)>
+             END ELSE
+                 OPNO = ''
+             END
+             IF WIPS.REC<1> = 'O' THEN
+                 WIPS.REC<1> = 'C' ;*complete
+                 WIPS.REC<2> = DATE()
+                 WIPS.REC<3> = TIME()
+                 WIPS.REC<4> = BADGEID
+                 WIPS.REC<5> = PEOPLE
+                 WIPS.REC<6> = WLOC
+                 WIPS.REC<7> = LI
+                 LLI = DCOUNT(WIPS.REC<10>, @VM)
+                 LLI+=1
+                 WIPS.REC<10,LLI> = LLI
+                 WIPS.REC<11,LLI> = DATE()
+                 WIPS.REC<12,LLI> = TIME()
+                 WIPS.REC<13,LLI> = BADGEID
+                 WIPS.REC<14,LLI> = WLOC
+                 WIPS.REC<15,LLI> = LI
+                 WIPS.REC<16,LLI> = OPNO
+                 WIPS.REC<17,LLI> = 'C'
+                 WIPS.REC<18,LLI> = PEOPLE
+                 WRITE WIPS.REC ON WIPSTATUSF, WOID
+             END
+         END
+          PL_PUTVAR '' IN 'WOID' ELSE NULL
+          PL_PUTVAR '' IN 'PEOPLE' ELSE NULL
+          ERR = ''
+          CALL PLW.PAGE('CDA_WIPTRACK2.HTM','',ERR)
+          RETURN
+       END
+
+99 *
+  MSG = ERR
+  MSG = PL_AMTOCRLF(MSG)
+*
+*
+*
+  </pre>
+  </div>
+</body>
+</html>

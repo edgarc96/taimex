@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TAIMEX - Packing List Fill Process</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+--bg-body: #f1f5f9;
+--bg-card: #ffffff;
+--accent-blue: #1d4ed8;
+--text-primary: #0f172a;
+--text-secondary: #475569;
+--shadow-card: 0 18px 46px rgba(15, 23, 42, 0.18);
+--radius-lg: 20px;
+}
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+body {
+min-height: 100vh;
+font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+color: var(--text-primary);
+}
+.container {
+min-height: 100vh;
+background: #fff;
+display: flex;
+flex-direction: column;
+}
+.header {
+background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+color: #fff;
+padding: 10px 20px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+box-shadow: 0 2px 8px rgba(15, 23, 42, 0.35);
+}
+.logo-section img {
+height: 36px;
+width: auto;
+}
+.title-section {
+text-align: right;
+}
+.title-section h2 {
+font-size: 0.95rem;
+font-weight: 600;
+}
+.title-section p {
+font-size: 0.78rem;
+color: rgba(226, 232, 240, 0.8);
+}
+.main-content {
+flex: 1;
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 20px;
+background: var(--bg-body);
+}
+.card {
+width: 100%;
+max-width: 700px;
+background: var(--bg-card);
+border-radius: var(--radius-lg);
+box-shadow: var(--shadow-card);
+padding: 24px 32px;
+display: flex;
+flex-direction: column;
+gap: 20px;
+}
+.card-header h1 {
+font-size: 1.4rem;
+font-weight: 700;
+color: var(--text-primary);
+margin-bottom: 6px;
+}
+.card-header p {
+font-size: 0.9rem;
+color: var(--text-secondary);
+}
+.form {
+display: flex;
+flex-direction: column;
+gap: 16px;
+}
+.form-group {
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+.form-group label {
+font-weight: 600;
+font-size: 0.9rem;
+color: var(--text-primary);
+}
+.form-group input[type="text"] {
+width: 100%;
+padding: 12px 16px;
+border: 2px solid #e2e8f0;
+border-radius: 8px;
+font-size: 1rem;
+font-family: inherit;
+transition: all 0.2s ease;
+background-color: #ffffcc;
+}
+.form-group input[type="text"]:focus {
+outline: none;
+border-color: var(--accent-blue);
+box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+}
+.info-box {
+background: #f8fafc;
+border: 1px solid #e2e8f0;
+border-radius: 8px;
+padding: 16px;
+display: none;
+flex-direction: column;
+gap: 8px;
+}
+.info-box.show {
+display: flex;
+}
+.info-box-label {
+font-weight: 600;
+font-size: 0.85rem;
+color: var(--text-secondary);
+text-transform: uppercase;
+letter-spacing: 0.5px;
+}
+.info-box-content {
+font-size: 0.95rem;
+color: var(--text-primary);
+}
+.info-box-content a {
+color: var(--accent-blue);
+text-decoration: none;
+font-weight: 500;
+transition: color 0.2s ease;
+display: inline-block;
+margin-bottom: 4px;
+}
+.info-box-content a:hover {
+color: #1e40af;
+text-decoration: underline;
+}
+.form-actions {
+display: flex;
+gap: 12px;
+}
+.btn {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+padding: 12px 24px;
+border-radius: 8px;
+font-weight: 600;
+font-size: 0.95rem;
+cursor: pointer;
+border: none;
+transition: all 0.2s ease;
+text-transform: uppercase;
+letter-spacing: 0.3px;
+min-width: 120px;
+}
+.btn-primary {
+background: #1d4ed8;
+color: #ffffff;
+box-shadow: 0 4px 14px rgba(29, 78, 216, 0.4);
+}
+.btn-primary:hover {
+background: #1e40af;
+transform: translateY(-2px);
+box-shadow: 0 6px 20px rgba(29, 78, 216, 0.5);
+}
+.btn-secondary {
+background: #64748b;
+color: #ffffff;
+box-shadow: 0 4px 14px rgba(100, 116, 139, 0.3);
+}
+.btn-secondary:hover {
+background: #475569;
+transform: translateY(-2px);
+box-shadow: 0 6px 20px rgba(100, 116, 139, 0.4);
+}
+</style>
+</head>
+<body>
+<div class="container">
+<header class="header">
+<div class="logo-section">
+<img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX">
+</div>
+<div class="title-section">
+<h2>TAIMEX - Packing List</h2>
+<p>Fill Process</p>
+</div>
+</header>
+<main class="main-content">
+<section class="card">
+<div class="card-header">
+<h1>Packing List Fill Process</h1>
+<p>Enter invoice number to process shipment</p>
+</div>
+<form method="GET" action="/SHIPOUTPEDIT1.HTM" class="form">
+<div class="form-group">
+<label for="invnum">Invoice Number</label>
+<input type="text" id="invnum" name="INVNUM" value="^INVNUM^" placeholder="Enter invoice number" autocomplete="off" tabindex="1" autofocus>
+</div>
+<div class="info-box" id="infoBox">
+<div class="info-box-label">^TT1^</div>
+<div class="info-box-content">^RAW(LISEL)^</div>
+</div>
+<div class="form-actions">
+<button type="submit" name="OK" value="OK" class="btn btn-primary" tabindex="1">OK</button>
+<button type="submit" name="CANCEL" value="Cancel" class="btn btn-secondary" tabindex="2">Cancel</button>
+</div>
+</form>
+</section>
+</main>
+</div>
+<script>
+(function() {
+var invField = document.getElementById('invnum');
+if (invField) {
+invField.focus();
+if (invField.value.trim() !== '') invField.select();
+}
+var infoBox = document.getElementById('infoBox');
+var labelContent = infoBox.querySelector('.info-box-label').textContent.trim();
+var hasCaret = labelContent.indexOf('^') > -1;
+if (labelContent && labelContent.length > 0 && !hasCaret) {
+var liselContent = infoBox.querySelector('.info-box-content');
+var liselRaw = liselContent ? liselContent.textContent.trim() : '';
+if (liselRaw && liselRaw !== '^RAW(LISEL)^') {
+var items = liselRaw.trim().split(' ');
+var html = '';
+var invNum = document.getElementById('invnum').value;
+items.forEach(function(item) {
+if (item.trim() && item.indexOf('|') > -1) {
+var parts = item.split('|');
+if (parts.length >= 2) {
+var lineNum = parts[0].trim();
+var desc = parts[1].trim();
+html += '<div style="margin-bottom: 8px;"><a href="http://cdenb2.cde.com/shipoutp1a.htm?LISEL=' + lineNum + '&INVNUM=' + invNum + '">LINE ' + lineNum + ' ' + desc + '</a></div>';
+}
+}
+});
+if (html) liselContent.innerHTML = html;
+}
+infoBox.classList.add('show');
+}
+})();
+</script>
+<pre>PicLan-IP/BASIC ^ ^
+*
+PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+  ERR = ''
+  INITIALS = ''
+  CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+  RETURN
+END
+*
+TT1 = ''
+LISEL = ''
+*
+PL_GETVAR INVNUM FROM 'INVNUM' ELSE INVNUM = ''
+PL_GETVAR CANCEL FROM 'CANCEL' ELSE CANCEL = ''
+*
+IF CANCEL NE "" THEN
+  ERR = ''
+  CALL PLW.PAGE('STOCKMENU.HTM','',ERR)
+  RETURN
+END
+*
+PL_PUTVAR TT1 IN 'TT1' ELSE NULL
+PL_PUTVAR LISEL IN 'LISEL' ELSE NULL
+*
+</pre>
+</body>
+</html>

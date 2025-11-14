@@ -1,0 +1,438 @@
+<head>
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="GENERATOR" content="Microsoft FrontPage 3.0">
+<title>WIP Tracking</title>
+<meta name="GENERATOR" content="Microsoft FrontPage 3.0">
+<meta name="GENERATOR" content="Microsoft FrontPage 3.0">
+<style type="text/css">
+input[type=text] { box-sizing: border-box; padding: 6px 10px; border: 2px solid #ccc; border-radius: 4px; background-color: #f8f8f8;}
+input[type=submit] {background-color: #4CAF50; border: none; color: white; padding: 16px 20px; margin: 4px 2px; visibility:visible;}
+select {padding: 12px 16px; margin: 4px 2px; visibility:visible;}
+.auto-style2 {
+     text-align: left;
+}
+.auto-style3 {
+     font-size: x-large;
+     color: #000000;
+     font-family: Arial, Helvetica, sans-serif;
+}
+.auto-style4 {
+     font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+}
+.auto-style5 {
+     border-style: solid;
+     border-width: 1px;
+     font-family: Arial, Helvetica, sans-serif;
+     border-collapse: collapse;
+}
+.auto-style6 {
+     font-size: medium;
+}
+.cancelbtn{
+     color: black !important;
+     background-color: red !important;
+}
+.newStyle1 {
+	font-size: large;
+}
+</style>
+
+<body vLink="#0033cc" aLink="#0033cc" link="#0033cc" leftMargin="0"
+topMargin="0" marginheight="0" marginwidth="0">
+<html>
+<div
+align="center"><center>
+
+<div
+
+<table border="0" cellpadding="6" cellspacing="0" width="100%" height="69" style="border-collapse: collapse; width:100%; height:171" bordercolor="#111111">
+  <tr>
+    <td width="100%" height="69" valign="top">
+  <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber1" height="20">
+    <tr>
+      <td height="1" align="center" style="width: 19%"></td>
+      <td width="45%" height="1">
+      <p class="auto-style2"><b><font face="Verdana" size="2" color="#FF0000">&nbsp;<span class="auto-style3">WIP 
+       Tracking</span></font></b></td>
+      <td width="14%" height="1" align="center"></td>
+      <td width="19%" height="1">
+      </td>
+    </tr>
+    </table>
+  <form method="post" name="getpage" action="/CDA_WIPTRACKSCRAP2.HTM">
+    <table cellpadding="0" cellspacing="0" style="width: 85%;" bordercolor="#111111" id="AutoNumber2" class="auto-style5">
+      <tr>
+        <td style="width: 48%" class="auto-style2">&nbsp;</td>
+      </tr>
+      <tr>
+        <td style="width: 48%" class="auto-style2">
+          <table cellpadding="10" cellspacing="3" style="width: 100%">
+
+               <tr>
+                    <td class="auto-style6" style="width: 267px">WO:</td>
+                    <td class="auto-style6">^WOID^</td>
+               </tr>
+               <tr>
+                    <td class="auto-style6" style="width: 267px">Location:</td>
+                    <td class="auto-style6">^WLOC^&nbsp; ^WLOCD^</td>
+               </tr>
+               <tr>
+                    <td class="auto-style6" style="width: 267px">PN:</td>
+                    <td class="auto-style6">^ASSY^</td>
+               </tr>
+               <tr>
+                    <td class="auto-style6" style="width: 267px">Quantity:</td>
+                    <td class="auto-style6">^WIPQTY^</td>
+               </tr>
+               <tr>
+                    <td class="auto-style6" style="width: 267px">Last Status:</td>
+                    <td class="auto-style6">^LAST.STATUS^.&nbsp; [<a href="/CDA_WIPTRACKLOG.HTM?WOID=^WOID^">View Log</a>]</td>
+               </tr>
+               <tr>
+                    <td class="auto-style6" style="width: 267px">&nbsp;</td>
+                    <td class="auto-style6">[<a href="PRINTWOCDA3.HTM?ID=^WOID^">View 
+                         WO Traveller</a>]</td>
+               </tr>
+
+               <tr>
+                    <td class="auto-style6" style="width: 267px">&nbsp;</td>
+                    <td class="auto-style6">Personnel on this operation:
+                    <select name="PEOPLE">
+                    <option selected="" value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    </select></td>
+               </tr>
+
+               <tr>
+                    <td style="width: 267px">&nbsp;</td>
+                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <input name="COMPLETE" type="submit" value="Complete OP">&nbsp;&nbsp;
+                    <input name="CANCEL" type="submit" class="cancelbtn" value="Cancel"><br>
+    <b><font color="#FF0000">^MSG^</font></b></td>
+               </tr>
+               <tr>
+                    <td style="width: 267px">&nbsp;</td>
+                    <td>&nbsp;</td>
+               </tr>
+               <tr>
+                    <td style="width: 267px">&nbsp;</td>
+                    <td>
+                    <table style="width: 97%">
+                         <tr>
+                              <td style="width: 301px">Pass Count</td>
+                              <td><input name="PASSQTY" type="text" value="^WIPQTY^">&nbsp;</td>
+                         </tr>
+                         <tr>
+                              <td style="width: 301px">Scrap Count 1</td>
+                              <td><input name="SCRAPQ1" type="text">^RAW(SCRAPSEL1)^</td>
+                         </tr>
+                         <tr>
+                              <td style="width: 301px">Scrap Count 2</td>
+                              <td><input name="SCRAPQ2" type="text">^RAW(SCRAPSEL2)^</td>
+                         </tr>
+                         <tr>
+                              <td style="width: 301px">Scrap Count 3</td>
+                              <td><input name="SCRAPQ3" type="text">^RAW(SCRAPSEL3)^</td>
+                         </tr>
+                         <tr>
+                              <td style="width: 301px">Scrap Count 4</td>
+                              <td><input name="SCRAPQ4" type="text">^RAW(SCRAPSEL4)^</td>
+                         </tr>
+                         <tr>
+                              <td style="width: 301px">Notes:</td>
+                              <td><textarea cols="35" name="NOTES" rows="8"></textarea>&nbsp;</td>
+                         </tr>
+                         <tr>
+                              <td style="width: 301px">SPLIT WO </td>
+                              <td>
+							  <input name="SPLIT" class="auto-style3" "width: 40px; height: 49px" type="checkbox" value="Y">&nbsp;</td>
+                         </tr>
+                    </table>
+                    </td>
+               </tr>
+
+          </table>
+          <font size="1"><span class="auto-style4"><br>
+          </span></font></td>
+      </tr>
+      <tr>
+        <td style="width: 48%" class="auto-style2">
+    <b><font color="#FF0000">^MSG^</font></b></td>
+      </tr>
+      </table>
+    <p align="center">
+    &nbsp;</p>
+       <input name="BADGEID" type="hidden" value="^BADGEID^">
+       <input name="WOID" type="hidden" value="^WOID^">
+  </form>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%" height="3" style="border-collapse: collapse" bordercolor="#111111">
+  <tr>
+    <td width="6%" valign="top" height="30"><img src="https://cdenb2.cde.com/cde_com/images/logo3.gif" align="texttop"
+    width="51" height="30"></td>
+    <td width="18%" valign="top" height="30" align="left"><p align="left"><font size="2">
+    &nbsp;&nbsp;&nbsp;</font></td>
+    <td width="87%" valign="top" height="30">
+    
+      <pre><span lang="en-us"><font face="Arial Narrow">  </font></span></pre>
+      </center></div>
+    </td>
+  </tr>
+</table>
+</center></div>
+
+
+  <div align="left">
+
+
+<pre>PicLan-IP/BASIC ^ ^
+*
+*     Initialize all variables
+      MSG = ''
+      ERR = ''
+      BADGEID = ''
+      UPDATE = ''
+      WOID = ''
+      PEOPLE = ''
+      CANCEL = ''
+      SUSPEND = ''
+      COMPLETE = ''
+      SCRAP1 = ''
+      SCRAP2 = ''
+      SCRAP3 = ''
+      SCRAP4 = ''
+      SCRAPQ1 = ''
+      SCRAPQ2 = ''
+      SCRAPQ3 = ''
+      SCRAPQ4 = ''
+      NOTES = ''
+      SPLIT = ''
+      PASSQTY = ''
+      WIPQTY = ''
+      WOREC = ''
+      WIPLOCREC = ''
+      WIPSTATUS = ''
+      OPNO = ''
+      OPDESC = ''
+      LAST.STATUS = ''
+      PERSON.CNT = ''
+      ASSY = ''
+      WLOC = ''
+      WLOCD = ''
+      ID = ''
+      WONO = ''
+      INIT = ''
+      OPREC = ''
+      OPERNAME = ''
+      BOO = ''
+      BOOSEQ = ''
+      SCRAPSEL1 = ''
+      SCRAPSEL2 = ''
+      SCRAPSEL3 = ''
+      SCRAPSEL4 = ''
+      WIPS.REC = ''
+      TSCRAP = ''
+      PACKNG = ''
+      WN = ''
+      NWN = ''
+      I = ''
+*
+      PL_GETVAR BADGEID FROM 'BADGEID' ELSE BADGEID = ''
+      PL_GETVAR UPDATE FROM 'UPDATE' ELSE UPDATE = ''
+      PL_GETVAR WOID FROM 'WOID' ELSE WOID = ''
+      PL_GETVAR PEOPLE FROM 'PEOPLE' ELSE PEOPLE = ''
+      PL_GETVAR CANCEL FROM 'CANCEL' ELSE CANCEL = ''
+      PL_GETVAR SUSPEND FROM 'SUSPEND' ELSE SUSPEND = ''
+      PL_GETVAR COMPLETE FROM 'COMPLETE' ELSE COMPLETE = ''
+      PL_GETVAR SCRAP1 FROM 'SCRAP1' ELSE SCRAP1 = ''
+      PL_GETVAR SCRAP2 FROM 'SCRAP2' ELSE SCRAP2 = ''
+      PL_GETVAR SCRAP3 FROM 'SCRAP3' ELSE SCRAP3 = ''
+      PL_GETVAR SCRAP4 FROM 'SCRAP4' ELSE SCRAP4 = ''
+      PL_GETVAR SCRAPQ1 FROM 'SCRAPQ1' ELSE SCRAPQ1 = ''
+      PL_GETVAR SCRAPQ2 FROM 'SCRAPQ2' ELSE SCRAPQ2 = ''
+      PL_GETVAR SCRAPQ3 FROM 'SCRAPQ3' ELSE SCRAPQ3 = ''
+      PL_GETVAR SCRAPQ4 FROM 'SCRAPQ4' ELSE SCRAPQ4 = ''
+      PL_GETVAR NOTES FROM 'NOTES' ELSE NOTES = ''
+      PL_GETVAR SPLIT FROM 'SPLIT' ELSE SPLIT = ''
+      PL_GETVAR PASSQTY FROM 'PASSQTY' ELSE PASSQTY = ''
+      PL_GETVAR WIPQTY FROM 'WIPQTY' ELSE WIPQTY = ''
+*
+      OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+      OPEN 'BADGES' TO BADGEF ELSE STOP 201,'BADGE'
+      OPEN 'WO' TO WOF ELSE STOP 201,'WO'
+      OPEN 'WIPLOC' TO WIPLOCF ELSE STOP 201,'WIPLOC'
+      OPEN 'WIPSTATUS' TO WIPSTATUSF ELSE STOP 201,'WIPSTATUS'
+      OPEN 'EOPS' TO EOPSF ELSE STOP 201,'EOPS'
+      OPEN 'EBOO' TO EBOOF ELSE STOP 201,'EBOO'
+      OPEN 'LIID' TO LIID.FILE ELSE STOP 201,'LIID'
+      OPEN 'STOCK' TO STOCKF ELSE STOP 201,'STOCK'
+      OPEN 'STOCKW' TO STOCKWF ELSE STOP 201,'STOCKW'
+       OPEN 'SCRAPCODES'TO SCRAPCODESF ELSE STOP 201,'SCRAPCODES'
+
+      PL_GETVAR OPNO FROM 'OPNO' ELSE OPNO = ''
+      PL_GETVAR OPDESC FROM 'OPDESC' ELSE OPDESC = ''
+      PL_GETVAR LAST.STATUS FROM 'LAST.STATUS' ELSE LAST.STATUS = ''
+      PERSON.CNT = PEOPLE
+ *
+      IF CANCEL NE '' THEN
+         ERR = ''
+         BADGEID = ''
+         WOID = ''
+         CALL PLW.PAGE('CDA_WIPTRACK.HTM','',ERR)
+         RETURN
+      END
+      MSG = ''
+      READ WOREC FROM WOF,WOID ELSE 
+         ERR = 'INVALID WORK ORDER NUMBER .. ':WOID
+         GOTO 99
+      END
+*
+      ID = WOID ; WONO = WOID
+      ASSY = WOREC<32>
+      WLOC = WOREC<90,1>
+      READ WIPLOCREC FROM WIPLOCF,WLOC ELSE WIPLOCREC = ''
+      WLOCD = WIPLOCREC<1>
+      WIPQTY = WOREC<91,1> 
+      IF PASSQTY = '' THEN PASSQTY = WIPQTY   
+*
+      INIT = FIELD(BADGEID,'|',1)
+      READ OPREC FROM OPERSF,INIT ELSE
+         MSG = 'INVALID OPERS INITIALS :':INIT
+         GOTO 99
+      END
+      OPERNAME = OPREC<1>
+     READ WIPSTATUS FROM WIPSTATUSF,WONO ELSE WIPSTATUS = ''
+      OPNO = WIPSTATUS<16,DCOUNT(WIPSTATUS<16>,VM)>
+      READV OPDESC FROM EOPSF,OPNO,1 ELSE OPDESC = ''
+      LAST.STATUS = 'New'
+      IF WIPSTATUS<1> = 'P' THEN LAST.STATUS = 'Paused'
+      IF WIPSTATUS<1> = 'O' THEN LAST.STATUS = 'In Progress'
+
+     BOOSEQ = ''
+      READ BOO FROM EBOOF,WOREC<32> ELSE BOO = ''
+      FOR I = 1 TO DCOUNT(BOO<14>,VM)
+          WN = BOO<14,I>
+          NWN = BOO<14,I+1>
+          IF NWN EQ '' THEN
+             BOOSEQ<1,-1> = WN
+          END ELSE
+             IF WN NE NWN THEN
+               BOOSEQ<1,-1> = WN
+             END
+          END
+      NEXT I
+      BOO<14> = BOOSEQ
+
+
+
+      SCRAPSEL1 = '' ; SCRAPSEL2 = '' ; SCRAPSEL3 = '' ; SCRAPSEL4 = ''
+      CALL BUILDSCRAPCODESEL(SCRAPSEL1,'','SCRAP1',WLOC)
+      CALL BUILDSCRAPCODESEL(SCRAPSEL2,'','SCRAP2',WLOC)
+      CALL BUILDSCRAPCODESEL(SCRAPSEL3,'','SCRAP3',WLOC)
+      CALL BUILDSCRAPCODESEL(SCRAPSEL4,'','SCRAP4',WLOC)
+      READ WIPS.REC FROM WIPSTATUSF,WONO ELSE WIPS.REC = ''
+*
+      IF COMPLETE NE ''  THEN
+           WOID = TRIM(WOID)
+           WOID = OCONV(WOID,'MCU')
+           READ WOREC FROM WOF,WOID ELSE WOREC = ''
+           PL_GETVAR PEOPLE FROM 'PEOPLE' ELSE PEOPLE = 1
+           PL_GETVAR SCRAP1 FROM 'SCRAP1' ELSE SCRAP1 = ''
+           PL_GETVAR SCRAP2 FROM 'SCRAP2' ELSE SCRAP2 = ''
+           PL_GETVAR SCRAP3 FROM 'SCRAP3' ELSE SCRAP3 = ''
+           PL_GETVAR SCRAP4 FROM 'SCRAP4' ELSE SCRAP4 = ''
+           PL_GETVAR SCRAPQ1 FROM 'SCRAPQ1' ELSE SCRAPQ1 = ''
+           PL_GETVAR SCRAPQ2 FROM 'SCRAPQ2' ELSE SCRAPQ2 = ''
+           PL_GETVAR SCRAPQ3 FROM 'SCRAPQ3' ELSE SCRAPQ3 = ''
+           PL_GETVAR SCRAPQ4 FROM 'SCRAPQ4' ELSE SCRAPQ4 = ''
+           PL_GETVAR NOTES FROM 'NOTES' ELSE NOTES = ''
+           PL_GETVAR PASSQTY FROM 'PASSQTY' ELSE PASSQTY = ''
+           PRINT 'SCRAPQ1 = ':SCRAPQ1
+           PRINT 'SCRAPQ2 = ':SCRAPQ2
+           PRINT 'SCRAPQ3 = ':SCRAPQ3
+           PRINT 'SCRAPQ4 = ':SCRAPQ4
+           PERSON.CNT = PEOPLE
+           ERR = ''
+           IF SCRAPQ1 NE '' AND NOT(NUM(SCRAPQ1)) THEN
+                ERR<-1> = 'INVALID SCRAP1 COUNT ..'
+           END
+           IF SCRAPQ1 NE '' AND SCRAP1 = '[SCRAPCODE' THEN
+               ERR<-1> = 'NEED SCRAP REASON 1'
+           END
+           IF SCRAPQ2 NE '' AND NOT(NUM(SCRAPQ2)) THEN
+               ERR<-1> = 'INVALID SCRAP2 COUNT ..'
+           END
+           IF SCRAPQ2 NE '' AND SCRAP2 = '[SCRAPCODE' THEN
+               ERR<-1> = 'NEED SCRAP REASON 2'
+            END
+           IF SCRAPQ3 NE '' AND NOT(NUM(SCRAPQ3)) THEN
+              PRINT 'SCRAPQ3 = ':SCRAPQ3
+              PRINT 'NUM SCRAPQ3 =':NUM(SCRAPQ3)
+                ERR<-1> = 'INVALID SCRAP3 COUNT ..'
+           END
+
+           IF SCRAPQ3 NE '' AND SCRAP3 = '[SCRAPCODE' THEN
+               ERR<-1> = 'NEED SCRAP REASON 3'
+           END
+           IF SCRAPQ4 NE '' AND NOT(NUM(SCRAPQ4)) THEN
+                 ERR<-1> = 'INVALID SCRAP4 COUNT ..'   
+           END
+           IF SCRAPQ4 NE '' AND SCRAP4 = '[SCRAPCODE' THEN
+               ERR<-1> = 'NEED SCRAP REASON 4'
+           END
+
+
+           
+           TSCRAP = SCRAPQ1 + SCRAPQ2 + SCRAPQ3 + SCRAPQ4
+           IF WLOC = 'A120' OR WLOC = 'A130' THEN PACKNG = 1 ELSE PACKNG = ''
+*           IF WLOC NE 'A120' THEN
+            IF PACKNG = '' THEN
+             IF (WIPQTY - TSCRAP) NE PASSQTY THEN
+                  IF SPLIT = '' THEN
+                     ERR<-1> = 'WIP QTY - TOTAL SCRAP NOT EQUAL TO PASS.QTY'   
+                  END          
+              END
+           END
+           IF ERR NE '' THEN GOTO 99
+*
+           PL_PUTVAR WOID IN 'WOID' ELSE ERR = ''
+           PL_PUTVAR ASSY IN 'ASSY' ELSE ERR = ''
+           PL_PUTVAR WLOC IN 'WLOC' ELSE ERR = ''
+           PL_PUTVAR WLOCD IN 'WLOCD' ELSE ERR = ''
+           PL_PUTVAR PASSQTY IN 'PASSQTY' ELSE ERR = ''
+           PL_PUTVAR NOTES IN 'NOTES' ELSE ERR = ''
+           PL_PUTVAR TSCRAP IN 'TSCRAP' ELSE ERR = ''
+           PL_PUTVAR SPLIT IN 'SPLIT' ELSE ERR = ''
+           IF SCRAP1[1,1] = '[' THEN SCRAP1 = ''
+           IF SCRAP2[1,1] = '[' THEN SCRAP2 = ''
+           IF SCRAP3[1,1] = '[' THEN SCRAP3 = ''
+           IF SCRAP4[1,1] = '[' THEN SCRAP4 = ''
+           PL_PUTVAR SCRAP1 IN 'SCRAP1' ELSE ERR = ''
+           PL_PUTVAR SCRAP2 IN 'SCRAP2' ELSE ERR = ''
+           PL_PUTVAR SCRAP3 IN 'SCRAP3' ELSE ERR = ''
+           PL_PUTVAR SCRAP4 IN 'SCRAP4' ELSE ERR = ''
+           PL_PUTVAR SCRAPQ1 IN 'SCRAPQ1' ELSE ERR = ''
+           PL_PUTVAR SCRAPQ2 IN 'SCRAPQ2' ELSE ERR = ''
+           PL_PUTVAR SCRAPQ3 IN 'SCRAPQ3' ELSE ERR = ''
+           PL_PUTVAR SCRAPQ4 IN 'SCRAPQ4' ELSE ERR = ''
+           PL_PUTVAR PEOPLE IN 'PEOPLE' ELSE ERR = ''
+           PL_PUTVAR BADGEID IN 'BADGEID' ELSE ERR = ''
+           PL_PUTVAR '' IN 'COMPLETE' ELSE ERR = ''
+           PL_PUTVAR '' IN 'CANCEL' ELSE ERR = ''
+           ERR = ''
+           CALL PLW.PAGE('CDA_WIPTRACKREVIEW.HTM','',ERR)
+           RETURN
+    END
+*
+99 *
+  MSG = ERR
+  MSG = PL_AMTOCRLF(MSG)
+*
+*
+</pre>
+  </div>
+</body>
+</html>                                                                                          

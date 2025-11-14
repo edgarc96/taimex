@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TAIMEX - Create Pull Order</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-body: #f1f5f9;
+      --bg-card: #ffffff;
+      --accent-blue: #1d4ed8;
+      --accent-muted: #64748b;
+      --danger: #dc2626;
+      --info-bg: rgba(30, 64, 175, 0.1);
+      --info-border: rgba(30, 64, 175, 0.2);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --shadow-card: 0 18px 46px rgba(15, 23, 42, 0.18);
+      --radius-lg: 20px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.35);
+      position: relative;
+      z-index: 50;
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      font-size: 1.5em;
+      line-height: 1;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-section img {
+      height: 36px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+
+    .title-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .title-section h2 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .title-section p {
+      font-size: 0.78rem;
+      color: rgba(226, 232, 240, 0.8);
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: var(--bg-body);
+    }
+
+    .inventory-card {
+      width: 100%;
+      max-width: 640px;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card-header {
+      text-align: center;
+      margin-bottom: 0;
+    }
+
+    .card-header h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .card-header p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .info-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      border: 2px solid #3b82f6;
+      border-radius: 10px;
+      margin: 10px 0 0 0;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+    }
+
+    .info-badge-label {
+      font-size: 0.9rem;
+      color: #1e40af;
+      font-weight: 600;
+    }
+
+    .info-badge-value {
+      font-size: 1.2rem;
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+
+    .inventory-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: 12px 16px;
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      background: #fffbeb;
+      color: var(--text-primary);
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+      background: #fef9c3;
+    }
+
+    .select-wrapper {
+      position: relative;
+    }
+
+    .select-wrapper select {
+      width: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      padding: 12px 40px 12px 16px;
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      background: #fffbeb;
+      color: var(--text-primary);
+      cursor: pointer;
+      font-weight: 500;
+      font-family: inherit;
+    }
+
+    .select-wrapper::after {
+      content: '';
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid #1d4ed8;
+      pointer-events: none;
+    }
+
+    .select-wrapper select:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+      background: #fef9c3;
+    }
+
+    .select-wrapper select:hover {
+      border-color: #94a3b8;
+      background: #fef3c7;
+    }
+
+    .primary-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      min-width: 120px;
+    }
+
+    .btn-primary {
+      background: #1d4ed8;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(29, 78, 216, 0.4);
+    }
+
+    .btn-primary:hover {
+      background: #1e40af;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(29, 78, 216, 0.5);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(29, 78, 216, 0.3);
+    }
+
+    .btn-secondary {
+      background: #64748b;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(100, 116, 139, 0.3);
+    }
+
+    .btn-secondary:hover {
+      background: #475569;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(100, 116, 139, 0.4);
+    }
+
+    .btn-secondary:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(100, 116, 139, 0.2);
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 8px 16px;
+      }
+
+      .title-section {
+        text-align: left;
+      }
+
+      .main-content {
+        padding: 16px;
+      }
+
+      .inventory-card {
+        padding: 20px 18px;
+      }
+
+      .btn {
+        flex: 1 1 100%;
+        justify-content: center;
+      }
+    }
+
+    /* Sidebar */
+    #sb-toggle {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .sidebar {
+      position: fixed !important;
+      top: 0;
+      left: -300px;
+      width: 300px;
+      height: 100vh;
+      background: rgba(255, 255, 255, .08) !important;
+      backdrop-filter: blur(1px) !important;
+      -webkit-backdrop-filter: blur(1px) !important;
+      color: white !important;
+      transition: left 0.3s ease;
+      z-index: 2000;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+      overflow-y: auto;
+    }
+
+    .sidebar.active {
+      left: 0 !important;
+    }
+
+    .sidebar-overlay {
+      position: fixed !important;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 1500;
+      pointer-events: none;
+    }
+
+    .sidebar-overlay.active {
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto;
+    }
+
+    #sb-toggle:checked ~ .sidebar {
+      left: 0 !important;
+    }
+
+    #sb-toggle:checked ~ .sidebar-overlay {
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto;
+    }
+
+    .sidebar-content {
+      padding: 24px !important;
+    }
+
+    .sidebar-header {
+      padding: 20px !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar-header h3 {
+      font-size: 1.2em !important;
+      color: #fff;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .sidebar-menu {
+      list-style: none !important;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-menu li {
+      margin-bottom: 8px !important;
+    }
+
+    .sidebar-menu a, .sidebar-menu label {
+      display: block !important;
+      padding: 12px 16px !important;
+      color: #f3f4f6 !important;
+      text-decoration: none !important;
+      border-radius: 8px !important;
+      transition: all 0.2s ease !important;
+      font-weight: 500 !important;
+      cursor: pointer !important;
+    }
+
+    .sidebar-menu a:hover, .sidebar-menu label:hover {
+      background-color: rgba(30, 64, 175, 0.1) !important;
+      color: #fff !important;
+    }
+
+    .sidebar-menu a.active, .sidebar-menu label.active {
+      background-color: rgba(30, 64, 175, 0.2) !important;
+      color: #93c5fd !important;
+    }
+
+    .sidebar-menu label {
+      cursor: pointer !important;
+    }
+
+    /* Success Overlay */
+    .success-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .success-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .success-content {
+      text-align: center;
+      color: white;
+      transform: scale(0.8);
+      transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .success-overlay.active .success-content {
+      transform: scale(1);
+    }
+
+    .success-circle {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      margin: 0 auto 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(16, 185, 129, 0.4);
+      animation: successPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes successPulse {
+      0%, 100% {
+        box-shadow: 0 20px 60px rgba(16, 185, 129, 0.4);
+      }
+      50% {
+        box-shadow: 0 20px 80px rgba(16, 185, 129, 0.6);
+      }
+    }
+
+    .success-checkmark {
+      width: 70px;
+      height: 70px;
+      stroke: white;
+      stroke-width: 4;
+      stroke-linecap: round;
+      fill: none;
+      animation: drawCheck 0.8s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+      animation-delay: 0.3s;
+      opacity: 0;
+    }
+
+    @keyframes drawCheck {
+      0% {
+        stroke-dasharray: 1000;
+        stroke-dashoffset: 1000;
+        opacity: 1;
+      }
+      100% {
+        stroke-dasharray: 1000;
+        stroke-dashoffset: 0;
+        opacity: 1;
+      }
+    }
+
+    .success-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #10b981;
+    }
+
+    .success-message {
+      font-size: 1.1rem;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 8px;
+    }
+
+    .success-submessage {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Loading state */
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 6px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-size: 1.2rem;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <input type="checkbox" id="sb-toggle">
+  <label for="sb-toggle" class="sidebar-overlay" aria-hidden="true"></label>
+
+  <aside class="sidebar" aria-label="Main menu">
+    <div class="sidebar-header">
+      <h3>Menu</h3>
+    </div>
+    <div class="sidebar-content">
+      <ul class="sidebar-menu">
+        <li><label for="sb-toggle">Main Menu</label></li>
+        <li><label for="sb-toggle">Parts Management</label></li>
+        <li><label for="sb-toggle">Work Orders</label></li>
+        <li><label for="sb-toggle">Sales Orders</label></li>
+        <li><label for="sb-toggle">Stock Transactions</label></li>
+        <li><label for="sb-toggle" class="active">Inventory Inquiry</label></li>
+      </ul>
+    </div>
+  </aside>
+
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">
+          ☰
+        </label>
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL">
+        </div>
+      </div>
+      <div class="title-section">
+        <h2>TAIMEX - Create Pull Order</h2>
+        <p>Raw Materials Management</p>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <section class="inventory-wrapper">
+        <div class="inventory-card">
+          <div class="card-header">
+            <h1>Create Raw Material Pull Order</h1>
+            <p>Enter quantity needed and delivery details for part <strong>^PARTNUM^</strong></p>
+            <div class="info-badge">
+              <span class="info-badge-label">Current Balance:</span>
+              <span class="info-badge-value">^BOH^</span>
+            </div>
+          </div>
+
+          <form method="GET" action="/INVPULL1EDIT.HTM" name="pullOrderForm" class="inventory-form">
+            <input type="hidden" name="PARTNUM" value="^PARTNUM^">
+            
+            <div class="form-group">
+              <label for="qty">
+                Quantity Needed
+              </label>
+              <input type="text" id="qty" name="QTY" placeholder="Enter quantity" autocomplete="off" inputmode="numeric" autofocus>
+            </div>
+
+            <div class="form-group">
+              <label for="wiplocSelect">
+                Deliver To
+              </label>
+              <div class="select-wrapper">
+                ^RAW(WIPSEL)^
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="mtltypeSelect">
+                Transaction Type
+              </label>
+              <div class="select-wrapper">
+                ^RAW(MTLSEL)^
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="prodlineSelect">
+                Product Line
+              </label>
+              <div class="select-wrapper">
+                ^RAW(PRODLINESEL)^
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="reference">
+                Reference
+              </label>
+              <input type="text" id="reference" name="REFERENCE" placeholder="Enter reference number" autocomplete="off">
+            </div>
+
+            <div class="primary-actions">
+              <button type="submit" name="BACK" value="BACK" class="btn btn-secondary">
+                Back to Search
+              </button>
+              <button type="submit" name="SUBMIT" value="SUBMIT" class="btn btn-primary">
+                Submit Order
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Success Overlay -->
+  <div class="success-overlay" id="successOverlay">
+    <div class="success-content">
+      <div id="loadingState">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Processing Order...</div>
+      </div>
+      <div id="successState" style="display: none;">
+        <div class="success-circle">
+          <svg class="success-checkmark" viewBox="0 0 52 52">
+            <path d="M14 27l7.5 7.5L38 18" />
+          </svg>
+        </div>
+        <h2 class="success-title">Order Created!</h2>
+        <p class="success-message">Pull order has been successfully submitted</p>
+        <p class="success-submessage">Redirecting...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const qtyField = document.getElementById('qty');
+      if (qtyField) {
+        qtyField.focus();
+      }
+
+      const selectMap = [
+        { name: 'WIPLOC', id: 'wiplocSelect' },
+        { name: 'MTLTYPE', id: 'mtltypeSelect' },
+        { name: 'PRODLINE', id: 'prodlineSelect' }
+      ];
+
+      selectMap.forEach(({ name, id }) => {
+        const selectEl = document.querySelector(`select[name="${name}"]`);
+        if (selectEl) {
+          selectEl.id = id;
+          selectEl.classList.add('styled-select');
+        }
+      });
+
+      // Handle form submission with success animation
+      const form = document.querySelector('form[name="pullOrderForm"]');
+      const successOverlay = document.getElementById('successOverlay');
+      const loadingState = document.getElementById('loadingState');
+      const successState = document.getElementById('successState');
+      const submitButton = document.querySelector('button[name="SUBMIT"]');
+
+      if (form && submitButton) {
+        submitButton.addEventListener('click', (e) => {
+          // Validate form before showing animation
+          const qty = document.getElementById('qty').value;
+          if (!qty || qty.trim() === '') {
+            return; // Let default validation handle it
+          }
+
+          // Prevent default submission temporarily
+          e.preventDefault();
+
+          // Show overlay with loading state
+          successOverlay.classList.add('active');
+          loadingState.style.display = 'block';
+          successState.style.display = 'none';
+
+          // After 800ms, switch to success state
+          setTimeout(() => {
+            loadingState.style.display = 'none';
+            successState.style.display = 'block';
+
+            // After showing success for 1.5 seconds, submit the form
+            setTimeout(() => {
+              // Create a hidden input with the SUBMIT value
+              const hiddenInput = document.createElement('input');
+              hiddenInput.type = 'hidden';
+              hiddenInput.name = 'SUBMIT';
+              hiddenInput.value = 'SUBMIT';
+              form.appendChild(hiddenInput);
+
+              // Submit the form programmatically
+              form.submit();
+            }, 1500);
+          }, 800);
+        });
+      }
+    });
+  </script>
+
+  <PRE>
+PicLan-IP/BASIC ^ ^
+*
+ PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+    ERR = '' ; INITIALS=  ''
+    CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+    RETURN
+ END
+*
+PL_GETVAR QTY FROM 'QTY' ELSE QTY = 0
+PL_GETVAR SUBMIT FROM 'SUBMIT' ELSE SUBMIT = ''
+PL_GETVAR PARTNUM FROM 'PARTNUM' ELSE PARTNUM = ''
+PL_GETVAR BACK FROM 'BACK' ELSE BACK = ''
+PL_GETVAR WIPLOC FROM 'WIPLOC' ELSE WIPLOC = ''
+PL_GETVAR MTLTYPE FROM 'MTLTYPE' ELSE MTLTYPE = ''
+PL_GETVAR REFERENCE FROM 'REFERENCE' ELSE REFERENCE = ''
+PL_GETVAR PRODLINE FROM 'PRODLINE' ELSE PRODLINE = ''
+*
+OPEN 'INV' TO INVF ELSE STOP 201,'INV'
+OPEN 'PULLORDER' TO PULLORDERF ELSE STOP 201,'PULLORDER'
+OPEN 'LIID' TO LIIDF ELSE STOP 201,'LIID'
+OPEN 'TABLE' TO TABLEF ELSE STOP 201,'TABLE'
+*
+READ FLG FROM TABLEF,'STOPIPAQ' ELSE FLG = ''
+IF FLG = 1 THEN
+  CLOSE INVF
+  CLOSE PULLORDERF
+  CLOSE LIIDF
+  CLOSE TABLEF
+  MSG = 'PHYSICAL INVENTORY IN PROGRESS'
+  PL_PUTVAR MSG IN 'MSG' ELSE NULL
+  ERR = ''
+  CALL PLW.PAGE('PALMERROR2EDIT.HTM','',ERR)
+  RETURN
+END
+*
+WIPSEL = ''
+DEFAULT = ''
+CALL BUILDWIPLOCSEL(WIPSEL,DEFAULT)
+WIPSEL = PL_AMTOCRLF(WIPSEL)
+*
+MTLSEL = ''
+DEFAULT = ''
+CALL BUILDMTLTRANS(MTLSEL,DEFAULT)
+MTLSEL = PL_AMTOCRLF(MTLSEL)
+*
+PRODLINESEL = ''
+DEFAULT = ''
+CALL BUILDMFGPRODLINE(PRODLINESEL,DEFAULT)
+PRODLINESEL = PL_AMTOCRLF(PRODLINESEL)
+*
+BOH = 0
+READ INV FROM INVF,PARTNUM ELSE INV = ''
+BOH = INV<1>
+*
+MSG = ''
+*
+IF BACK NE '' THEN
+  CLOSE INVF
+  CLOSE PULLORDERF
+  CLOSE LIIDF
+  CLOSE TABLEF
+  PL_PUTVAR PARTNUM IN 'PARTNUM' ELSE NULL
+  ERR = ''
+  CALL PLW.PAGE('INVIRMEDIT.HTM','',ERR)
+  RETURN
+END
+*
+IF QTY NE '' AND NOT(NUM(QTY)) THEN
+  CLOSE INVF
+  CLOSE PULLORDERF
+  CLOSE LIIDF
+  CLOSE TABLEF
+  MSG = 'QTY MUST BE NUMERIC'
+  PL_PUTVAR MSG IN 'MSG' ELSE NULL
+  ERR = ''
+  CALL PLW.PAGE('PALMERROR2EDIT.HTM','',ERR)
+  RETURN
+END
+*
+IF SUBMIT NE '' AND QTY NE '' THEN
+  IF PARTNUM = '' THEN
+     CLOSE INVF
+     CLOSE PULLORDERF
+     CLOSE LIIDF
+     CLOSE TABLEF
+     MSG = 'CAN NOT READ PART NO.'
+     PL_PUTVAR MSG IN 'MSG' ELSE NULL
+     ERR = ''
+     CALL PLW.PAGE('PALMERROR2EDIT.HTM','',ERR)
+     RETURN
+  END
+  READVU LIID FROM LIIDF,'PULLORDER',1 ELSE LIID = 0
+  LIID = LIID + 1
+  WRITEVU LIID ON LIIDF,'PULLORDER',1
+  RELEASE LIIDF,'PULLORDER'
+  PULL = ''
+  PULL<1> = DATE()
+  PULL<9> = OCONV(INITIALS,'MCU')
+  PULL<10> = TIME()
+  PULL<12> = 1
+  PULL<13> = OCONV(PARTNUM,'MCU')
+  PULL<14> = QTY
+  PULL<15> = OCONV(WIPLOC,'MCU')
+  PULL<21> = REFERENCE
+  PULL<22> = MTLTYPE
+  PULL<23> = PRODLINE
+  WRITE PULL ON PULLORDERF,'P':LIID
+  * CALL PULLEMAILSUB(LIID,PARTNUM,QTY,WIPLOC)
+  CLOSE INVF
+  CLOSE PULLORDERF
+  CLOSE LIIDF
+  CLOSE TABLEF
+  PL_PUTVAR PARTNUM IN 'PARTNUM' ELSE NULL
+  ERR = ''
+  CALL PLW.PAGE('INVIRMEDIT.HTM','',ERR)
+  RETURN
+END
+*
+* Cerrar archivos al final
+CLOSE INVF
+CLOSE PULLORDERF
+CLOSE LIIDF
+CLOSE TABLEF
+*
+PL_PUTVAR PARTNUM IN 'PARTNUM' ELSE NULL
+PL_PUTVAR BOH IN 'BOH' ELSE NULL
+PL_PUTVAR WIPSEL IN 'WIPSEL' ELSE NULL
+PL_PUTVAR MTLSEL IN 'MTLSEL' ELSE NULL
+PL_PUTVAR PRODLINESEL IN 'PRODLINESEL' ELSE NULL
+*
+  </PRE>
+</body>
+</html>

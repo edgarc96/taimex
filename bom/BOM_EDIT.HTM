@@ -1,0 +1,3524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BOM Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <!-- Application Scripts -->
+  <script src="aflibs.pick_login2.js?_=^TS^"></script>
+  <script src="quotepartimport.js?_=^TS^"></script>
+  <script src="bomedit.js?_=^TS^"></script>
+  
+  <script type="text/javascript">
+  function sizeUp() {
+    var txts = document.getElementsByTagName('textarea');
+    var sm = 0;
+    var rta = '';
+    var i;
+    
+    for(i=0;i<txts.length;i++) {
+      txts[i].style.height = "20px";
+      txts[i].style.height = (txts[i].scrollHeight+"px");
+    }
+  }
+  
+  function BomEdit(st,clevel,bompt) {
+    // Inline edit functionality - expand row instead of redirecting
+    expandInlineEditRow(st, clevel, bompt);
+  }
+  
+  function PrintBom() {
+    window.open("PRINTBOMCDA.HTM?ID=" + document.getElementById("NBOM").value,target="_blank");
+  }
+  
+  function YorkBom() {
+    window.open("YORKBOM2.HTM?PARTNO=" + document.getElementById("NBOM").value + "&UPDATE=1",target="_blank");
+  }
+  
+  function GoMenu() {
+    document.getElementById('EVENT').value = 'menu';
+    document.frmBOM.submit();
+  }
+  
+  function BomTxtEdit() {
+    document.getElementById('EVENT').value = 'bomtxtedit';
+    document.frmBOM.submit();
+  }
+  
+  function BomAdd() {
+    document.getElementById('EVENT').value = 'bomadd';
+    document.frmBOM.submit();
+  }
+  
+  function BooAdd() {
+    document.getElementById('EVENT').value = 'booadd';
+    document.frmBOM.submit();
+  }
+  
+  function addBombLine(position) {
+    console.log('addBombLine called with:', position);
+    console.log('position type:', typeof position);
+    if (position && typeof position === 'object') {
+      console.log('position details:', JSON.stringify({
+        insertPosition: position.insertPosition,
+        referenceLine: position.referenceLine,
+        isBOO: position.isBOO,
+        hasTargetRow: !!position.targetRow
+      }));
+    }
+    
+    // position can be 'at-end' string or an object with referenceLine
+    if (position === 'at-end') {
+      // Create inline form at the end of the table
+      console.log('Creating form at end of table');
+      createInlineBomForm(null, 'at-end', false, null);
+    } else if (position && typeof position === 'object') {
+      // Check if it's an object with the expected properties
+      if ('referenceLine' in position || 'insertPosition' in position || 'targetRow' in position) {
+        // Create inline form after the specific line
+        var refLine = position.referenceLine || '';
+        var isBOO = position.isBOO || false;
+        var targetRow = position.targetRow || null;
+        console.log('Creating form after reference line:', refLine, 'isBOO:', isBOO, 'hasTargetRow:', !!targetRow);
+        createInlineBomForm(refLine, 'after', isBOO, targetRow);
+      } else {
+        console.error('Invalid object structure:', position);
+        showNotification('Error', 'Invalid position parameter structure', 'error');
+      }
+    } else {
+      console.error('Invalid position parameter:', position);
+      showNotification('Error', 'Invalid position parameter for adding BOM line', 'error');
+    }
+  }
+  
+  function createInlineBomForm(referenceLine, position, isBOO, passedTargetRow) {
+    try {
+      console.log('=== createInlineBomForm START ===');
+      console.log('referenceLine:', referenceLine, 'position:', position, 'isBOO:', isBOO, 'hasPassedRow:', !!passedTargetRow);
+      
+      var table = document.querySelector('.table-container table');
+      if (!table) {
+        console.error('Table not found!');
+        showNotification('Error', 'BOM table not found', 'error');
+        return;
+      }
+      console.log('Table found:', table);
+      
+      // Remove any existing inline add forms
+      var existingForms = document.querySelectorAll('.inline-add-bom-row');
+      console.log('Removing', existingForms.length, 'existing forms');
+      for (var i = 0; i < existingForms.length; i++) {
+        existingForms[i].remove();
+      }
+      
+      var targetRow = null;
+      
+      // If we have a direct row reference, use it!
+      if (passedTargetRow) {
+        console.log('Using passed target row directly');
+        targetRow = passedTargetRow;
+      } else if (position === 'at-end') {
+        // Find the last row (could be BOM or BOO)
+        var rows = table.querySelectorAll('tr');
+        for (var j = rows.length - 1; j >= 1; j--) {
+          var cells = rows[j].querySelectorAll('td');
+          if (cells.length > 0) {
+            targetRow = rows[j];
+            break;
+          }
+        }
+        if (!targetRow) {
+          // If no rows found, use the first data row
+          targetRow = table.querySelector('tr:nth-child(2)');
+        }
+      } else if (position === 'after') {
+        // Find the row with the matching part number
+        console.log('Looking for reference line:', referenceLine);
+        var rows = table.querySelectorAll('tr');
+        console.log('Total rows in table:', rows.length);
+        
+        for (var k = 1; k < rows.length; k++) {
+          var cells = rows[k].querySelectorAll('td');
+          if (cells.length > 0) {
+            // After hiding first column: Cell[0]=Sequence, Cell[1]=Part Number
+            var partNumber = cells.length > 1 ? cells[1].textContent.trim() : '';
+            console.log('Comparing:', partNumber, '===', referenceLine);
+            
+            if (partNumber === referenceLine) {
+              targetRow = rows[k];
+              console.log('Found matching row at index:', k);
+              break;
+            }
+          }
+        }
+        
+        // If reference line is empty or not found, use the last row
+        if (!targetRow && rows.length > 1) {
+          console.log('Reference line not found or empty, using last row');
+          targetRow = rows[rows.length - 1];
+        }
+      }
+      
+      if (!targetRow) {
+        console.error('Target row not found! referenceLine:', referenceLine, 'position:', position);
+        showNotification('Error', 'Could not find insertion point for "' + referenceLine + '"', 'error');
+        return;
+      }
+      console.log('Target row found:', targetRow);
+      
+      // Create the inline add row
+      var addRow = document.createElement('tr');
+      addRow.className = 'inline-add-bom-row';
+      addRow.style.background = isBOO ? '#fef3c7' : '#f0f9ff'; // Different color for BOO
+      addRow.style.animation = 'slideDown 0.3s ease-out';
+      console.log('Created add row');
+      
+      var cellCount = targetRow.querySelectorAll('td').length;
+      var addCell = document.createElement('td');
+      addCell.colSpan = cellCount;
+      addCell.style.padding = '16px';
+      addCell.style.borderTop = '2px dashed ' + (isBOO ? '#f59e0b' : '#3b82f6'); // Different color for BOO
+      addCell.style.borderBottom = '2px dashed ' + (isBOO ? '#f59e0b' : '#3b82f6'); // Different color for BOO
+      
+      var itemType = isBOO ? 'BOO' : 'BOM';
+      var formType = isBOO ? 'booaddafter' : 'bomaddafter';
+      
+      // Escape special characters to prevent HTML/JS breaking
+      var escapedRefLine = (referenceLine || '')
+        .replace(/\\/g, '\\\\')   // Escape backslashes first
+        .replace(/'/g, "\\'")      // Escape single quotes
+        .replace(/"/g, '\\"')      // Escape double quotes
+        .replace(/\n/g, '\\n')     // Escape newlines
+        .replace(/\r/g, '\\r');    // Escape carriage returns
+      
+      var displayRefLine = (referenceLine || '')
+        .replace(/</g, '&lt;')     // HTML escape
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+      
+      var formHtml = `
+        <div class="inline-add-bom-container">
+          <div class="add-indicator" style="background: ${isBOO ? '#fef3c7' : '#dcfce7'}; color: ${isBOO ? '#92400e' : '#166534'};">
+            <i class="fas fa-plus"></i> Adding New ${itemType} Line ${position === 'after' ? 'After ' + displayRefLine : 'at End'}
+          </div>
+          <form class="inline-add-form" onsubmit="return saveInlineBomAdd(event, '${escapedRefLine}', '${position}', ${isBOO})">
+            <div class="inline-add-grid">
+              <div class="inline-add-group">
+                <label for="add-part-${Date.now()}">
+                  <i class="fas fa-${isBOO ? 'cogs' : 'tag'}" style="color: #1e40af;"></i> ${isBOO ? 'Operation' : 'Part Number'}
+                </label>
+                <input type="text" id="add-part-${Date.now()}" name="part" placeholder="${isBOO ? 'Enter Operation Code' : 'Enter Part Number'}" required>
+              </div>
+              <div class="inline-add-group">
+                <label for="add-seq-${Date.now()}">
+                  <i class="fas fa-sort-numeric-up" style="color: #1e40af;"></i> ${isBOO ? 'Sequence' : 'RM Sequence'}
+                </label>
+                <input type="text" id="add-seq-${Date.now()}" name="seq" placeholder="Enter Sequence" required>
+              </div>
+              <div class="inline-add-group">
+                <label for="add-cost-${Date.now()}">
+                  <i class="fas fa-dollar-sign" style="color: #1e40af;"></i> Cost Level
+                </label>
+                <input type="text" id="add-cost-${Date.now()}" name="cost" placeholder="Enter Cost Level" required>
+              </div>
+              ${!isBOO ? `
+              <div class="inline-add-group">
+                <label for="add-qty-${Date.now()}">
+                  <i class="fas fa-cubes" style="color: #1e40af;"></i> Quantity
+                </label>
+                <input type="number" id="add-qty-${Date.now()}" name="qty" value="1" min="0" step="0.01">
+              </div>
+              ` : `
+              <div class="inline-add-group">
+                <label for="add-time-${Date.now()}">
+                  <i class="fas fa-clock" style="color: #1e40af;"></i> Standard Time (min)
+                </label>
+                <input type="number" id="add-time-${Date.now()}" name="time" value="0" min="0" step="0.01">
+              </div>
+              `}
+              <div class="inline-add-group">
+                <label for="add-desc-${Date.now()}">
+                  <i class="fas fa-file-alt" style="color: #1e40af;"></i> Description
+                </label>
+                <textarea id="add-desc-${Date.now()}" name="desc" rows="2" placeholder="Enter Description"></textarea>
+              </div>
+            </div>
+            <div class="inline-add-actions">
+              <button type="button" class="inline-add-btn cancel" onclick="cancelInlineBomAdd()">
+                <i class="fas fa-times"></i> Cancel
+              </button>
+              <button type="submit" class="inline-add-btn save">
+                <i class="fas fa-save"></i> Save
+              </button>
+            </div>
+          </form>
+        </div>
+      `;
+      
+      addCell.innerHTML = formHtml;
+      addRow.appendChild(addCell);
+      
+      console.log('About to insert add row after target row');
+      // Insert the add row after the target row
+      targetRow.parentNode.insertBefore(addRow, targetRow.nextSibling);
+      console.log('Add row inserted successfully!');
+      
+      // Scroll to the new form
+      addRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      
+      // Focus on the first input field
+      setTimeout(function() {
+        var firstInput = addRow.querySelector('input[type="text"]');
+        if (firstInput) {
+          console.log('Focusing on first input');
+          firstInput.focus();
+        } else {
+          console.log('First input not found');
+        }
+      }, 300);
+      
+      console.log('=== createInlineBomForm END ===');
+    } catch (e) {
+      console.error('Error creating inline BOM form:', e);
+      showNotification('Error', 'Failed to create add form', 'error');
+    }
+  }
+  
+  function saveInlineBomAdd(event, referenceLine, position, isBOO) {
+    try {
+      event.preventDefault();
+      console.log('=== SAVING BOM/BOO ADD ===');
+      console.log('referenceLine:', referenceLine);
+      console.log('position:', position);
+      console.log('isBOO:', isBOO);
+      
+      // Get form values
+      var form = event.target;
+      var part = form.querySelector('input[name="part"]').value;
+      var seq = form.querySelector('input[name="seq"]').value;
+      var cost = form.querySelector('input[name="cost"]').value;
+      var desc = form.querySelector('textarea[name="desc"]').value;
+      
+      console.log('Form values:');
+      console.log('  part:', part);
+      console.log('  seq:', seq);
+      console.log('  cost:', cost);
+      console.log('  desc:', desc);
+      
+      // Set form values for submission
+      if (isBOO) {
+        // For BOO items
+        var time = form.querySelector('input[name="time"]').value;
+        console.log('  time:', time);
+        
+        document.getElementById('EVENT').value = 'savebooaddafter';
+        document.getElementById('BOMOP').value = part;
+        document.getElementById('COSTLEVEL').value = cost;
+        document.getElementById('REFERENCE_LINE').value = referenceLine || '';
+        document.getElementById('INSERT_POSITION').value = position;
+        // Store time in a hidden field or as part of description
+        document.getElementById('BOMPT').value = 'TIME:' + time + '|DESC:' + desc;
+        
+        console.log('Submitting BOO with:');
+        console.log('  EVENT:', document.getElementById('EVENT').value);
+        console.log('  BOMOP:', document.getElementById('BOMOP').value);
+        console.log('  COSTLEVEL:', document.getElementById('COSTLEVEL').value);
+        console.log('  BOMPT:', document.getElementById('BOMPT').value);
+        console.log('  REFERENCE_LINE:', document.getElementById('REFERENCE_LINE').value);
+      } else {
+        // For BOM items
+        var qty = form.querySelector('input[name="qty"]').value;
+        console.log('  qty:', qty);
+        
+        document.getElementById('EVENT').value = 'savebomaddafter';
+        document.getElementById('BOMPT').value = part;
+        document.getElementById('COSTLEVEL').value = cost;
+        document.getElementById('RMSEQ').value = seq;
+        document.getElementById('REFERENCE_LINE').value = referenceLine || '';
+        document.getElementById('INSERT_POSITION').value = position;
+        // Store quantity and description
+        document.getElementById('BOMOP').value = 'QTY:' + qty + '|DESC:' + desc;
+        
+        console.log('Submitting BOM with:');
+        console.log('  EVENT:', document.getElementById('EVENT').value);
+        console.log('  BOMPT:', document.getElementById('BOMPT').value);
+        console.log('  COSTLEVEL:', document.getElementById('COSTLEVEL').value);
+        console.log('  RMSEQ:', document.getElementById('RMSEQ').value);
+        console.log('  BOMOP:', document.getElementById('BOMOP').value);
+        console.log('  REFERENCE_LINE:', document.getElementById('REFERENCE_LINE').value);
+        console.log('  NBOM:', document.getElementById('NBOM').value);
+      }
+      
+      // Show loading state
+      var saveBtn = form.querySelector('.inline-add-btn.save');
+      var originalText = saveBtn.innerHTML;
+      saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+      saveBtn.disabled = true;
+      
+      console.log('Submitting form...');
+      // Submit the form
+      document.frmBOM.submit();
+      
+      return false;
+    } catch (e) {
+      console.error('Error saving inline BOM add:', e);
+      return false;
+    }
+  }
+  
+  function cancelInlineBomAdd() {
+    try {
+      var addRows = document.querySelectorAll('.inline-add-bom-row');
+      for (var i = 0; i < addRows.length; i++) {
+        addRows[i].style.animation = 'slideUp 0.3s ease-out';
+        setTimeout(function(row) {
+          row.remove();
+        }, 300, addRows[i]);
+      }
+    } catch (e) {
+      console.error('Error canceling inline BOM add:', e);
+    }
+  }
+  
+  function BooEdit(clevel,bomop) {
+    // Inline edit functionality for BOO items - expand row instead of redirecting
+    expandInlineEditBOORow(clevel, bomop);
+  }
+  
+  function BomDelete(clevel,bompt,st) {
+    // Use inline confirmation instead of direct submission
+    BomDeleteInline(clevel, bompt, st);
+  }
+  
+  function BooDelete(clevel,bomop) {
+    // Use inline confirmation instead of direct submission
+    BooDeleteInline(clevel, bomop);
+  }
+
+  // Inline Edit Functions
+  function expandInlineEditRow(st, clevel, bompt) {
+    try {
+      console.log('=== expandInlineEditRow called ===');
+      console.log('st:', st, 'clevel:', clevel, 'bompt:', bompt);
+      
+      // Close any other open edit rows
+      var openRows = document.querySelectorAll('.inline-edit-row.active');
+      console.log('Closing', openRows.length, 'open rows');
+      for (var i = 0; i < openRows.length; i++) {
+        openRows[i].classList.remove('active');
+      }
+      
+      // Find the row with the matching data
+      var table = document.querySelector('.table-container table');
+      if (!table) {
+        console.error('Table not found!');
+        return;
+      }
+      
+      var rows = table.querySelectorAll('tr');
+      var targetRow = null;
+      
+      for (var j = 0; j < rows.length; j++) {
+        var cells = rows[j].querySelectorAll('td');
+        if (cells.length > 0) {
+          // After hiding the first column (Cost Level), the indices have shifted:
+          // Original: [0]=Cost Level, [1]=Sequence, [2]=Part Number, [3]=Quantity, [4]=Unit, [5]=..., [6]=Description
+          // Now:     [0]=Sequence, [1]=Part Number, [2]=Quantity, [3]=Unit, [4]=..., [5]=Description
+          var rowBompt = cells.length > 1 ? cells[1].textContent.trim() : '';   // Cell[1] = Part Number (was 2)
+          var rowSt = cells.length > 0 ? cells[0].textContent.trim() : '';      // Cell[0] = Sequence (was 1)
+          // Note: Cost Level is now hidden, so we can't get it from the visible cells
+          // We'll rely on the passed clevel parameter for matching
+          
+          console.log('Row values - BOMPT:', rowBompt, 'ST:', rowSt, 'CLEVEL:', clevel);
+          console.log('Looking for - BOMPT:', bompt, 'ST:', st, 'CLEVEL:', clevel);
+          
+          // Match using bompt and st, since clevel is hidden
+          if (rowBompt === bompt && rowSt === st) {
+            targetRow = rows[j];
+            console.log('Found matching row at index:', j);
+            break;
+          }
+        }
+      }
+      
+      if (!targetRow) {
+        console.error('Target row not found!');
+        console.error('Search criteria - st:', st, 'clevel:', clevel, 'bompt:', bompt);
+        return;
+      }
+      
+      console.log('Found target row:', targetRow);
+      
+      // Extract ALL values from the row
+      var rowCells = targetRow.querySelectorAll('td');
+      
+      // LOG ALL CELLS to see what's in each column
+      console.log('=== ALL CELL CONTENTS ===');
+      console.log('Total cells:', rowCells.length);
+      for (var cellIdx = 0; cellIdx < Math.min(rowCells.length, 25); cellIdx++) {
+        console.log('Cell[' + cellIdx + ']:', rowCells[cellIdx].textContent.trim());
+      }
+      console.log('=== END CELL CONTENTS ===');
+      
+      var rowData = {
+        bompt: rowCells.length > 1 ? rowCells[1].textContent.trim() : '',      // Cell[1] = Part Number (was 2)
+        desc: rowCells.length > 5 ? rowCells[5].textContent.trim() : '',       // Cell[5] = Description (was 6)
+        st: rowCells.length > 0 ? rowCells[0].textContent.trim() : '',         // Cell[0] = Sequence (was 1)
+        qty: rowCells.length > 2 ? rowCells[2].textContent.trim() : '1',       // Cell[2] = Quantity (was 3)
+        unit: rowCells.length > 3 ? rowCells[3].textContent.trim() : 'EA',     // Cell[3] = Unit (was 4)
+        clevel: clevel || ''  // Use the clevel parameter passed to the function
+      };
+      
+      console.log('Row data extracted:', rowData);
+      
+      // Check if edit row already exists
+      var existingEditRow = targetRow.nextElementSibling;
+      if (existingEditRow && existingEditRow.classList.contains('inline-edit-row')) {
+        console.log('Edit row already exists, activating it');
+        existingEditRow.classList.add('active');
+        return;
+      }
+      
+      // Create edit row
+      console.log('Creating new inline edit row');
+      var editRow = document.createElement('tr');
+      editRow.className = 'inline-edit-row active';
+      
+      var editCell = document.createElement('td');
+      editCell.colSpan = rowCells.length;
+      
+      // Build edit form HTML with row data
+      var editForm = createInlineEditForm(rowData);
+      editCell.innerHTML = editForm;
+      
+      editRow.appendChild(editCell);
+      
+      // Insert edit row after target row
+      targetRow.parentNode.insertBefore(editRow, targetRow.nextSibling);
+      console.log('Inline edit row inserted successfully');
+      
+      // Scroll to edit row if needed
+      editRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      
+    } catch (e) {
+      console.error('Error expanding inline edit row:', e);
+    }
+  }
+  
+  function createInlineEditForm(rowData) {
+    // Escape values for safe HTML insertion
+    var safeBompt = (rowData.bompt || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    var safeDesc = (rowData.desc || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    var safeSt = (rowData.st || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    var safeQty = (rowData.qty || '1').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    var safeUnit = (rowData.unit || 'EA').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    var safeClevel = (rowData.clevel || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    
+    return `
+      <div class="inline-edit-container">
+        <div class="edit-indicator">
+          <i class="fas fa-edit"></i> Editing BOM Item: ${safeBompt}
+        </div>
+        <form class="inline-edit-form" onsubmit="return saveInlineEdit(event, '${safeSt}', '${safeClevel}', '${safeBompt}')">
+          <div class="inline-edit-group">
+            <label for="edit-part">
+              <i class="fas fa-tag" style="color: #9ca3af;"></i> Part Number
+            </label>
+            <input type="text" id="edit-part" name="part" value="${safeBompt}" readonly style="background: #f3f4f6; color: #6b7280; cursor: not-allowed;">
+          </div>
+          <div class="inline-edit-group">
+            <label for="edit-desc">
+              <i class="fas fa-file-alt" style="color: #9ca3af;"></i> Description
+            </label>
+            <textarea id="edit-desc" name="desc" rows="2" readonly style="background: #f3f4f6; color: #6b7280; cursor: not-allowed;">${safeDesc}</textarea>
+          </div>
+          <div class="inline-edit-group">
+            <label for="edit-seq">
+              <i class="fas fa-sort-numeric-up" style="color: #9ca3af;"></i> RM Sequence
+            </label>
+            <input type="text" id="edit-seq" name="seq" value="${safeSt}" readonly style="background: #f3f4f6; color: #6b7280; cursor: not-allowed;">
+          </div>
+          <div class="inline-edit-group">
+            <label for="edit-qty">
+              <i class="fas fa-cubes" style="color: #10b981;"></i> Quantity
+            </label>
+            <input type="number" id="edit-qty" name="qty" value="${safeQty}" min="0" step="0.00001" required style="border: 2px solid #10b981;">
+          </div>
+          <div class="inline-edit-group">
+            <label for="edit-unit">
+              <i class="fas fa-ruler" style="color: #9ca3af;"></i> Unit Measure
+            </label>
+            <input type="text" id="edit-unit" name="unit" value="${safeUnit}" maxlength="10" readonly style="background: #f3f4f6; color: #6b7280; cursor: not-allowed;">
+          </div>
+          <div class="inline-edit-group">
+            <label for="edit-cost">
+              <i class="fas fa-dollar-sign" style="color: #9ca3af;"></i> Cost Level
+            </label>
+            <input type="text" id="edit-cost" name="cost" value="${safeClevel}" readonly style="background: #f3f4f6; color: #6b7280; cursor: not-allowed;">
+          </div>
+          <div class="inline-edit-actions">
+            <button type="button" class="inline-edit-btn cancel" onclick="cancelInlineEdit()">
+              <i class="fas fa-times"></i> Cancel
+            </button>
+            <button type="submit" class="inline-edit-btn save">
+              <i class="fas fa-save"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+  }
+  
+  function saveInlineEdit(event, st, clevel, bompt) {
+    try {
+      event.preventDefault();
+      console.log('=== SAVING INLINE EDIT ===');
+      console.log('st:', st, 'clevel:', clevel, 'bompt:', bompt);
+      
+      // Get form values
+      var form = event.target;
+      var part = form.querySelector('#edit-part').value;
+      var seq = form.querySelector('#edit-seq').value;
+      var cost = form.querySelector('#edit-cost').value;
+      var qty = form.querySelector('#edit-qty').value;
+      var unit = form.querySelector('#edit-unit').value;
+      var desc = form.querySelector('#edit-desc').value;
+      
+      console.log('Form values:');
+      console.log('  part:', part);
+      console.log('  seq:', seq);
+      console.log('  cost:', cost);
+      console.log('  qty:', qty);
+      console.log('  unit:', unit);
+      console.log('  desc:', desc);
+      
+      // Set form values for submission
+      document.getElementById('EVENT').value = 'savebomedit';
+      document.getElementById('BOMPT').value = part;
+      document.getElementById('COSTLEVEL').value = cost;
+      document.getElementById('RMSEQ').value = seq;
+      // Use BOMOP to pass QTY, UNIT, and DESC
+      document.getElementById('BOMOP').value = 'QTY:' + qty + '|UNIT:' + unit + '|DESC:' + desc;
+      
+      console.log('Submitting with EVENT:', document.getElementById('EVENT').value);
+      console.log('BOMOP:', document.getElementById('BOMOP').value);
+      
+      // Show loading state
+      var saveBtn = form.querySelector('.inline-edit-btn.save');
+      var originalText = saveBtn.innerHTML;
+      saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+      saveBtn.disabled = true;
+      
+      // Submit the main form
+      document.frmBOM.submit();
+      
+      return false;
+    } catch (e) {
+      console.error('Error saving inline edit:', e);
+      showNotification('Error', 'Failed to save BOM item: ' + e.message, 'error');
+      return false;
+    }
+  }
+  
+  function cancelInlineEdit() {
+    try {
+      var editRows = document.querySelectorAll('.inline-edit-row.active');
+      for (var i = 0; i < editRows.length; i++) {
+        editRows[i].classList.remove('active');
+      }
+    } catch (e) {
+      console.error('Error canceling inline edit:', e);
+    }
+  }
+  
+  // Enhanced delete function with inline confirmation
+  function BomDeleteInline(clevel, bompt, st) {
+    try {
+      console.log('=== BomDeleteInline called ===');
+      console.log('clevel:', clevel, 'bompt:', bompt, 'st:', st);
+      
+      showNotification(
+        'Confirm Delete',
+        'Are you sure you want to delete BOM item: ' + bompt + '?',
+        'warning',
+        function() {
+          // User confirmed deletion
+          console.log('User confirmed deletion');
+          document.getElementById('EVENT').value = 'bomdelete';
+          document.getElementById('BOMPT').value = bompt;
+          document.getElementById('COSTLEVEL').value = clevel;
+          document.getElementById('RMSEQ').value = st;
+          
+          console.log('Submitting delete with:');
+          console.log('  EVENT:', document.getElementById('EVENT').value);
+          console.log('  BOMPT:', document.getElementById('BOMPT').value);
+          console.log('  COSTLEVEL:', document.getElementById('COSTLEVEL').value);
+          console.log('  RMSEQ:', document.getElementById('RMSEQ').value);
+          console.log('  NBOM:', document.getElementById('NBOM').value);
+          
+          // Submit the form
+          document.frmBOM.submit();
+        },
+        function() {
+          // User cancelled
+          console.log('User cancelled deletion');
+        }
+      );
+    } catch (e) {
+      console.error('Error deleting BOM item:', e);
+    }
+  }
+
+  // BOO Inline Edit Functions
+  function expandInlineEditBOORow(clevel, bomop) {
+    try {
+      // Close any other open edit rows
+      var openRows = document.querySelectorAll('.inline-edit-row.active');
+      for (var i = 0; i < openRows.length; i++) {
+        openRows[i].classList.remove('active');
+      }
+      
+      // Find the row with the matching BOO data
+      var table = document.querySelector('.table-container table');
+      if (!table) return;
+      
+      var rows = table.querySelectorAll('tr');
+      var targetRow = null;
+      
+      for (var j = 0; j < rows.length; j++) {
+        var cells = rows[j].querySelectorAll('td');
+        if (cells.length > 0) {
+          // Check if this row matches our BOO criteria
+          // BOO items typically have different structure, adjust as needed
+          var rowClevel = cells.length > 1 ? cells[1].textContent.trim() : '';
+          var rowBomop = cells.length > 0 ? cells[0].textContent.trim() : '';
+          
+          if (rowClevel === clevel || rowBomop === bomop) {
+            targetRow = rows[j];
+            break;
+          }
+        }
+      }
+      
+      if (!targetRow) return;
+      
+      // Check if edit row already exists
+      var existingEditRow = targetRow.nextElementSibling;
+      if (existingEditRow && existingEditRow.classList.contains('inline-edit-row')) {
+        existingEditRow.classList.add('active');
+        return;
+      }
+      
+      // Create edit row
+      var editRow = document.createElement('tr');
+      editRow.className = 'inline-edit-row active';
+      
+      var editCell = document.createElement('td');
+      editCell.colSpan = targetRow.querySelectorAll('td').length;
+      
+      // Build BOO edit form HTML
+      var editForm = createInlineBOOEditForm(clevel, bomop);
+      editCell.innerHTML = editForm;
+      
+      editRow.appendChild(editCell);
+      
+      // Insert edit row after target row
+      targetRow.parentNode.insertBefore(editRow, targetRow.nextSibling);
+      
+      // Scroll to edit row if needed
+      editRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      
+    } catch (e) {
+      console.error('Error expanding inline BOO edit row:', e);
+    }
+  }
+  
+  function createInlineBOOEditForm(clevel, bomop) {
+    return `
+      <div class="inline-edit-container">
+        <div class="edit-indicator">
+          <i class="fas fa-edit"></i> Editing BOO Item
+        </div>
+        <form class="inline-edit-form" onsubmit="return saveInlineBOOEdit(event, '${clevel}', '${bomop}')">
+          <div class="inline-edit-group">
+            <label for="edit-boo-op">
+              <i class="fas fa-cogs" style="color: #1e40af;"></i> Operation
+            </label>
+            <input type="text" id="edit-boo-op" name="op" value="${bomop || ''}" required>
+          </div>
+          <div class="inline-edit-group">
+            <label for="edit-boo-cost">
+              <i class="fas fa-dollar-sign" style="color: #1e40af;"></i> Cost Level
+            </label>
+            <input type="text" id="edit-boo-cost" name="cost" value="${clevel || ''}" required>
+          </div>
+          <div class="inline-edit-group">
+            <label for="edit-boo-desc">
+              <i class="fas fa-file-alt" style="color: #1e40af;"></i> Description
+            </label>
+            <textarea id="edit-boo-desc" name="desc" rows="3"></textarea>
+          </div>
+          <div class="inline-edit-group">
+            <label for="edit-boo-time">
+              <i class="fas fa-clock" style="color: #1e40af;"></i> Standard Time (minutes)
+            </label>
+            <input type="number" id="edit-boo-time" name="time" value="0" min="0" step="0.01">
+          </div>
+          <div class="inline-edit-group">
+            <label for="edit-boo-labor">
+              <i class="fas fa-users" style="color: #1e40af;"></i> Labor Rate
+            </label>
+            <input type="number" id="edit-boo-labor" name="labor" value="0" min="0" step="0.01">
+          </div>
+          <div class="inline-edit-actions">
+            <button type="button" class="inline-edit-btn cancel" onclick="cancelInlineEdit()">
+              <i class="fas fa-times"></i> Cancel
+            </button>
+            <button type="submit" class="inline-edit-btn save">
+              <i class="fas fa-save"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+  }
+  
+  function saveInlineBOOEdit(event, clevel, bomop) {
+    try {
+      event.preventDefault();
+      
+      // Get form values
+      var form = event.target;
+      var op = form.querySelector('#edit-boo-op').value;
+      var cost = form.querySelector('#edit-boo-cost').value;
+      var desc = form.querySelector('#edit-boo-desc').value;
+      var time = form.querySelector('#edit-boo-time').value;
+      var labor = form.querySelector('#edit-boo-labor').value;
+      
+      // Set form values for submission
+      document.getElementById('EVENT').value = 'booedit';
+      document.getElementById('BOMOP').value = op;
+      document.getElementById('COSTLEVEL').value = cost;
+      
+      // Show loading state
+      var saveBtn = form.querySelector('.inline-edit-btn.save');
+      var originalText = saveBtn.innerHTML;
+      saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+      saveBtn.disabled = true;
+      
+      // Create form data for AJAX submission
+      var formData = new FormData();
+      formData.append('EVENT', 'booedit');
+      formData.append('BOMOP', op);
+      formData.append('COSTLEVEL', cost);
+      formData.append('NBOM', document.getElementById('NBOM').value);
+      formData.append('ECN', document.getElementById('ECN').value);
+      
+      // Send AJAX request
+      fetch('CDABOMEDIT2.HTM', {
+        method: 'POST',
+        body: formData
+      })
+      .then(function(response) {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.text();
+      })
+      .then(function(html) {
+        // Show success notification
+        showNotification('Success', 'BOO item updated successfully', 'success');
+        
+        // Close edit row
+        var editRow = form.closest('.inline-edit-row');
+        if (editRow) {
+          editRow.classList.remove('active');
+        }
+        
+        // Reload page to show updated data
+        setTimeout(function() {
+          window.location.reload();
+        }, 1500);
+      })
+      .catch(function(error) {
+        console.error('Error saving BOO item:', error);
+        showNotification('Error', 'Failed to save BOO item. Please try again.', 'error');
+        
+        // Restore button state
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+      });
+      
+      return false;
+    } catch (e) {
+      console.error('Error saving inline BOO edit:', e);
+      return false;
+    }
+  }
+  
+  // Enhanced delete function for BOO with inline confirmation
+  function BooDeleteInline(clevel, bomop) {
+    try {
+      showNotification(
+        'Confirm Delete',
+        'Are you sure you want to delete this BOO item?',
+        'info',
+        function() {
+          // User confirmed deletion
+          document.getElementById('EVENT').value = 'boodelete';
+          document.getElementById('BOMOP').value = bomop;
+          document.getElementById('COSTLEVEL').value = clevel;
+          
+          // Create form data for AJAX submission
+          var formData = new FormData();
+          formData.append('EVENT', 'boodelete');
+          formData.append('BOMOP', bomop);
+          formData.append('COSTLEVEL', clevel);
+          formData.append('NBOM', document.getElementById('NBOM').value);
+          
+          // Send AJAX request
+          fetch('CDABOMEDIT2.HTM', {
+            method: 'POST',
+            body: formData
+          })
+          .then(function(response) {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.text();
+          })
+          .then(function(html) {
+            // Show success notification
+            showNotification('Success', 'BOO item deleted successfully', 'success');
+            
+            // Reload page to show updated data
+            setTimeout(function() {
+              window.location.reload();
+            }, 1500);
+          })
+          .catch(function(error) {
+            console.error('Error deleting BOO item:', error);
+            showNotification('Error', 'Failed to delete BOO item. Please try again.', 'error');
+          });
+        }
+      );
+    } catch (e) {
+      console.error('Error deleting BOO item:', e);
+    }
+  }
+
+  // Notification Modal Functions
+  function showNotification(title, message, type, primaryCallback, secondaryCallback) {
+    try {
+      var modal = document.getElementById('notificationModal');
+      var icon = document.getElementById('notificationIcon');
+      var titleEl = document.getElementById('notificationTitle');
+      var messageEl = document.getElementById('notificationMessage');
+      var primaryBtn = document.getElementById('notificationPrimaryBtn');
+      var secondaryBtn = document.getElementById('notificationSecondaryBtn');
+      
+      // Set content
+      titleEl.textContent = title;
+      messageEl.textContent = message;
+      
+      // Set icon and styling based on type
+      icon.className = 'notification-icon ' + type;
+      if (type === 'success') {
+        icon.innerHTML = '<i class="fas fa-check"></i>';
+      } else if (type === 'error') {
+        icon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+      } else {
+        icon.innerHTML = '<i class="fas fa-info"></i>';
+      }
+      
+      // Set up buttons
+      primaryBtn.textContent = 'OK';
+      primaryBtn.onclick = function() {
+        modal.classList.remove('active');
+        if (primaryCallback) primaryCallback();
+      };
+      
+      if (secondaryCallback) {
+        secondaryBtn.style.display = 'block';
+        secondaryBtn.textContent = 'Cancel';
+        secondaryBtn.onclick = function() {
+          modal.classList.remove('active');
+          if (secondaryCallback) secondaryCallback();
+        };
+      } else {
+        secondaryBtn.style.display = 'none';
+      }
+      
+      // Show modal
+      modal.classList.add('active');
+    } catch (e) {
+      console.error('Error showing notification:', e);
+    }
+  }
+
+  // Enhanced table functionality
+  function initializeBOMGrid() {
+    try {
+      console.log('=== Initializing BOM Grid ===');
+      // Apply Excel Grid styles to any tables in the result container
+      var tables = document.querySelectorAll('.table-container table');
+      console.log('Found', tables.length, 'tables');
+      for (var i = 0; i < tables.length; i++) {
+        tables[i].classList.add('excel-grid-premium');
+        
+        // Apply header styles
+        var headers = tables[i].querySelectorAll('th');
+        for (var j = 0; j < headers.length; j++) {
+          headers[j].classList.add('excel-header');
+          
+          // Add sort functionality
+          headers[j].addEventListener('click', function() {
+            sortBOMTable(this);
+          });
+        }
+        
+        // Apply row styles and add inline edit buttons
+        var rows = tables[i].querySelectorAll('tr');
+        for (var k = 0; k < rows.length; k++) {
+          if (rows[k].querySelector('th')) continue; // Skip header row
+          rows[k].classList.add('excel-row');
+          
+          // Add inline edit buttons to each row
+          addInlineEditButtons(rows[k]);
+        }
+        
+        // Apply cell styles
+        var cells = tables[i].querySelectorAll('td');
+        for (var l = 0; l < cells.length; l++) {
+          cells[l].classList.add('excel-cell');
+        }
+      }
+      
+      // Update record count if possible
+      var recordCount = document.querySelectorAll('.table-container tr').length - 1; // Subtract header row
+      var countElement = document.getElementById('recordsCount');
+      if (countElement && recordCount > 0) {
+        countElement.textContent = recordCount + ' BOM Records';
+      }
+      
+      // CRITICAL: Remove all legacy [Edit] and [Delete] links after initialization
+      console.log('Running removeLegacyLinks after grid initialization...');
+      if (typeof removeLegacyLinks === 'function') {
+        setTimeout(removeLegacyLinks, 50);
+        setTimeout(removeLegacyLinks, 200);
+      }
+    } catch (e) {
+      console.error('Error initializing BOM grid:', e);
+    }
+  }
+  
+  // Add inline edit buttons to a table row
+  function addInlineEditButtons(row) {
+    try {
+      // Check if this row was already processed
+      if (row.dataset.processed === 'true') {
+        return;
+      }
+      
+      var cells = row.querySelectorAll('td');
+      if (cells.length === 0) return;
+      
+      // FIRST: Remove ALL links and spans from the ENTIRE ROW
+      console.log('=== Processing row for legacy links ===');
+      var allRowLinks = row.querySelectorAll('a, span.linkspan, span[onclick*="Edit"], span[onclick*="Delete"]');
+      console.log('Found', allRowLinks.length, 'links/spans in row');
+      
+      for (var rowLinkIdx = 0; rowLinkIdx < allRowLinks.length; rowLinkIdx++) {
+        var rowLink = allRowLinks[rowLinkIdx];
+        var rowLinkText = rowLink.textContent.trim();
+        console.log('  Link/Span text:', rowLinkText);
+        
+        if (rowLinkText === '[Edit]' || rowLinkText === '[Delete]' ||
+            rowLinkText.includes('Edit') || rowLinkText.includes('Delete')) {
+          console.log('  -> REMOVING this link/span');
+          rowLink.style.display = 'none';
+          rowLink.style.visibility = 'hidden';
+          rowLink.style.position = 'absolute';
+          rowLink.style.left = '-99999px';
+          rowLink.remove();
+        }
+      }
+      
+      // SECOND: Remove ALL links and spans from cells individually
+      for (var idx = 0; idx < cells.length; idx++) {
+        var links = cells[idx].querySelectorAll('a, span.linkspan, span[onclick*="Edit"], span[onclick*="Delete"]');
+        for (var linkIdx = 0; linkIdx < links.length; linkIdx++) {
+          var linkText = links[linkIdx].textContent.trim();
+          if (linkText === '[Edit]' || linkText === '[Delete]' || 
+              linkText.includes('Edit') || linkText.includes('Delete')) {
+            console.log('Removing cell link/span:', linkText);
+            links[linkIdx].style.display = 'none';
+            links[linkIdx].style.visibility = 'hidden';
+            links[linkIdx].remove();
+          }
+        }
+      }
+      
+      // Find the last cell (Actions column)
+      var lastCell = cells[cells.length - 1];
+      
+      // Check if we already added inline buttons to prevent duplicates
+      if (lastCell.querySelector('.btn-inline-edit, .btn-inline-delete, .btn-inline-add')) {
+        console.log('Skipping row - inline buttons already exist');
+        return;
+      }
+      
+      // Mark this row as processed
+      row.dataset.processed = 'true';
+      
+      // Clear the Actions cell to ensure clean slate
+      console.log('Clearing Actions cell and adding inline buttons');
+      lastCell.innerHTML = '';
+      lastCell.style.textAlign = 'center';
+      
+      // Determine if this is a BOM or BOO row
+      // BOO rows typically have different structure - adjust based on your actual table structure
+      var isBOORow = false;
+      
+      // Check for indicators that this is a BOO row
+      // This may need adjustment based on your actual table structure
+      if (cells.length > 0) {
+        var firstCellText = cells[0].textContent.trim();
+        // BOO items often start with "OP" or have a different pattern
+        if (firstCellText.startsWith('OP') || cells.length < 10) {
+          isBOORow = true;
+        }
+      }
+      
+      // Create action buttons container
+      var actionContainer = document.createElement('div');
+      actionContainer.className = 'action-buttons';
+      actionContainer.style.display = 'flex';
+      actionContainer.style.gap = '6px';
+      actionContainer.style.justifyContent = 'center';
+      actionContainer.style.alignItems = 'center';
+      
+      if (isBOORow) {
+        // Extract BOO data from the row
+        var clevel = cells.length > 1 ? cells[1].textContent.trim() : '';
+        var bomop = cells.length > 0 ? cells[0].textContent.trim() : '';
+        
+        // Create ADD button for BOO (new + button)
+        var addBtn = document.createElement('button');
+        addBtn.className = 'btn-inline-add';
+        addBtn.innerHTML = '<i class="fas fa-plus"></i>';
+        addBtn.title = 'Añadir elemento debajo';
+        addBtn.type = 'button'; // Prevent form submission
+        
+        // Store reference to the current row for accurate insertion
+        addBtn.dataset.targetRow = 'boo-' + bomop + '-' + clevel;
+        
+        addBtn.onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          // Pass the actual row element instead of just the part number
+          var currentRow = this.closest('tr');
+          addBombLine({
+            insertPosition: 'after',
+            referenceLine: bomop,
+            targetRow: currentRow,
+            isBOO: true
+          });
+        };
+        
+        // Create edit button for BOO (icon only)
+        var editBtn = document.createElement('button');
+        editBtn.className = 'btn-inline-edit';
+        editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+        editBtn.title = 'Edit this BOO item';
+        editBtn.type = 'button'; // Prevent form submission
+        editBtn.onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          expandInlineEditBOORow(clevel, bomop);
+        };
+        
+        // Create delete button for BOO (icon only)
+        var deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn-inline-delete';
+        deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+        deleteBtn.title = 'Delete this BOO item';
+        deleteBtn.type = 'button'; // Prevent form submission
+        deleteBtn.onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          BooDeleteInline(clevel, bomop);
+        };
+        
+        // Add buttons to container (add button first)
+        actionContainer.appendChild(addBtn);
+        actionContainer.appendChild(editBtn);
+        actionContainer.appendChild(deleteBtn);
+        
+        // Add hover effect for the add button to show insertion indicator
+        addBtn.addEventListener('mouseenter', function() {
+          showInsertionIndicator(row);
+        });
+        
+        addBtn.addEventListener('mouseleave', function() {
+          hideInsertionIndicator();
+        });
+      } else {
+        // Extract BOM data from the row
+        // After hiding first column: Cell[0]=Sequence, Cell[1]=PartNumber, Cell[2]=Qty, Cell[3]=Unit, Cell[4]=..., Cell[5]=Desc
+        var st = cells.length > 0 ? cells[0].textContent.trim() : '';       // Cell[0] = Sequence number (was 0)
+        // Cost Level is now hidden, we'll use empty string since it's not needed for the add functionality
+        var clevel = '';   // Cost Level is hidden
+        var bompt = cells.length > 1 ? cells[1].textContent.trim() : '';    // Cell[1] = Part Number (was 2)
+        
+        console.log('Extracted BOM row data - st:', st, 'clevel:', clevel, 'bompt:', bompt);
+        
+        // Create ADD button for BOM (new + button)
+        var addBtn = document.createElement('button');
+        addBtn.className = 'btn-inline-add';
+        addBtn.innerHTML = '<i class="fas fa-plus"></i>';
+        addBtn.title = 'Añadir elemento debajo';
+        addBtn.type = 'button'; // Prevent form submission
+        
+        // Store reference to the current row for accurate insertion
+        addBtn.dataset.targetRow = 'bom-' + bompt + '-' + st;
+        
+        addBtn.onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          // Pass the actual row element instead of just the part number
+          var currentRow = this.closest('tr');
+          addBombLine({
+            insertPosition: 'after',
+            referenceLine: bompt,
+            targetRow: currentRow,
+            isBOO: false
+          });
+        };
+        
+        // Create edit button for BOM (icon only)
+        var editBtn = document.createElement('button');
+        editBtn.className = 'btn-inline-edit';
+        editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+        editBtn.title = 'Edit this BOM item';
+        editBtn.type = 'button'; // Prevent form submission
+        editBtn.onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          expandInlineEditRow(st, clevel, bompt);
+        };
+        
+        // Create delete button for BOM (icon only)
+        var deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn-inline-delete';
+        deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+        deleteBtn.title = 'Delete this BOM item';
+        deleteBtn.type = 'button'; // Prevent form submission
+        deleteBtn.onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          BomDeleteInline(clevel, bompt, st);
+        };
+        
+        // Add buttons to container (add button first)
+        actionContainer.appendChild(addBtn);
+        actionContainer.appendChild(editBtn);
+        actionContainer.appendChild(deleteBtn);
+        
+        // Add hover effect for the add button to show insertion indicator
+        addBtn.addEventListener('mouseenter', function() {
+          showInsertionIndicator(row);
+        });
+        
+        addBtn.addEventListener('mouseleave', function() {
+          hideInsertionIndicator();
+        });
+      }
+      
+      // Add container to the last cell (which we already cleared)
+      lastCell.appendChild(actionContainer);
+      console.log('Successfully added inline buttons to row');
+      
+    } catch (e) {
+      console.error('Error adding inline edit buttons:', e);
+    }
+  }
+  
+  function showInsertionIndicator(row) {
+    try {
+      // Remove any existing indicators
+      hideInsertionIndicator();
+      
+      // Create insertion indicator
+      var indicator = document.createElement('div');
+      indicator.className = 'insertion-indicator';
+      indicator.style.position = 'absolute';
+      indicator.style.left = '0';
+      indicator.style.right = '0';
+      indicator.style.height = '2px';
+      indicator.style.background = 'repeating-linear-gradient(90deg, #3b82f6, #3b82f6 5px, transparent 5px, transparent 10px)';
+      indicator.style.zIndex = '1000';
+      indicator.style.animation = 'pulse 1.5s infinite';
+      
+      // Position the indicator after the current row
+      var rowRect = row.getBoundingClientRect();
+      var tableRect = row.closest('table').getBoundingClientRect();
+      
+      indicator.style.top = (rowRect.bottom - tableRect.top) + 'px';
+      
+      // Add to table container
+      row.closest('.table-container').style.position = 'relative';
+      row.closest('.table-container').appendChild(indicator);
+      
+      // Add tooltip
+      var tooltip = document.createElement('div');
+      tooltip.className = 'insertion-tooltip';
+      tooltip.textContent = 'Se insertará aquí';
+      tooltip.style.position = 'absolute';
+      tooltip.style.left = '50%';
+      tooltip.style.transform = 'translateX(-50%)';
+      tooltip.style.top = (rowRect.bottom - tableRect.top + 10) + 'px';
+      tooltip.style.background = '#1e293b';
+      tooltip.style.color = 'white';
+      tooltip.style.padding = '4px 8px';
+      tooltip.style.borderRadius = '4px';
+      tooltip.style.fontSize = '12px';
+      tooltip.style.whiteSpace = 'nowrap';
+      tooltip.style.zIndex = '1001';
+      
+      row.closest('.table-container').appendChild(tooltip);
+      
+    } catch (e) {
+      console.error('Error showing insertion indicator:', e);
+    }
+  }
+  
+  function hideInsertionIndicator() {
+    try {
+      var indicators = document.querySelectorAll('.insertion-indicator, .insertion-tooltip');
+      for (var i = 0; i < indicators.length; i++) {
+        indicators[i].remove();
+      }
+    } catch (e) {
+      console.error('Error hiding insertion indicator:', e);
+    }
+  }
+  
+  // Simple table sorting functionality
+  function sortBOMTable(headerCell) {
+    try {
+      var table = headerCell.closest('table');
+      var tbody = table.querySelector('tbody');
+      var rows = Array.from(tbody.querySelectorAll('tr'));
+      var headerIndex = Array.from(headerCell.parentNode.children).indexOf(headerCell);
+      var isAscending = headerCell.classList.contains('sort-asc');
+      
+      // Remove existing sort classes
+      var headers = table.querySelectorAll('.excel-header');
+      for (var i = 0; i < headers.length; i++) {
+        headers[i].classList.remove('sort-asc', 'sort-desc');
+      }
+      
+      // Add appropriate sort class
+      headerCell.classList.add(isAscending ? 'sort-desc' : 'sort-asc');
+      
+      // Sort rows
+      rows.sort(function(a, b) {
+        var aValue = a.children[headerIndex].textContent.trim();
+        var bValue = b.children[headerIndex].textContent.trim();
+        
+        // Try to parse as numbers
+        var aNum = parseFloat(aValue);
+        var bNum = parseFloat(bValue);
+        
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return isAscending ? aNum - bNum : bNum - aNum;
+        }
+        
+        // Otherwise sort as strings
+        return isAscending ?
+          aValue.localeCompare(bValue) :
+          bValue.localeCompare(aValue);
+      });
+      
+      // Reorder rows in DOM
+      for (var j = 0; j < rows.length; j++) {
+        tbody.appendChild(rows[j]);
+      }
+    } catch (e) {
+      console.error('Error sorting table:', e);
+    }
+  }
+  
+  // IMMEDIATE EXECUTION: Hide all links and spans as soon as possible
+  (function() {
+    // This runs immediately, even before DOMContentLoaded
+    var cleanupInterval = setInterval(function() {
+      var allLinks = document.querySelectorAll('a, span.linkspan, span[onclick*="Edit"], span[onclick*="Delete"]');
+      var hiddenCount = 0;
+      
+      for (var i = 0; i < allLinks.length; i++) {
+        var link = allLinks[i];
+        var text = link.textContent.trim();
+        
+        // Hide any link/span that looks like [Edit] or [Delete]
+        if (text === '[Edit]' || text === '[Delete]' ||
+            text.includes('[Edit]') || text.includes('[Delete]')) {
+          link.style.display = 'none';
+          link.style.visibility = 'hidden';
+          link.style.position = 'absolute';
+          link.style.left = '-9999px';
+          link.remove(); // Also try to remove it
+          hiddenCount++;
+        }
+      }
+      
+      if (hiddenCount > 0) {
+        console.log('[IMMEDIATE] Hid/removed', hiddenCount, 'legacy links/spans');
+      }
+    }, 50); // Run every 50ms
+    
+    // Stop after 5 seconds
+    setTimeout(function() {
+      clearInterval(cleanupInterval);
+      console.log('[IMMEDIATE] Cleanup interval stopped');
+    }, 5000);
+  })();
+  
+  // Function to aggressively remove all legacy [Edit] and [Delete] links/spans
+  function removeLegacyLinks() {
+    // Search EVERYWHERE in the document for <a> tags AND <span> tags with linkspan class
+    var allLinks = document.querySelectorAll('a, span.linkspan, span[onclick*="Edit"], span[onclick*="Delete"]');
+    var removedCount = 0;
+    
+    console.log('removeLegacyLinks: Found', allLinks.length, 'total links/spans in document');
+    
+    for (var i = 0; i < allLinks.length; i++) {
+      var link = allLinks[i];
+      var text = link.textContent.trim();
+      var href = link.href || '';
+      
+      console.log('Checking link/span #' + i + ':', text);
+      
+      // Skip navigation and non-edit elements (buttons, not spans)
+      if (link.tagName === 'BUTTON' ||
+          link.classList.contains('btn-inline-edit') ||
+          link.classList.contains('btn-inline-delete') ||
+          link.classList.contains('btn-inline-add') ||
+          link.classList.contains('grid-btn') ||
+          link.closest('.header') ||
+          link.closest('.action-buttons')) {
+        console.log('  -> Skipped (safe element)');
+        continue;
+      }
+      
+      // Remove any link/span that looks like legacy edit/delete
+      if (text === '[Edit]' || text === '[Delete]' ||
+          text.includes('[Edit]') || text.includes('[Delete]')) {
+        console.log('  -> REMOVING legacy link/span:', text);
+        link.style.display = 'none';
+        link.style.visibility = 'hidden';
+        link.style.position = 'absolute';
+        link.style.left = '-99999px';
+        link.remove();
+        removedCount++;
+      }
+    }
+    
+    console.log('Total removed:', removedCount, 'legacy links/spans');
+    return removedCount;
+  }
+  
+  // Initialize grid when page loads
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing grid in 100ms');
+    setTimeout(initializeBOMGrid, 100);
+    
+    // Run cleanup multiple times to catch late-generated links
+    setTimeout(removeLegacyLinks, 200);
+    setTimeout(removeLegacyLinks, 500);
+    setTimeout(removeLegacyLinks, 1000);
+    setTimeout(removeLegacyLinks, 2000);
+    
+    // Set up MutationObserver to watch for new links/spans being added
+    var observer = new MutationObserver(function(mutations) {
+      var needsCleanup = false;
+      
+      mutations.forEach(function(mutation) {
+        if (mutation.addedNodes.length > 0) {
+          mutation.addedNodes.forEach(function(node) {
+            // Check if the added node is a link/span or contains links/spans
+            if (node.nodeType === 1) { // Element node
+              if (node.tagName === 'A' || node.tagName === 'SPAN') {
+                needsCleanup = true;
+              } else if (node.querySelectorAll) {
+                var links = node.querySelectorAll('a, span.linkspan, span[onclick*="Edit"], span[onclick*="Delete"]');
+                if (links.length > 0) {
+                  needsCleanup = true;
+                }
+              }
+            }
+          });
+        }
+      });
+      
+      if (needsCleanup) {
+        console.log('MutationObserver detected new links/spans, cleaning up...');
+        removeLegacyLinks();
+      }
+    });
+    
+    // Start observing the table container
+    var tableContainer = document.querySelector('.table-container, .bom-table-container, table');
+    if (tableContainer) {
+      observer.observe(tableContainer, {
+        childList: true,
+        subtree: true
+      });
+      console.log('MutationObserver started watching for legacy links');
+    }
+  });
+  </script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+    }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: #334155;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(30, 41, 59, 0.25);
+      position: relative;
+      z-index: 100;
+      width: 100%;
+      flex-shrink: 0;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo-section img {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+
+    .title-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 16px;
+    }
+
+    .welcome-user {
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .welcome-user span {
+      color: #cbd5e1;
+      font-size: 0.8em;
+      font-weight: 400;
+    }
+
+    .welcome-user strong {
+      color: #3b82f6;
+      margin-left: 4px;
+      font-weight: 600;
+      font-size: 0.9em;
+    }
+
+    .title-section h2 {
+      font-size: 1em;
+      margin: 0;
+      font-weight: 600;
+      color: #f1f5f9;
+      letter-spacing: 0.3px;
+    }
+
+    .title-section p {
+      font-size: 0.8em;
+      margin: 0;
+      color: #a2a8ba;
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.2em;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .hamburger-menu svg {
+      width: 24px;
+      height: 24px;
+      fill: #fff;
+    }
+
+    .hamburger-menu svg path {
+      fill: #fff;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      width: 100%;
+      background: #f8fafc;
+      height: calc(100vh - 60px);
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 300px;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(1px);
+      -webkit-backdrop-filter: blur(1px);
+      color: #fff;
+      transition: left 0.2s ease;
+      z-index: 2000;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar-header h3 {
+      font-size: 1.1em;
+      color: #fff;
+      margin: 0;
+    }
+
+    .sidebar-content {
+      padding: 24px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-menu li {
+      margin-bottom: 10px;
+    }
+
+    .sidebar-menu label {
+      display: block;
+      padding: 12px 16px;
+      color: #f3f4f6;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .sidebar-menu label:hover {
+      background-color: rgba(30, 64, 175, 0.12);
+      color: #fff;
+    }
+
+    .sidebar-menu label.active {
+      background-color: rgba(30, 64, 175, 0.25);
+      color: #93c5fd;
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.55);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+      z-index: 1500;
+      pointer-events: none;
+    }
+
+    #sb-toggle:checked ~ .sidebar {
+      left: 0;
+    }
+
+    #sb-toggle:checked ~ .sidebar-overlay {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    #sb-toggle {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .bom-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .bom-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .bom-header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .bom-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+
+    .bom-header p {
+      font-size: 16px;
+      color: #64748b;
+    }
+
+    .bom-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .bom-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .bom-number {
+      font-size: 18px;
+      font-weight: 600;
+      color: #3b82f6;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9em;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(29, 78, 216, 0.35);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(71, 85, 105, 0.25);
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(71, 85, 105, 0.35);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-success:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(185, 28, 28, 0.25);
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(185, 28, 28, 0.35);
+    }
+
+    .bom-content {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bom-table-container {
+      flex: 1;
+      overflow: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+
+    .bom-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9em;
+    }
+
+    .bom-table th {
+      background: #1e293b;
+      color: #fff;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .bom-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .bom-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .bom-table tr:hover {
+      background: #f8fafc;
+    }
+
+    /* Excel Grid Premium Styles - matching STOCKTRANS_EDIT */
+    .excel-grid-wrapper {
+      background: rgba(255,255,255,.95);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      overflow: hidden;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      width: 100%;
+    }
+
+    .grid-toolbar {
+      background: #f8f9fa;
+      padding: 12px 20px;
+      border-bottom: 1px solid #dee2e6;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .results-count {
+      background: rgba(59,130,246,0.1);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: .85em;
+      color: #64748b;
+    }
+
+    .excel-grid-container {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: auto;
+      border: 1px solid #dee2e6;
+      border-radius: 0 0 12px 12px;
+      background: #fff;
+      position: relative;
+      min-height: 250px;
+      height: calc(100vh - 240px);
+      width: 100%;
+    }
+
+    .excel-grid-container::-webkit-scrollbar {
+      width: 12px;
+    }
+
+    .excel-grid-container::-webkit-scrollbar-track {
+      background: #f1f3f4;
+      border-radius: 6px;
+    }
+
+    .excel-grid-container::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg,#2a5298 0%,#1e3c72 100%);
+      border-radius: 6px;
+      border: 2px solid #f1f3f4;
+    }
+
+    .excel-grid-container::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg,#1e3c72 0%,#2a5298 100%);
+    }
+
+    table.excel-grid-premium {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: "Segoe UI",Tahoma,Geneva,Verdana,sans-serif;
+      font-size: 11px;
+      background: #fff;
+      min-width: 100%;
+      border: 1px solid #dee2e6;
+    }
+
+    .excel-header {
+      background: linear-gradient(135deg,#2a5298 0%,#1e3c72 100%);
+      color: white;
+      padding: 8px 12px;
+      font-weight: 600;
+      text-align: left;
+      border-right: 1px solid #1e3c72;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      cursor: pointer;
+      user-select: none;
+      transition: all .2s ease;
+      font-size: 11px;
+    }
+
+    .excel-header:hover {
+      background: linear-gradient(135deg,#1e3c72 0%,#2a5298 100%);
+    }
+
+    .excel-header.sorted {
+      background: linear-gradient(135deg,#2a5298 0%,#1e3c72 100%);
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .sort-icon {
+      opacity: .7;
+      font-size: 12px;
+      transition: opacity .2s ease;
+    }
+
+    .excel-header:hover .sort-icon {
+      opacity: 1;
+    }
+
+    .resize-handle {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      cursor: col-resize;
+      background: rgba(255,255,255,.2);
+      opacity: 0;
+      transition: opacity .2s ease;
+    }
+
+    .excel-header:hover .resize-handle {
+      opacity: 1;
+    }
+
+    .excel-row {
+      transition: all .2s ease;
+      cursor: pointer;
+    }
+
+    .excel-row:nth-child(even) {
+      background: #fafafa;
+    }
+
+    .excel-row:hover {
+      background: #eef2ff;
+    }
+
+    .excel-row.selected {
+      background: #dbeafe;
+    }
+
+    .filter-row th {
+      background: #f1f5f9;
+      position: sticky;
+      top: 36px;
+      z-index: 5;
+    }
+
+    .filter-cell {
+      padding: 6px 8px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .filter-input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    .toolbar-right {
+      display: flex;
+      gap: 8px;
+    }
+
+    .grid-btn {
+      background: #e2e8f0;
+      color: #1e293b;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .grid-btn:hover {
+      filter: brightness(.95);
+    }
+
+    .excel-cell {
+      padding: 14px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 16px;
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    .excel-cell.readonly {
+      opacity: .9;
+      background: #f9fafb;
+    }
+
+    .cell-content {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .action-buttons {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-sm {
+      border: none;
+      padding: 6px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-edit {
+      background: linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);
+      color: #fff;
+    }
+
+    .btn-delete {
+      background: linear-gradient(135deg,#ef4444 0%,#dc2626 100%);
+      color: #fff;
+    }
+
+    .actions-header {
+      min-width: 120px;
+    }
+
+    /* Override default table styles to use excel grid styles */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .table-container table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: "Segoe UI",Tahoma,Geneva,Verdana,sans-serif;
+      font-size: 11px;
+      background: #fff;
+      min-width: 100%;
+      border: 1px solid #dee2e6;
+    }
+
+    .table-container th {
+      background: linear-gradient(135deg,#1e40af 0%,#1e3a8a 100%);
+      color: white;
+      padding: 16px 14px;
+      font-weight: 700;
+      text-align: left;
+      border-right: 1px solid #1e3a8a;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      cursor: pointer;
+      user-select: none;
+      transition: all .3s ease;
+      font-size: 16px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .table-container th:hover {
+      background: linear-gradient(135deg,#1d4ed8 0%,#1e40af 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .table-container td {
+      padding: 14px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 16px;
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    .table-container tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    .table-container tr:hover {
+      background: #eef2ff;
+    }
+
+    .table-container tr.selected {
+      background: #dbeafe;
+    }
+
+    .sub-bom {
+      text-decoration: underline;
+      color: #3b82f6;
+      cursor: pointer;
+    }
+
+    .sub-bom:hover {
+      color: #1d4ed8;
+    }
+
+    /* Inline Edit Row Styles */
+    .inline-edit-row {
+      display: none;
+      background: #f8fafc;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    .inline-edit-row.active {
+      display: table-row;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+        max-height: 0;
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 200px;
+      }
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 200px;
+      }
+      to {
+        opacity: 0;
+        transform: translateY(-10px);
+        max-height: 0;
+      }
+    }
+
+    .inline-edit-container {
+      padding: 20px;
+      background: #f8fafc;
+      border-left: 4px solid #3b82f6;
+    }
+
+    .inline-edit-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .inline-edit-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .inline-edit-group label {
+      font-weight: 600;
+      color: #374151;
+      font-size: 0.9em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .inline-edit-group input,
+    .inline-edit-group select,
+    .inline-edit-group textarea {
+      padding: 10px 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 0.9em;
+      transition: all 0.2s ease;
+      background: #fff;
+    }
+
+    .inline-edit-group input:focus,
+    .inline-edit-group select:focus,
+    .inline-edit-group textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .inline-edit-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .inline-edit-btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.9em;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .inline-edit-btn.save {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+
+    .inline-edit-btn.save:hover {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      transform: translateY(-1px);
+    }
+
+    .inline-edit-btn.cancel {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .inline-edit-btn.cancel:hover {
+      background: #d1d5db;
+    }
+
+    .edit-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      background: #dbeafe;
+      color: #1e40af;
+      border-radius: 4px;
+      font-size: 0.8em;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    /* Enhanced button styles for inline actions */
+    .btn-inline-edit {
+      background: linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+      min-width: 36px;
+      min-height: 36px;
+    }
+
+    .btn-inline-edit:hover {
+      background: linear-gradient(135deg,#1d4ed8 0%,#1e40af 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-inline-delete {
+      background: linear-gradient(135deg,#ef4444 0%,#dc2626 100%);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+      min-width: 36px;
+      min-height: 36px;
+    }
+
+    .btn-inline-delete:hover {
+      background: linear-gradient(135deg,#dc2626 0%,#b91c1c 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4);
+    }
+    
+    /* Enhanced Add Button Styles */
+    .btn-inline-add {
+      background: linear-gradient(135deg,#10b981 0%,#059669 100%);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.3s ease;
+      width: 36px;
+      height: 36px;
+      position: relative;
+      box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-inline-add:hover {
+      background: linear-gradient(135deg,#059669 0%,#047857 100%);
+      transform: translateY(-2px) scale(1.1);
+      box-shadow: 0 6px 12px rgba(16, 185, 129, 0.4);
+    }
+    
+    .btn-inline-add:active {
+      transform: translateY(0) scale(0.95);
+    }
+    
+    /* Inline Add Form Styles */
+    .inline-add-bom-row {
+      background: #f0f9ff;
+      animation: slideDown 0.3s ease-out;
+    }
+    
+    .inline-add-bom-container {
+      padding: 16px;
+      background: #f0f9ff;
+      border-left: 4px solid #10b981;
+      border-radius: 0 8px 8px 0;
+    }
+    
+    .add-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #dcfce7;
+      color: #166534;
+      border-radius: 4px;
+      font-size: 0.9em;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    
+    .inline-add-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .inline-add-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .inline-add-group label {
+      font-weight: 600;
+      color: #374151;
+      font-size: 0.9em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .inline-add-group input,
+    .inline-add-group textarea {
+      padding: 8px 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 0.9em;
+      transition: all 0.2s ease;
+      background: #fff;
+    }
+    
+    .inline-add-group input:focus,
+    .inline-add-group textarea:focus {
+      outline: none;
+      border-color: #10b981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+    
+    .inline-add-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #e5e7eb;
+    }
+    
+    .inline-add-btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.9em;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .inline-add-btn.save {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+    
+    .inline-add-btn.save:hover {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      transform: translateY(-1px);
+    }
+    
+    .inline-add-btn.cancel {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    
+    .inline-add-btn.cancel:hover {
+      background: #d1d5db;
+    }
+    
+    /* Insertion Indicator Styles */
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 1; }
+      100% { opacity: 0.6; }
+    }
+    
+    .insertion-indicator {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: repeating-linear-gradient(90deg, #3b82f6, #3b82f6 5px, transparent 5px, transparent 10px);
+      z-index: 1000;
+      animation: pulse 1.5s infinite;
+    }
+    
+    .insertion-tooltip {
+      position: absolute;
+      background: #1e293b;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 1001;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .insertion-tooltip::after {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 0 4px 4px 4px;
+      border-style: solid;
+      border-color: transparent transparent #1e293b transparent;
+    }
+    
+    /* Hide the first column (Cost Level) completely */
+    .table-container table th:first-child,
+    .table-container table td:first-child {
+      display: none !important;
+      visibility: hidden !important;
+      width: 0 !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      border: none !important;
+      overflow: hidden !important;
+    }
+    
+    /* Alternative approach for Excel grid tables */
+    table.excel-grid-premium th:first-child,
+    table.excel-grid-premium td:first-child {
+      display: none !important;
+      visibility: hidden !important;
+      width: 0 !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      border: none !important;
+      overflow: hidden !important;
+    }
+
+    /* Notification Modal Styles */
+    .notification-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+
+    .notification-modal.active {
+      display: flex;
+    }
+
+    .notification-content {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .notification-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .notification-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
+    }
+
+    .notification-icon.success {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+    }
+
+    .notification-icon.error {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+    }
+
+    .notification-icon.info {
+      background: rgba(59, 130, 246, 0.1);
+      color: #3b82f6;
+    }
+
+    .notification-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .notification-message {
+      color: #64748b;
+      margin-bottom: 20px;
+    }
+
+    .notification-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .notification-btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+
+    .notification-btn.primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .notification-btn.primary:hover {
+      background: #2563eb;
+    }
+
+    .notification-btn.secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .notification-btn.secondary:hover {
+      background: #d1d5db;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      font-size: 0.9em;
+      font-weight: 600;
+      color: #1f2937;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group input {
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 0.95em;
+      transition: all 0.2s ease;
+      background: #fff;
+      color: #0f172a;
+      width: 100%;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .bom-text {
+      width: 100%;
+      min-height: 500px;
+      padding: 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-family: monospace;
+      font-size: 14px;
+      resize: vertical;
+    }
+
+    .bom-text:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .linkspan {
+      color: #3b82f6;
+      text-decoration: none;
+      margin-right: 10px;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .linkspan:hover {
+      color: #1d4ed8;
+      cursor: pointer;
+    }
+
+    .linkspan2 {
+      color: #000;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+
+    .linkspan2:hover {
+      color: #3b82f6;
+      cursor: pointer;
+    }
+
+    .error-message {
+      color: #ef4444;
+      font-size: 0.9em;
+      font-weight: 600;
+      padding: 8px 12px;
+      background: rgba(239, 68, 68, 0.1);
+      border-radius: 8px;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      margin-top: 8px;
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+    
+    /* Hide legacy [Edit] and [Delete] links AND spans from BUILDBOMTABLE */
+    .table-container td a:not(.btn-inline-edit):not(.btn-inline-delete):not(.btn-inline-add),
+    .table-container td span.linkspan,
+    .table-container span.linkspan,
+    span.linkspan[onclick*="Edit"],
+    span.linkspan[onclick*="Delete"],
+    span[onclick*="BooEdit"],
+    span[onclick*="BomEdit"],
+    span[onclick*="BooDelete"],
+    span[onclick*="BomDelete"] {
+      /* Hide text-based links that look like [Edit] or [Delete] */
+      font-size: 0 !important;
+      visibility: hidden !important;
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      overflow: hidden !important;
+      position: absolute !important;
+      left: -9999px !important;
+      top: -9999px !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+    
+    /* Extra aggressive rules to hide any links containing Edit or Delete */
+    .table-container td a[href*="Edit"],
+    .table-container td a[href*="Delete"],
+    .table-container td a[href*="edit"],
+    .table-container td a[href*="delete"],
+    .table-container td a[onclick*="Edit"],
+    .table-container td a[onclick*="Delete"],
+    .table-container td a[onclick*="edit"],
+    .table-container td a[onclick*="delete"] {
+      display: none !important;
+      visibility: hidden !important;
+      font-size: 0 !important;
+      width: 0 !important;
+      height: 0 !important;
+      overflow: hidden !important;
+      position: absolute !important;
+      left: -9999px !important;
+      top: -9999px !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+    
+    /* Hide any text with brackets that might be legacy links */
+    .table-container td a:contains('['),
+    .table-container td a:contains(']') {
+      display: none !important;
+      visibility: hidden !important;
+      font-size: 0 !important;
+      width: 0 !important;
+      height: 0 !important;
+      overflow: hidden !important;
+      position: absolute !important;
+      left: -9999px !important;
+      top: -9999px !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .title-section {
+        text-align: left;
+        align-items: flex-start;
+      }
+
+      .title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .bom-wrapper {
+        padding: 16px;
+      }
+
+      .bom-card {
+        padding: 24px;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body onload="sizeUp()">
+  <input type="checkbox" id="sb-toggle">
+  <label for="sb-toggle" class="sidebar-overlay" aria-hidden="true"></label>
+
+  <aside class="sidebar" aria-label="Main menu">
+    <div class="sidebar-header">
+      <h3>Menu</h3>
+    </div>
+    <div class="sidebar-content">
+      <ul class="sidebar-menu">
+        <li><label for="sb-toggle">Main Menu</label></li>
+        <li><label for="sb-toggle">Parts Management</label></li>
+        <li><label for="sb-toggle">Work Orders</label></li>
+        <li><label for="sb-toggle">Sales Orders</label></li>
+        <li><label for="sb-toggle">Stock Transactions</label></li>
+        <li><label for="sb-toggle" class="active">BOM Management</label></li>
+      </ul>
+    </div>
+  </aside>
+
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">
+          <svg viewBox="0 0 448 512" role="img" aria-hidden="true" focusable="false" width="20" height="20">
+            <path d="M0 96C0 78.3 14.3 64 32 64H416C433.7 64 448 78.3 448 96C448 113.7 433.7 128 416 128H32C14.3 128 0 113.7 0 96zM0 256C0 238.3 14.3 224 32 224H416C433.7 224 448 238.3 448 256C448 273.7 433.7 288 416 288H32C14.3 288 0 273.7 0 256zM448 416C448 433.7 433.7 448 416 448H32C14.3 448 0 433.7 0 416C0 398.3 14.3 384 32 384H416C433.7 384 448 398.3 448 416z"></path>
+          </svg>
+        </label>
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL" onerror="this.onerror=null;this.src='http://54.189.226.145/uploads/assets/images/taimex_logo.png';">
+        </div>
+      </div>
+      <div class="title-section">
+        <div class="title-row">
+          <div class="welcome-user">
+            <span>Welcome,</span>
+            <strong id="currentUserDisplay">Operator</strong>
+          </div>
+          <div>
+            <h2>TAIMEX - BOM EDITOR</h2>
+            <p>TAIMEX - MANAGEMENT</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="bom-wrapper">
+        <div class="bom-card">
+          <div class="bom-header">
+            <h1>BOM Entry and Editor</h1>
+            <p>Manage your Bill of Materials</p>
+          </div>
+
+          <form id="frmBOM" name="frmBOM" method="POST" action="BOM_EDIT.HTM">
+            <div class="bom-info">
+              <div>
+                <div class="bom-title">
+                  <span class="linkspan2" onclick="YorkBom()">^NBOM^</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="ECN">
+                <i class="fas fa-file-alt" style="color: #1e40af;"></i>
+                ECN:
+              </label>
+              <input type="text" id="ECN" name="ECN" value="^ECN^">
+            </div>
+
+            <div class="error-message" id="errorMessage" style="display: none;">
+              ^EMSG^
+            </div>
+
+            <div class="action-buttons">
+              <span class="linkspan" onclick="PrintBom()">
+                <i class="fas fa-print"></i>
+                View Print Copy
+              </span>
+            </div>
+
+            <div class="excel-grid-wrapper">
+              <div class="grid-toolbar">
+                <div class="toolbar-left">
+                  <span class="results-count">
+                    <i class="fas fa-database"></i>
+                    <span id="recordsCount">BOM Records</span>
+                  </span>
+                </div>
+                <div class="toolbar-right">
+                  <button type="button" class="grid-btn" onclick="PrintBom()">
+                    <i class="fas fa-print"></i> Print BOM
+                  </button>
+                  <button type="button" class="grid-btn" onclick="YorkBom()">
+                    <i class="fas fa-file-export"></i> York BOM
+                  </button>
+                  <button type="button" class="grid-btn" onclick="addBombLine('at-end')">
+                    <i class="fas fa-plus"></i> Add BOM Line
+                  </button>
+                  <button type="button" class="grid-btn" onclick="BooAdd()">
+                    <i class="fas fa-plus"></i> Add BOO Line
+                  </button>
+                </div>
+              </div>
+              <div class="excel-grid-container">
+                <div class="table-container">
+                  ^RAW(RESULT)^
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="BOMTXT">
+                <i class="fas fa-file-code" style="color: #1e40af;"></i>
+                BOM Text:
+              </label>
+              <textarea class="bom-text" id="BOMTXT" name="BOMTXT">
+^BOMTXT.REC^
+              </textarea>
+            </div>
+
+            <div class="action-buttons">
+              <span class="linkspan" onclick="BomTxtEdit()">
+                <i class="fas fa-save"></i>
+                Update BOMTXT
+              </span>
+              <span class="linkspan" onclick="GoMenu()">
+                <i class="fas fa-arrow-left"></i>
+                Menu
+              </span>
+            </div>
+
+            <input type="hidden" name="NBOM" id="NBOM" value="^NBOM^">
+            <input type="hidden" name="BOMPT" id="BOMPT" value="">
+            <input type="hidden" name="BOMOP" id="BOMOP" value="">
+            <input type="hidden" name="COSTLEVEL" id="COSTLEVEL" value="">
+            <input type="hidden" name="RMSEQ" id="RMSEQ" value="">
+            <input type="hidden" name="EVENT" id="EVENT" value="">
+            <input type="hidden" name="REFERENCE_LINE" id="REFERENCE_LINE" value="">
+            <input type="hidden" name="INSERT_POSITION" id="INSERT_POSITION" value="">
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Notification Modal -->
+  <div id="notificationModal" class="notification-modal">
+    <div class="notification-content">
+      <div class="notification-header">
+        <div id="notificationIcon" class="notification-icon info">
+          <i class="fas fa-info"></i>
+        </div>
+        <div>
+          <h3 id="notificationTitle" class="notification-title">Notification</h3>
+        </div>
+      </div>
+      <p id="notificationMessage" class="notification-message">Operation completed successfully.</p>
+      <div class="notification-actions">
+        <button id="notificationSecondaryBtn" class="notification-btn secondary" style="display: none;">Cancel</button>
+        <button id="notificationPrimaryBtn" class="notification-btn primary">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div align="left">
+  <pre>
+PicLan-IP/BASIC ^ ^
+PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+  ERR = '' ; INITIALS=  ''
+  CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+  RETURN
+END
+PL_GETVAR NBOM FROM 'NBOM' ELSE NBOM = ''
+PL_GETVAR ECN FROM 'ECN' ELSE ECN = ''
+PL_GETVAR BOMPT FROM 'BOMPT' ELSE BOMPT = ''
+PL_GETVAR BOMOP FROM 'BOMOP' ELSE BOMOP = ''
+PL_GETVAR COSTLEVEL FROM 'COSTLEVEL' ELSE COSTLEVEL = ''
+PL_GETVAR EVENT FROM 'EVENT' ELSE EVENT = ''
+PL_GETVAR RMSEQ FROM 'RMSEQ' ELSE RMSEQ = ''
+PL_GETVAR BOMTXT FROM 'BOMTXT' ELSE BOMTXT = ''
+PL_GETVAR REFERENCE_LINE FROM 'REFERENCE_LINE' ELSE REFERENCE_LINE = ''
+PL_GETVAR INSERT_POSITION FROM 'INSERT_POSITION' ELSE INSERT_POSITION = ''
+TS = DATE():TIME()
+RESULT = ''
+EMSG = ''
+OPEN 'EBOO' TO BOO.FILE ELSE GOTO done:
+OPEN 'EBOM' TO BOM.FILE ELSE GOTO done:
+OPEN 'EPARTS' TO EPARTS.FILE ELSE GOTO done:
+OPEN 'BOMTXT' TO BOMTXT.FILE ELSE GOTO done:
+IF EVENT NE '' THEN
+IF EVENT = 'menu' THEN
+  EVENT = ''
+  PL_PUTVAR EVENT IN 'EVENT' ELSE NULL
+  ERR = ''
+  CALL PLW.PAGE('CDABOMMENU.HTM','',ERR)
+  RETURN
+END
+IF EVENT = 'bomadd' THEN
+  EVENT = ''
+  PL_PUTVAR NBOM IN 'NBOM' ELSE NULL
+  PL_PUTVAR EVENT IN 'EVENT' ELSE NULL
+  PL_PUTVAR ECN IN 'ECN' ELSE NULL
+  ERR = ''
+  CALL PLW.PAGE('CDABOMADD.HTM','',ERR)
+  RETURN
+END
+IF EVENT = 'bomaddafter' THEN
+  EVENT = ''
+  PL_PUTVAR NBOM IN 'NBOM' ELSE NULL
+  PL_PUTVAR REFERENCE_LINE IN 'REFERENCE_LINE' ELSE NULL
+  PL_PUTVAR INSERT_POSITION IN 'INSERT_POSITION' ELSE NULL
+  PL_PUTVAR EVENT IN 'EVENT' ELSE NULL
+  PL_PUTVAR ECN IN 'ECN' ELSE NULL
+  ERR = ''
+  CALL PLW.PAGE('CDABOMADDAFTER.HTM','',ERR)
+  RETURN
+END
+IF EVENT = 'savebomaddafter' THEN
+  EVENT = ''
+  * Get form variables
+  PL_GETVAR BOMPT FROM 'BOMPT' ELSE BOMPT = ''
+  PL_GETVAR COSTLEVEL FROM 'COSTLEVEL' ELSE COSTLEVEL = ''
+  PL_GETVAR RMSEQ FROM 'RMSEQ' ELSE RMSEQ = ''
+  PL_GETVAR REFERENCE_LINE FROM 'REFERENCE_LINE' ELSE REFERENCE_LINE = ''
+  PL_GETVAR INSERT_POSITION FROM 'INSERT_POSITION' ELSE INSERT_POSITION = ''
+  PL_GETVAR BOMOP FROM 'BOMOP' ELSE BOMOP = ''
+  
+  * Validate required fields
+  IF BOMPT = '' OR NBOM = '' OR COSTLEVEL = '' OR RMSEQ = '' THEN
+    EMSG = 'Part number, cost level, and seq# required.'
+    GOTO done
+  END
+  
+  * Validate numeric fields
+  IF NOT(NUM(COSTLEVEL)) THEN
+    EMSG = 'Cost Level must be numeric.'
+    GOTO done
+  END
+  
+  * Parse the BOMOP field to extract quantity and description
+  QUANTITY = '1'
+  DESCRIPTION = ''
+  IF BOMOP NE '' THEN
+    QUANTITY = FIELD(BOMOP, '|', 1)
+    DESCRIPTION = FIELD(BOMOP, '|', 2)
+    QUANTITY = FIELD(QUANTITY, ':', 2)
+    DESCRIPTION = FIELD(DESCRIPTION, ':', 2)
+  END
+  
+  * Validate quantity is numeric
+  IF NOT(NUM(QUANTITY)) THEN
+    EMSG = 'Quantity must be numeric.'
+    GOTO done
+  END
+  
+  * Validate part number exists in EPARTS
+  READ EPARTS FROM EPARTS.FILE,BOMPT ELSE
+    EMSG = 'Part Number not found in EPARTS file: ':BOMPT
+    GOTO done
+  END
+  
+  IF BOMPT NE '' AND NBOM NE '' THEN
+    READ EBOM FROM BOM.FILE,NBOM ELSE
+      EMSG = 'BOM Record not found'
+      GOTO done
+    END
+    
+    * Convert quantity to internal format (multiply by 100000)
+    QUANTITY = QUANTITY * 100000
+    
+    * Find the reference line and insert after it
+    DELIM = ' '
+    TMP = EBOM
+    INSERTED = 0
+    
+    * Build the new BOM line (format matches CDABOMADD.HTM)
+    * Field positions: 1=BOMPT 2=QTY 3=RMSEQ 4=blank 5=EDATE 6=DDATE 7-20=blanks 21=COSTLEVEL
+    NEW.LINE = BOMPT:DELIM:QUANTITY:DELIM:RMSEQ:DELIM:'':DELIM:'':DELIM:''
+    FOR Z = 1 TO 15
+      NEW.LINE := DELIM
+    NEXT Z
+    NEW.LINE := COSTLEVEL
+    
+    * Process existing BOM lines and insert at the correct position
+    FOR I = 1 TO DCOUNT(EBOM,@AM)
+      LINE = EBOM<I>
+      PN = FIELD(LINE,DELIM,1)
+      
+      * Check if this is our reference line and insert after it
+      IF PN = REFERENCE_LINE AND INSERTED = 0 THEN
+        * Insert new line after the reference
+        J = I + 1
+        
+        * Shift all subsequent lines down
+        FOR K = DCOUNT(EBOM,@AM) TO I + 1 STEP -1
+          TMP<K+1> = TMP<K>
+        NEXT K
+        
+        * Insert the new line
+        TMP<J> = NEW.LINE
+        INSERTED = 1
+      END
+    NEXT I
+    
+    * If reference line was not found, add at the end
+    IF INSERTED = 0 THEN
+      TMP<DCOUNT(TMP,@AM)+1> = NEW.LINE
+    END
+    
+    * Write the updated BOM
+    WRITE TMP ON BOM.FILE,NBOM
+    
+    * Clear the form variables and redirect
+    BOMPT = ''
+    COSTLEVEL = ''
+    RMSEQ = ''
+    QUANTITY = ''
+    DESCRIPTION = ''
+    REFERENCE_LINE = ''
+    INSERT_POSITION = ''
+    BOMOP = ''
+    EVENT = ''
+    PL_PUTVAR EVENT IN 'EVENT' ELSE NULL
+    GOTO done
+  END
+END
+IF EVENT = 'savebooaddafter' THEN
+  EVENT = ''
+  * Get form variables
+  PL_GETVAR BOMOP FROM 'BOMOP' ELSE BOMOP = ''
+  PL_GETVAR COSTLEVEL FROM 'COSTLEVEL' ELSE COSTLEVEL = ''
+  PL_GETVAR REFERENCE_LINE FROM 'REFERENCE_LINE' ELSE REFERENCE_LINE = ''
+  PL_GETVAR INSERT_POSITION FROM 'INSERT_POSITION' ELSE INSERT_POSITION = ''
+  PL_GETVAR BOMPT FROM 'BOMPT' ELSE BOMPT = ''
+  
+  * Validate required fields
+  IF BOMOP = '' OR NBOM = '' OR COSTLEVEL = '' THEN
+    EMSG = 'Operation code and cost level required.'
+    GOTO done
+  END
+  
+  * Validate numeric fields
+  IF NOT(NUM(COSTLEVEL)) THEN
+    EMSG = 'Cost Level must be numeric.'
+    GOTO done
+  END
+  
+  * Parse the BOMPT field to extract time and description
+  TIME = ''
+  DESCRIPTION = ''
+  IF BOMPT NE '' THEN
+    TIME = FIELD(BOMPT, '|', 1)
+    DESCRIPTION = FIELD(BOMPT, '|', 2)
+    TIME = FIELD(TIME, ':', 2)
+    DESCRIPTION = FIELD(DESCRIPTION, ':', 2)
+  END
+  
+  * Validate time is numeric if provided
+  IF TIME NE '' AND NOT(NUM(TIME)) THEN
+    EMSG = 'Time must be numeric.'
+    GOTO done
+  END
+  
+  IF BOMOP NE '' AND NBOM NE '' THEN
+    READ EBOO FROM BOO.FILE,NBOM ELSE
+      EMSG = 'BOO Record not found'
+      GOTO done
+    END
+    
+    * Find the reference line and insert after it
+    DELIM = ' '
+    TMP = EBOO
+    INSERTED = 0
+    
+    * Process existing BOO lines and insert at the correct position
+    FOR I = 1 TO DCOUNT(EBOO<7>,@VM)
+      OP = EBOO<7,I>
+      
+      * Check if this is our reference line and insert after it
+      IF OP = REFERENCE_LINE AND INSERTED = 0 THEN
+        * Insert new line after the reference
+        J = I + 1
+        
+        * Shift all subsequent lines down
+        FOR K = DCOUNT(EBOO<7>,@VM) TO I + 1 STEP -1
+          EBOO<7,K+1> = EBOO<7,K>
+          EBOO<6,K+1> = EBOO<6,K>
+          EBOO<8,K+1> = EBOO<8,K>
+          EBOO<9,K+1> = EBOO<9,K>
+          EBOO<14,K+1> = EBOO<14,K>
+        NEXT K
+        
+        * Insert the new line
+        EBOO<7,J> = BOMOP
+        EBOO<6,J> = COSTLEVEL
+        EBOO<8,J> = DESCRIPTION
+        EBOO<9,J> = TIME
+        EBOO<14,J> = ''
+        INSERTED = 1
+      END
+    NEXT I
+    
+    * If reference line was not found, add at the end
+    IF INSERTED = 0 THEN
+      J = DCOUNT(EBOO<7>,@VM) + 1
+      EBOO<7,J> = BOMOP
+      EBOO<6,J> = COSTLEVEL
+      EBOO<8,J> = DESCRIPTION
+      EBOO<9,J> = TIME
+      EBOO<14,J> = ''
+    END
+    
+    * Update sequence numbers
+    EBOO<5> = ''
+    FOR I = 1 TO DCOUNT(EBOO<7>,@VM)
+      EBOO<5,I> = I
+    NEXT I
+    
+    * Write the updated BOO
+    WRITE EBOO ON BOO.FILE,NBOM
+    
+    * Clear the form variables and redirect
+    BOMOP = ''
+    COSTLEVEL = ''
+    REFERENCE_LINE = ''
+    INSERT_POSITION = ''
+    BOMPT = ''
+    EVENT = ''
+    PL_PUTVAR EVENT IN 'EVENT' ELSE NULL
+    GOTO done
+  END
+END
+IF EVENT = 'booadd' THEN
+  EVENT = ''
+  PL_PUTVAR NBOM IN 'NBOM' ELSE NULL
+  PL_PUTVAR EVENT IN 'EVENT' ELSE NULL
+  PL_PUTVAR ECN IN 'ECN' ELSE NULL
+  ERR = ''
+  CALL PLW.PAGE('CDABOOADD.HTM','',ERR)
+  RETURN
+END
+IF EVENT = 'bomedit' THEN
+  EVENT = ''
+  PL_PUTVAR NBOM IN 'NBOM' ELSE NULL
+  PL_PUTVAR BOMPT IN 'BOMPT' ELSE NULL
+  PL_PUTVAR COSTLEVEL IN 'COSTLEVEL' ELSE NULL
+  PL_PUTVAR EVENT IN 'EVENT' ELSE NULL
+  PL_PUTVAR RMSEQ IN 'RMSEQ' ELSE NULL
+  PL_PUTVAR ECN IN 'ECN' ELSE NULL
+  ERR = ''
+  CALL PLW.PAGE('CDABOMEDIT3.HTM','',ERR)
+  RETURN
+END
+IF EVENT = 'savebomedit' THEN
+  EVENT = ''
+  * Get form variables
+  PL_GETVAR BOMPT FROM 'BOMPT' ELSE BOMPT = ''
+  PL_GETVAR COSTLEVEL FROM 'COSTLEVEL' ELSE COSTLEVEL = ''
+  PL_GETVAR RMSEQ FROM 'RMSEQ' ELSE RMSEQ = ''
+  PL_GETVAR BOMOP FROM 'BOMOP' ELSE BOMOP = ''
+  
+  * Validate required fields
+  IF BOMPT = '' OR NBOM = '' OR COSTLEVEL = '' OR RMSEQ = '' THEN
+    EMSG = 'Part number, cost level, and seq# required.'
+    GOTO done
+  END
+  
+  * Parse BOMOP to extract QTY, UNIT, and DESC
+  QUANTITY = '1'
+  UNIT = 'EA'
+  DESCRIPTION = ''
+  IF BOMOP NE '' THEN
+    * Format: QTY:value|UNIT:value|DESC:value
+    QTY.PART = FIELD(BOMOP, '|', 1)
+    UNIT.PART = FIELD(BOMOP, '|', 2)
+    DESC.PART = FIELD(BOMOP, '|', 3)
+    
+    QUANTITY = FIELD(QTY.PART, ':', 2)
+    UNIT = FIELD(UNIT.PART, ':', 2)
+    DESCRIPTION = FIELD(DESC.PART, ':', 2)
+  END
+  
+  * Validate quantity is numeric
+  IF NOT(NUM(QUANTITY)) THEN
+    EMSG = 'Quantity must be numeric.'
+    GOTO done
+  END
+  
+  * Validate cost level is numeric
+  IF NOT(NUM(COSTLEVEL)) THEN
+    EMSG = 'Cost Level must be numeric.'
+    GOTO done
+  END
+  
+  * Read BOM record
+  READ EBOM FROM BOM.FILE,NBOM ELSE
+    EMSG = 'BOM Record not found'
+    GOTO done
+  END
+  
+  * Convert quantity to internal format
+  QUANTITY = QUANTITY * 100000
+  
+  * Find and update the matching line
+  DELIM = ' '
+  INTFND = 0
+  FOR I = 1 TO DCOUNT(EBOM,@AM)
+    LINE = EBOM<I>
+    PN = FIELD(LINE, DELIM, 1)
+    CL = OCONV(FIELD(LINE, DELIM, 21), 'mcn')
+    ST = FIELD(LINE, DELIM, 3)
+    
+    * Match by BOMPT, RMSEQ, and COSTLEVEL
+    IF PN = BOMPT AND ST = RMSEQ AND CL = COSTLEVEL AND INTFND NE '1' THEN
+      INTFND = 1
+      * Update the line with new values
+      * Format: BOMPT DESC RMSEQ QTY UNIT (16 more fields) COSTLEVEL
+      EBOM<I> = BOMPT:DELIM:DESCRIPTION:DELIM:RMSEQ:DELIM:QUANTITY:DELIM:UNIT
+      FOR Y = 1 TO 15
+        EBOM<I> := DELIM
+      NEXT Y
+      EBOM<I> := COSTLEVEL
+    END
+  NEXT I
+  
+  IF INTFND = 1 THEN
+    * Write updated BOM
+    WRITE EBOM ON BOM.FILE,NBOM
+    * Clear variables and redirect
+    EVENT = ''
+    PL_PUTVAR EVENT IN 'EVENT' ELSE NULL
+    GOTO done
+  END ELSE
+    EMSG = 'BOM line not found for update.'
+    GOTO done
+  END
+END
+IF EVENT = 'booedit' THEN
+  EVENT = ''
+  PL_PUTVAR NBOM IN 'NBOM' ELSE NULL
+  PL_PUTVAR BOMOP IN 'BOMOP' ELSE NULL
+  PL_PUTVAR COSTLEVEL IN 'COSTLEVEL' ELSE NULL
+  PL_PUTVAR EVENT IN 'EVENT' ELSE NULL
+  PL_PUTVAR ECN IN 'ECN' ELSE NULL
+  ERR = ''
+  CALL PLW.PAGE('CDABOOEDIT.HTM','',ERR)
+  RETURN
+END
+IF EVENT = 'bomdelete' THEN
+  EVENT = ''
+  CNTR = 0
+  DELIM = ' '
+  TMP = ''
+*  IF BOMPT NE '' AND COSTLEVEL NE '' AND RMSEQ NE '' THEN
+   IF BOMPT NE '' THEN
+    READ EBOM FROM BOM.FILE,NBOM ELSE
+      EMSG = 'BOM Record not found'
+      GOTO done:
+    END
+    INTFND = 0
+    FOR I = 1 TO DCOUNT(EBOM,@AM)
+      LINE = EBOM<I>
+      PN = FIELD(EBOM<I>,DELIM,1)
+      CL = FIELD(EBOM<I>,DELIM,21)
+      CL = OCONV(CL,'mcn')
+     ST = FIELD(EBOM<I>,DELIM,3)
+  *   IF BOMPT = PN AND COSTLEVEL = CL AND RMSEQ = ST THEN
+      IF BOMPT = PN THEN
+       INTFND = 1
+     END ELSE
+      CNTR += 1
+       TMP<CNTR> = LINE
+     END
+    NEXT I
+    IF INTFND = 1 THEN
+      WRITE TMP ON BOM.FILE,NBOM
+    END
+    BOMPT = ''
+    COSTLEVEL = ''
+  END
+END
+IF EVENT = 'boodelete' THEN
+  EVENT = ''
+  IF BOMOP NE '' AND COSTLEVEL NE '' THEN
+    READ EBOO FROM BOO.FILE,NBOM ELSE
+      EMSG = 'BOO Record not found'
+      GOTO done:
+    END
+    INTFND = 0
+    FOR I = 1 TO DCOUNT(EBOO<5>,@VM)
+      CL = EBOO<6,I>
+      OP = EBOO<7,I>
+       IF CL = COSTLEVEL AND OP = BOMOP AND INTFND NE '1' THEN
+          INTFND = 1
+          EBOO = DELETE(EBOO,6,I)
+          EBOO = DELETE(EBOO,7,I)
+          EBOO = DELETE(EBOO,8,I)
+          EBOO = DELETE(EBOO,9,I)
+          EBOO = DELETE(EBOO,14,I)
+       END
+    NEXT I
+    IF INTFND = 1 THEN
+      EBOO<5> = ''
+      FOR I = 1 TO DCOUNT(EBOO<7>,@VM)
+        EBOO<5,I> = I
+      NEXT I
+      WRITE EBOO ON BOO.FILE,NBOM
+    END
+    BOMOP = ''
+    COSTLEVEL = ''
+  END
+END
+IF EVENT = 'bomtxtedit' THEN
+   IF BOMTXT NE '' THEN
+     READ EBOM FROM BOM.FILE,NBOM ELSE
+       EMSG = 'BOM Record not found'
+       GOTO done:
+     END
+     READ BT.REC FROM BOMTXT.FILE,NBOM ELSE
+       EMSG = 'BOMTXT Record not found'
+       GOTO done:
+     END
+     BOMTXT = PL_CRLFTOAM(BOMTXT)
+     BT.REC = BOMTXT
+     BT.REC = OCONV(BT.REC,'mcu')
+     WRITE BT.REC ON BOMTXT.FILE,NBOM
+   END
+END
+END
+done:
+BOMTXT.REC = ''
+CALL BUILDBOMTABLE(NBOM,RESULT,BOMTXT.REC,EMSG)
+BOMTXT.REC = PL_AMTOCRLF(BOMTXT.REC)
+  </pre>
+  </div>
+</body>
+</html>

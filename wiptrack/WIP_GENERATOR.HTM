@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TAIMEX - WIP Page Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: #334155;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header h1 {
+      font-size: 1.5em;
+      font-weight: 600;
+    }
+
+    .content {
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .form-section {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .form-section h2 {
+      font-size: 1.2em;
+      margin-bottom: 16px;
+      color: #1e293b;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      color: #374151;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 0.95em;
+    }
+
+    .form-group textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .preview-section {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .preview-section h2 {
+      font-size: 1.2em;
+      margin-bottom: 16px;
+      color: #1e293b;
+    }
+
+    .preview-box {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+      height: 400px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85em;
+      line-height: 1.4;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      color: #fff;
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(71, 85, 105, 0.25);
+    }
+
+    .templates {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .template-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .template-card:hover {
+      border-color: #1e40af;
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.1);
+    }
+
+    .template-card.active {
+      border-color: #1e40af;
+      background: #eff6ff;
+    }
+
+    .template-card h3 {
+      font-size: 1em;
+      margin-bottom: 6px;
+      color: #1e293b;
+    }
+
+    .template-card p {
+      font-size: 0.85em;
+      color: #64748b;
+    }
+
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #10b981;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+
+    .notification.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <i class="fas fa-cogs" style="font-size: 24px;"></i>
+      <h1>TAIMEX - WIP Page Generator</h1>
+    </div>
+
+    <div class="content">
+      <div class="form-section">
+        <h2>Page Configuration</h2>
+        
+        <div class="templates">
+          <div class="template-card" data-template="process">
+            <h3>Process Confirmation</h3>
+            <p>Work order processing confirmation page</p>
+          </div>
+          <div class="template-card" data-template="auth">
+            <h3>Authorization</h3>
+            <p>Authorization form for scrap codes</p>
+          </div>
+          <div class="template-card" data-template="log">
+            <h3>Log Viewer</h3>
+            <p>Work order log display page</p>
+          </div>
+          <div class="template-card" data-template="review">
+            <h3>Review</h3>
+            <p>Work order review page</p>
+          </div>
+          <div class="template-card" data-template="start">
+            <h3>Start Operation</h3>
+            <p>Start work order operation page</p>
+          </div>
+          <div class="template-card" data-template="val">
+            <h3>Validation</h3>
+            <p>Work order validation page</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="pageName">Page Name:</label>
+          <input type="text" id="pageName" placeholder="e.g., WIPTRACKFINAL">
+        </div>
+
+        <div class="form-group">
+          <label for="pageTitle">Page Title:</label>
+          <input type="text" id="pageTitle" placeholder="e.g., WIP Tracking - Process">
+        </div>
+
+        <div class="form-group">
+          <label for="pageHeader">Page Header:</label>
+          <input type="text" id="pageHeader" placeholder="e.g., TAIMEX - WIP TRACKING">
+        </div>
+
+        <div class="form-group">
+          <label for="basicCode">PicLan-IP/BASIC Code:</label>
+          <textarea id="basicCode" placeholder="Paste your BASIC code here..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="hiddenFields">Hidden Fields:</label>
+          <textarea id="hiddenFields" placeholder="Paste your hidden fields here..."></textarea>
+        </div>
+
+        <div class="button-group">
+          <button class="btn btn-primary" onclick="generatePage()">
+            <i class="fas fa-magic"></i> Generate Page
+          </button>
+          <button class="btn btn-secondary" onclick="copyToClipboard()">
+            <i class="fas fa-copy"></i> Copy Code
+          </button>
+        </div>
+      </div>
+
+      <div class="preview-section">
+        <h2>Generated Code Preview</h2>
+        <div class="preview-box" id="previewBox">
+          Select a template and fill in the form to generate your page code...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notification" id="notification">
+    Code copied to clipboard!
+  </div>
+
+  <script>
+    // Template definitions
+    const templates = {
+      process: {
+        pageTitle: "WIP Tracking - Process",
+        pageHeader: "TAIMEX - WIP TRACKING",
+        mainContent: `
+        <div style="max-width: 800px; margin: 60px auto; width: 100%;">
+          <!-- Process Card -->
+          <div class="process-box">
+            <div class="process-icon">
+              <i class="fas fa-cogs"></i>
+            </div>
+            <h1 class="process-title">WIP Tracking - Process</h1>
+            <p class="process-message">
+              Confirm the work order processing operation. This will complete the current operation and update inventory records.
+            </p>
+            
+            <!-- Process Form -->
+            <form method="post" name="getpage" action="/CDA_WIPTRACKFINAL.HTM">
+              <!-- Action Buttons -->
+              <div class="action-buttons" style="justify-content: center; margin-top: 24px;">
+                <button 
+                  type="submit" 
+                  name="COMPLETE"
+                  class="btn btn-primary">
+                  <i class="fas fa-check-circle"></i>
+                  Yes - Proceed
+                </button>
+                <button 
+                  type="submit"
+                  name="CANCEL"
+                  class="btn btn-danger">
+                  <i class="fas fa-times-circle"></i>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Info Box -->
+          <div class="info-box">
+            <div class="info-box-icon">
+              <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="info-box-content">
+              <strong>Processing Confirmation</strong>
+              <p>Clicking "Yes - Proceed" will finalize the work order operation, update WIP status, process any scrap quantities, and move inventory to the next location or stock. This action cannot be undone.</p>
+            </div>
+          </div>
+        </div>`
+      },
+      auth: {
+        pageTitle: "WIP Tracking - Authorization Required",
+        pageHeader: "TAIMEX - WIP TRACKING",
+        mainContent: `
+        <div style="max-width: 800px; margin: 60px auto; width: 100%;">
+          <!-- Authorization Card -->
+          <div class="authorization-box">
+            <div class="auth-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <h1 class="auth-title">Authorization Needed</h1>
+            <p class="process-message">
+              The scrap codes entered or to SPLIT a work order and/or Destructive tests are in need of authorization code and comments.
+            </p>
+            
+            <!-- Authorization Form -->
+            <form method="post" name="getpage" action="/CDA_WIPTRACKCOMPLETE.HTM">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="AUTHUSER">
+                    <i class="fas fa-user" style="color: #2a5298; margin-right: 8px;"></i>
+                    AUTHORIZED USER ID:
+                  </label>
+                  <input name="AUTHUSER" type="text" id="AUTHUSER" placeholder="Enter authorized user ID">
+                </div>
+                
+                <div class="form-group">
+                  <label for="AUTHPWD">
+                    <i class="fas fa-lock" style="color: #2a5298; margin-right: 8px;"></i>
+                    AUTHORIZED USER PWD:
+                  </label>
+                  <input name="AUTHPWD" type="password" id="AUTHPWD" placeholder="Enter password">
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="COMMENTS">
+                  <i class="fas fa-comment" style="color: #2a5298; margin-right: 8px;"></i>
+                  Comment:
+                </label>
+                <input name="COMMENTS" type="text" id="COMMENTS" placeholder="Enter authorization comments">
+              </div>
+              
+              <!-- Action Buttons -->
+              <div class="action-buttons" style="justify-content: center; margin-top: 24px;">
+                <button 
+                  type="submit" 
+                  name="COMPLETEY"
+                  class="btn btn-primary">
+                  <i class="fas fa-check-circle"></i>
+                  Yes - Proceed
+                </button>
+                <button 
+                  type="submit"
+                  name="CANCELY"
+                  class="btn btn-danger">
+                  <i class="fas fa-times-circle"></i>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Info Box -->
+          <div class="info-box">
+            <div class="info-box-icon">
+              <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="info-box-content">
+              <strong>Authorization Required</strong>
+              <p>This operation requires authorized personnel approval. Please enter your authorized user credentials and provide a detailed comment explaining the reason for this action. All authorizations are logged for audit purposes.</p>
+            </div>
+          </div>
+        </div>`
+      },
+      log: {
+        pageTitle: "WIP Tracking - Log",
+        pageHeader: "TAIMEX - WIP TRACKING LOG",
+        mainContent: `
+        <div style="max-width: 1200px; margin: 20px auto; width: 100%;">
+          <!-- Log Header -->
+          <div class="log-header">
+            <h1 class="process-title">
+              <i class="fas fa-clipboard-list log-icon"></i>
+              WIP Tracking Log - Work Order: ^WOID^
+            </h1>
+            <div class="work-order-info">
+              <div class="info-item">
+                <i class="fas fa-cogs"></i>
+                <div>
+                  <div class="label">Assembly</div>
+                  <div class="value">^ASSY^</div>
+                </div>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-balance-scale"></i>
+                <div>
+                  <div class="label">WIP Balance</div>
+                  <div class="value">^WIPBAL^</div>
+                </div>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <div>
+                  <div class="label">Current Location</div>
+                  <div class="value">^WIPLOC^ ^WIPD^</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Log Content -->
+          <div class="wip-card">
+            <div class="section-title">
+              <h3>Work Order Log Details</h3>
+            </div>
+            <div class="log-content">
+              ^RAW(WOLOG)^
+            </div>
+            <div class="back-button-container">
+              <button class="back-button" onclick="window.history.go(-1); return false;">
+                <i class="fas fa-arrow-left"></i>
+                Go Back
+              </button>
+            </div>
+          </div>
+        </div>`
+      },
+      review: {
+        pageTitle: "WIP Tracking - Review",
+        pageHeader: "TAIMEX - WIP TRACKING",
+        mainContent: `
+        <div style="max-width: 800px; margin: 60px auto; width: 100%;">
+          <!-- Review Card -->
+          <div class="wip-card">
+            <div class="section-title">
+              <h3>Review Work Order Details</h3>
+            </div>
+            
+            <!-- Review Form -->
+            <form method="post" name="getpage" action="/CDA_WIPTRACKREVIEW.HTM">
+              <!-- Review Content -->
+              <div class="info-box">
+                <div class="info-box-icon">
+                  <i class="fas fa-clipboard-check"></i>
+                </div>
+                <div class="info-box-content">
+                  <strong>Work Order Review</strong>
+                  <p>Please review all work order details before proceeding. Verify quantities, scrap codes, and notes are correct.</p>
+                </div>
+              </div>
+              
+              <!-- Action Buttons -->
+              <div class="action-buttons" style="justify-content: center; margin-top: 24px;">
+                <button 
+                  type="submit" 
+                  name="APPROVE"
+                  class="btn btn-primary">
+                  <i class="fas fa-check-circle"></i>
+                  Approve
+                </button>
+                <button 
+                  type="submit"
+                  name="EDIT"
+                  class="btn btn-secondary">
+                  <i class="fas fa-edit"></i>
+                  Edit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>`
+      },
+      start: {
+        pageTitle: "WIP Tracking - Start Operation",
+        pageHeader: "TAIMEX - WIP TRACKING",
+        mainContent: `
+        <div style="max-width: 800px; margin: 60px auto; width: 100%;">
+          <!-- Start Card -->
+          <div class="process-box">
+            <div class="process-icon">
+              <i class="fas fa-play-circle"></i>
+            </div>
+            <h1 class="process-title">Start Work Order Operation</h1>
+            <p class="process-message">
+              Select the operation to start for this work order. This will update WIP status and begin tracking operation time.
+            </p>
+            
+            <!-- Start Form -->
+            <form method="post" name="getpage" action="/CDA_WIPTRACKSTART.HTM">
+              <!-- Action Buttons -->
+              <div class="action-buttons" style="justify-content: center; margin-top: 24px;">
+                <button 
+                  type="submit" 
+                  name="START"
+                  class="btn btn-primary">
+                  <i class="fas fa-play"></i>
+                  Start Operation
+                </button>
+                <button 
+                  type="submit"
+                  name="CANCEL"
+                  class="btn btn-danger">
+                  <i class="fas fa-times-circle"></i>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>`
+      },
+      val: {
+        pageTitle: "WIP Tracking - Validation",
+        pageHeader: "TAIMEX - WIP TRACKING",
+        mainContent: `
+        <div style="max-width: 800px; margin: 60px auto; width: 100%;">
+          <!-- Validation Card -->
+          <div class="warning-box">
+            <div class="warning-icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h1 class="warning-title">Validation Required</h1>
+            <p class="process-message">
+              The entered data requires validation. Please review all fields and correct any errors before proceeding.
+            </p>
+            
+            <!-- Validation Form -->
+            <form method="post" name="getpage" action="/CDA_WIPTRACKVAL.HTM">
+              <!-- Action Buttons -->
+              <div class="action-buttons" style="justify-content: center; margin-top: 24px;">
+                <button 
+                  type="submit" 
+                  name="VALIDATE"
+                  class="btn btn-primary">
+                  <i class="fas fa-check-circle"></i>
+                  Validate & Proceed
+                </button>
+                <button 
+                  type="submit"
+                  name="CORRECT"
+                  class="btn btn-secondary">
+                  <i class="fas fa-edit"></i>
+                  Correct Data
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>`
+      }
+    };
+
+    // Template selection
+    let selectedTemplate = null;
+    document.querySelectorAll('.template-card').forEach(card => {
+      card.addEventListener('click', function() {
+        document.querySelectorAll('.template-card').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        selectedTemplate = this.dataset.template;
+        
+        // Auto-fill form with template data
+        const template = templates[selectedTemplate];
+        document.getElementById('pageTitle').value = template.pageTitle;
+        document.getElementById('pageHeader').value = template.pageHeader;
+        document.getElementById('pageName').value = 'WIPTRACK' + selectedTemplate.toUpperCase() + '_EDIT';
+      });
+    });
+
+    // Read template file
+    function readTemplateFile() {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'WIP_TEMPLATE_MASTER.HTM', true);
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            resolve(xhr.responseText);
+          } else {
+            reject(new Error('Failed to load template'));
+          }
+        };
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send();
+      });
+    }
+
+    // Generate page
+    async function generatePage() {
+      if (!selectedTemplate) {
+        alert('Please select a template first');
+        return;
+      }
+
+      try {
+        const template = templates[selectedTemplate];
+        const templateHtml = await readTemplateFile();
+        
+        // Replace placeholders
+        let finalHtml = templateHtml
+          .replace(/\[\[PAGE_TITLE\]\]/g, document.getElementById('pageTitle').value)
+          .replace(/\[\[PAGE_HEADER\]\]/g, document.getElementById('pageHeader').value)
+          .replace(/\[\[MAIN_CONTENT\]\]/g, template.mainContent)
+          .replace(/\[\[HIDDEN_FORMS\]\]/g, document.getElementById('hiddenFields').value)
+          .replace(/\[\[BASIC_CODE\]\]/g, document.getElementById('basicCode').value || '<pre>PicLan-IP/BASIC ^ ^\n*\n    * Add your BASIC code here\n    *\n    </pre>');
+        
+        // Display in preview
+        document.getElementById('previewBox').textContent = finalHtml;
+      } catch (error) {
+        console.error('Error generating page:', error);
+        document.getElementById('previewBox').textContent = 'Error generating page. Please make sure WIP_TEMPLATE_MASTER.HTM exists.';
+      }
+    }
+
+    // Copy to clipboard
+    function copyToClipboard() {
+      const previewContent = document.getElementById('previewBox').textContent;
+      if (!previewContent || previewContent.includes('Select a template')) {
+        alert('Please generate a page first');
+        return;
+      }
+
+      navigator.clipboard.writeText(previewContent).then(() => {
+        const notification = document.getElementById('notification');
+        notification.classList.add('show');
+        setTimeout(() => {
+          notification.classList.remove('show');
+        }, 3000);
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+        alert('Failed to copy to clipboard');
+      });
+    }
+  </script>
+</body>
+</html>

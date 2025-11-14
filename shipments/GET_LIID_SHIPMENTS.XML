@@ -1,0 +1,43 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+*
+* GET_LIID_SHIPMENTS.XML - Generate next shipment number from LIID SHIPMENTS
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'LIID' TO LIIDF ELSE STOP 201,'LIID'
+
+XVM = CHAR(253)
+XSM = CHAR(252)
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+XMLRESPONSE = '<?xml version="1.0" encoding="UTF-8"?><response>'
+
+* Read the SHIPMENTS record from LIID database
+READ LIIDREC FROM LIIDF, 'SHIPMENTS' ELSE GOTO NO_RECORD
+
+* Record found - get current ID and increment
+LASTID = LIIDREC<1>
+IF LASTID = '' THEN LASTID = 0
+LASTID = LASTID + 0
+NEXTID = LASTID + 1
+LIIDREC<1> = NEXTID
+WRITE LIIDREC ON LIIDF, 'SHIPMENTS'
+GOTO SEND_RESPONSE
+
+NO_RECORD:
+* Record not found - create initial record with ID 10000
+NEXTID = 10000
+LIIDREC = ''
+LIIDREC<1> = NEXTID
+WRITE LIIDREC ON LIIDF, 'SHIPMENTS'
+
+SEND_RESPONSE:
+XMLRESPONSE = XMLRESPONSE : '<status>success</status>'
+XMLRESPONSE = XMLRESPONSE : '<shipment_number>' : NEXTID : '</shipment_number>'
+XMLRESPONSE = XMLRESPONSE : '</response>'
+
+WRITE XMLRESPONSE ON XMLDATAF,'RESPONSE.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/RESPONSE.XML','',ERR)
+RETURN
+</PRE>

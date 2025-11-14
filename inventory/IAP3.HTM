@@ -1,0 +1,123 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>Date Code Adjustment</title>
+<SCRIPT LANGUAGE="JavaScript"><!--
+function setFocus() {
+    document.forms[0].elements[0].focus();
+}
+//--></SCRIPT>
+</head>
+
+<body bgcolor="#99FF99" topmargin="0" onLoad="setTimeout('setFocus()',1)">
+
+<div align="center">
+  <center>
+
+<table border="1" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="363" id="AutoNumber1" bgcolor="#FFFFFF">
+  <tr>
+    <form method="GET" action="/IAP3.HTM">
+      <td>
+    <table border="1" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber2">
+      <tr>
+        <td width="57%">
+		<p align="center"><font face="Verdana" size="2"><b>Date Code Year 
+        Assignment</b></font></td>
+      </tr>
+      <tr>
+        <td><p align="center">^VWHSEMESSAGE^</p></td>
+      </tr>
+      <tr>
+        <td width="57%">
+		<p>Enter Datecode:
+        <input type="text" name="YCODE" size="10" value="^YCODE^" style="font-family: Verdana; font-size: 10pt; background-color: #FFFFCC">&nbsp;
+        <input type="submit" value="Next" name="B2" tabindex="2" style="font-family: Verdana; font-size: 8pt; background-color: #99FF99"></td>
+      </tr>
+      <tr>
+        <td width="57%">
+		<p align="center">
+		&nbsp;</td>
+      </tr>
+      <tr>
+        <td width="57%">
+		<p align="center">
+		<input type="submit" value="Main Menu" name="MENU" tabindex="2" style="font-family: Verdana; font-size: 8pt; background-color: #66FF99"></td>
+      </tr>
+      <tr>
+        <td width="57%">&nbsp;</td>
+      </tr>
+    </table>
+    </td>
+    	<input type="hidden" name="LOCTN" value="^LOCTN^">
+      <input type="hidden" name="MCODE" value="^MCODE^">
+      <input type="hidden" name="VWHSE" value="^VWHSE^">
+    </form>
+  </tr>
+</table>
+
+  </center>
+</div>
+<pre>PicLan-IP/BASIC ^ ^
+*
+PL_GETVAR LOCTN FROM 'LOCTN' ELSE LOCTN = ''
+PL_GETVAR YCODE FROM 'YCODE' ELSE YCODE = ''
+PL_GETVAR MCODE FROM 'MCODE' ELSE MCODE = ''
+PL_GETVAR MENU FROM 'MENU' ELSE MENU = ''
+PL_GETVAR B2 FROM 'B2' ELSE B2 = ''
+PL_GETVAR VWHSE FROM 'VWHSE' ELSE VWHSE=''
+*
+VWHSEMESSAGE=''
+IF MENU NE "" THEN 
+      ERR = ''
+      CALL PLW.PAGE('STOCKCHECK.HTM','',ERR)
+      RETURN
+END
+IF VWHSE NE '' THEN
+    OPEN 'VWHSE,' TO VWHSE.FILE THEN
+        READ VWHSE.RECORD FROM VWHSE.FILE, VWHSE THEN
+            VWHSEMESSAGE= 'VWHSE - ':VWHSE:' ':OCONV(VWHSE.RECORD<2>,'TCUSTOMER;X;;1')
+            *VWHSEMESSAGE='<tr><td>':VWHSEMESSAGE:'</td></tr><tr><td>&nbsp;</td></tr>'
+        END
+        CLOSE VWHSE.FILE
+    END
+END
+
+*
+IF B2 NE "" THEN
+   IF LEN(YCODE) = 4 THEN
+      NULL
+   END ELSE
+      MSG = 'DATE CODE MUST BE IN FORMAT YYWW'
+      PL_PUTVAR MSG IN 'MSG' ELSE NULL
+      ERR = ''
+      CALL PLW.PAGE('PALMERROR2.HTM','',ERR)
+      RETURN
+   END
+   IF NOT(NUM(YCODE)) THEN
+      MSG = 'DATE CODE MUST BE IN FORMAT YYWW'
+      PL_PUTVAR MSG IN 'MSG' ELSE NULL
+      ERR = ''
+      CALL PLW.PAGE('PALMERROR2.HTM','',ERR)
+      RETURN
+   END
+   PL_PUTVAR YCODE IN 'YCODE' ELSE NULL
+   PL_PUTVAR LOCTN IN 'LOCTN' ELSE NULL
+   PL_PUTVAR MCODE IN 'MCODE' ELSE NULL
+   PL_PUTVAR VWHSE IN 'VWHSE' ELSE NULL
+   ERR = ''
+   CALL PLW.PAGE('IAP4.HTM','',ERR)
+   RETURN
+END
+
+</pre>
+
+</body>
+
+</html>
+
+

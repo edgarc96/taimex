@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Add BOM Line After</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+    }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: #334155;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(30, 41, 59, 0.25);
+      position: relative;
+      z-index: 100;
+      width: 100%;
+      flex-shrink: 0;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo-section img {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+
+    .title-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 16px;
+    }
+
+    .welcome-user {
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .welcome-user span {
+      color: #cbd5e1;
+      font-size: 0.8em;
+      font-weight: 400;
+    }
+
+    .welcome-user strong {
+      color: #3b82f6;
+      margin-left: 4px;
+      font-weight: 600;
+      font-size: 0.9em;
+    }
+
+    .title-section h2 {
+      font-size: 1em;
+      margin: 0;
+      font-weight: 600;
+      color: #f1f5f9;
+      letter-spacing: 0.3px;
+    }
+
+    .title-section p {
+      font-size: 0.8em;
+      margin: 0;
+      color: #a2a8ba;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      width: 100%;
+      background: #f8fafc;
+      height: calc(100vh - 60px);
+    }
+
+    .bom-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 24px;
+      overflow-y: auto;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .bom-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .bom-header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .bom-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+
+    .bom-header p {
+      font-size: 16px;
+      color: #64748b;
+    }
+
+    .reference-info {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .reference-info h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #0369a1;
+      margin-bottom: 8px;
+    }
+
+    .reference-info p {
+      font-size: 14px;
+      color: #0c4a6e;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      font-size: 0.9em;
+      font-weight: 600;
+      color: #1f2937;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 0.95em;
+      transition: all 0.2s ease;
+      background: #fff;
+      color: #0f172a;
+      width: 100%;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.95em;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(29, 78, 216, 0.28);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 30px rgba(29, 78, 216, 0.35);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(71, 85, 105, 0.25);
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 26px rgba(71, 85, 105, 0.32);
+    }
+
+    .error-message {
+      color: #ef4444;
+      font-size: 0.9em;
+      font-weight: 600;
+      margin-top: 8px;
+      text-align: center;
+      padding: 8px 12px;
+      background: rgba(239, 68, 68, 0.1);
+      border-radius: 8px;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .success-message {
+      color: #10b981;
+      font-size: 0.9em;
+      font-weight: 600;
+      margin-top: 8px;
+      text-align: center;
+      padding: 8px 12px;
+      background: rgba(16, 185, 129, 0.1);
+      border-radius: 8px;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    @media (max-width: 768px) {
+      .bom-wrapper {
+        padding: 16px;
+      }
+
+      .bom-card {
+        padding: 24px;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL" onerror="this.onerror=null;this.src='http://54.189.226.145/uploads/assets/images/taimex_logo.png';">
+        </div>
+      </div>
+      <div class="title-section">
+        <div class="title-row">
+          <div class="welcome-user">
+            <span>Welcome,</span>
+            <strong id="currentUserDisplay">Operator</strong>
+          </div>
+          <div>
+            <h2>TAIMEX - ADD BOM LINE</h2>
+            <p>TAIMEX - MANAGEMENT</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="bom-wrapper">
+        <div class="bom-card">
+          <div class="bom-header">
+            <h1>Add New BOM Line</h1>
+            <p>Insert a new BOM line after the selected item</p>
+          </div>
+
+          <div class="reference-info">
+            <h3><i class="fas fa-info-circle"></i> Reference Line</h3>
+            <p>Adding new line after: <strong>^REFERENCE_LINE^</strong></p>
+          </div>
+
+          <form id="frmBOMAddAfter" name="frmBOMAddAfter" method="POST" action="BOM_EDIT.HTM">
+            <div class="form-group">
+              <label for="BOMPT">
+                <i class="fas fa-tag" style="color: #1e40af;"></i>
+                Part Number:
+              </label>
+              <input type="text" maxlength="21" id="BOMPT" name="BOMPT" value="" placeholder="Enter Part Number" required>
+            </div>
+
+            <div class="form-group">
+              <label for="RMSEQ">
+                <i class="fas fa-sort-numeric-up" style="color: #1e40af;"></i>
+                Sequence:
+              </label>
+              <input type="text" maxlength="5" id="RMSEQ" name="RMSEQ" value="" placeholder="Enter Sequence Number" required>
+            </div>
+
+            <div class="form-group">
+              <label for="COSTLEVEL">
+                <i class="fas fa-dollar-sign" style="color: #1e40af;"></i>
+                Cost Level:
+              </label>
+              <input type="text" maxlength="5" id="COSTLEVEL" name="COSTLEVEL" value="" placeholder="Enter Cost Level" required>
+            </div>
+
+            <div class="form-group">
+              <label for="QUANTITY">
+                <i class="fas fa-cubes" style="color: #1e40af;"></i>
+                Quantity:
+              </label>
+              <input type="number" id="QUANTITY" name="QUANTITY" value="1" min="0" step="0.01" placeholder="Enter Quantity">
+            </div>
+
+            <div class="form-group">
+              <label for="DESCRIPTION">
+                <i class="fas fa-file-alt" style="color: #1e40af;"></i>
+                Description:
+              </label>
+              <textarea id="DESCRIPTION" name="DESCRIPTION" rows="3" placeholder="Enter Part Description"></textarea>
+            </div>
+
+            <div class="error-message" id="errorMessage" style="display: none;">
+              ^EMSG^
+            </div>
+
+            <div class="success-message" id="successMessage" style="display: none;">
+              BOM line added successfully!
+            </div>
+
+            <div class="action-buttons">
+              <button type="submit" id="BTNSAVE" name="BTNSAVE" class="btn btn-primary">
+                <i class="fas fa-save"></i>
+                Save BOM Line
+              </button>
+              <button type="button" class="btn btn-secondary" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+                Cancel
+              </button>
+            </div>
+
+            <input type="hidden" name="NBOM" id="NBOM" value="^NBOM^">
+            <input type="hidden" name="ECN" id="ECN" value="^ECN^">
+            <input type="hidden" name="REFERENCE_LINE" id="REFERENCE_LINE" value="^REFERENCE_LINE^">
+            <input type="hidden" name="INSERT_POSITION" id="INSERT_POSITION" value="^INSERT_POSITION^">
+            <input type="hidden" name="EVENT" id="EVENT" value="savebomaddafter">
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div align="left">
+  <pre>
+PicLan-IP/BASIC ^ ^
+*
+* Initialize all variables to prevent "Variable has not been assigned a value" errors
+MSG = ''
+EMSG = ''
+ERR = ''
+TS = ''
+RESULT = ''
+
+* Form input variables
+NBOM = ''
+ECN = ''
+BOMPT = ''
+COSTLEVEL = ''
+RMSEQ = ''
+QUANTITY = ''
+DESCRIPTION = ''
+REFERENCE_LINE = ''
+INSERT_POSITION = ''
+BTNSAVE = ''
+
+* Data variables
+EBOM = ''
+
+* File handle variables
+BOM.FILE = ''
+
+* Array/Iteration variables
+I = ''
+J = ''
+K = ''
+CNT = ''
+
+* Temporary variables (B1-B10)
+B10 = ''
+B1 = ''
+B2 = ''
+B3 = ''
+B4 = ''
+B5 = ''
+B6 = ''
+B7 = ''
+B8 = ''
+B9 = ''
+
+PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+  ERR = '' ; INITIALS=  ''
+  CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+  RETURN
+END
+*
+PL_GETVAR BTNSAVE FROM 'BTNSAVE' ELSE BTNSAVE = ''
+PL_GETVAR NBOM FROM 'NBOM' ELSE NBOM = ''
+PL_GETVAR ECN FROM 'ECN' ELSE ECN = ''
+PL_GETVAR BOMPT FROM 'BOMPT' ELSE BOMPT = ''
+PL_GETVAR COSTLEVEL FROM 'COSTLEVEL' ELSE COSTLEVEL = ''
+PL_GETVAR RMSEQ FROM 'RMSEQ' ELSE RMSEQ = ''
+PL_GETVAR QUANTITY FROM 'QUANTITY' ELSE QUANTITY = '1'
+PL_GETVAR DESCRIPTION FROM 'DESCRIPTION' ELSE DESCRIPTION = ''
+PL_GETVAR REFERENCE_LINE FROM 'REFERENCE_LINE' ELSE REFERENCE_LINE = ''
+PL_GETVAR INSERT_POSITION FROM 'INSERT_POSITION' ELSE INSERT_POSITION = ''
+TS = DATE():TIME()
+RESULT = ''
+EMSG = ''
+*
+OPEN 'EBOM' TO BOM.FILE ELSE GOTO done
+*
+IF BTNSAVE NE '' AND NBOM NE '' AND BOMPT NE '' THEN
+  READ EBOM FROM BOM.FILE,NBOM ELSE
+    EMSG = 'BOM Record not found'
+    GOTO done
+  END
+  
+  * Find the reference line and insert after it
+  DELIM = ' '
+  TMP = ''
+  INSERTED = 0
+  
+  * Build the new BOM line
+  NEW.LINE = BOMPT:DELIM:DESCRIPTION:DELIM:RMSEQ:DELIM:QUANTITY:DELIM:'EA':DELIM:'':DELIM:'':DELIM:'':DELIM:'':DELIM:'':DELIM:'':DELIM:'':DELIM:'':DELIM:'':DELIM:'':DELIM:'':DELIM:COSTLEVEL:DELIM:'':DELIM:'':DELIM:'':DELIM:'':DELIM:''
+  
+  * Process existing BOM lines and insert at the correct position
+  FOR I = 1 TO DCOUNT(EBOM,@AM)
+    LINE = EBOM<I>
+    PN = FIELD(LINE,DELIM,1)
+    
+    * Add current line to temp array
+    TMP<I> = LINE
+    
+    * Check if this is our reference line and insert after it
+    IF PN = REFERENCE_LINE AND INSERTED = 0 THEN
+      * Insert new line after the reference
+      J = I + 1
+      
+      * Shift all subsequent lines down
+      FOR K = DCOUNT(EBOM,@AM) TO I + 1 STEP -1
+        TMP<K+1> = EBOM<K>
+      NEXT K
+      
+      * Insert the new line
+      TMP<J> = NEW.LINE
+      INSERTED = 1
+    END
+  NEXT I
+  
+  * If reference line was not found, add at the end
+  IF INSERTED = 0 THEN
+    TMP<DCOUNT(EBOM,@AM)+1> = NEW.LINE
+  END
+  
+  * Write the updated BOM
+  WRITE TMP ON BOM.FILE,NBOM
+  
+  * Clear the form variables and redirect back to BOM edit
+  BTNSAVE = ''
+  BOMPT = ''
+  COSTLEVEL = ''
+  RMSEQ = ''
+  QUANTITY = ''
+  DESCRIPTION = ''
+  REFERENCE_LINE = ''
+  INSERT_POSITION = ''
+  
+  PL_PUTVAR BTNSAVE IN 'BTNSAVE' ELSE NULL
+  PL_PUTVAR BOMPT IN 'BOMPT' ELSE NULL
+  PL_PUTVAR COSTLEVEL IN 'COSTLEVEL' ELSE NULL
+  PL_PUTVAR RMSEQ IN 'RMSEQ' ELSE NULL
+  PL_PUTVAR NBOM IN 'NBOM' ELSE NULL
+  PL_PUTVAR ECN IN 'ECN' ELSE NULL
+  PL_PUTVAR REFERENCE_LINE IN 'REFERENCE_LINE' ELSE NULL
+  PL_PUTVAR INSERT_POSITION IN 'INSERT_POSITION' ELSE NULL
+  
+  ERR = ''
+  CALL PLW.PAGE('BOM_EDIT.HTM','',ERR)
+  RETURN
+END
+*
+done:
+  </pre>
+  </div>
+  
+  <script>
+    // Handle form submission
+    document.getElementById('frmBOMAddAfter').addEventListener('submit', function(e) {
+      // Get form inputs
+      const bomptInput = document.getElementById('BOMPT');
+      const rmseqInput = document.getElementById('RMSEQ');
+      const costlevelInput = document.getElementById('COSTLEVEL');
+      const quantityInput = document.getElementById('QUANTITY');
+      
+      // Trim whitespace
+      if (bomptInput.value) {
+        bomptInput.value = bomptInput.value.trim();
+      }
+      if (rmseqInput.value) {
+        rmseqInput.value = rmseqInput.value.trim();
+      }
+      if (costlevelInput.value) {
+        costlevelInput.value = costlevelInput.value.trim();
+      }
+      
+      // Validate required fields
+      let hasError = false;
+      const errorMsg = document.getElementById('errorMessage');
+      errorMsg.textContent = '';
+      errorMsg.style.display = 'none';
+      
+      if (!bomptInput.value) {
+        errorMsg.textContent = 'Part Number is required';
+        errorMsg.style.display = 'block';
+        hasError = true;
+      } else if (!rmseqInput.value) {
+        errorMsg.textContent = 'Sequence is required';
+        errorMsg.style.display = 'block';
+        hasError = true;
+      } else if (!costlevelInput.value) {
+        errorMsg.textContent = 'Cost Level is required';
+        errorMsg.style.display = 'block';
+        hasError = true;
+      }
+      
+      if (hasError) {
+        e.preventDefault();
+        return false;
+      }
+      
+      // Form will be submitted with proper URL encoding by the browser
+      return true;
+    });
+    
+    // Go back function
+    function goBack() {
+      window.history.back();
+    }
+    
+    // Display error message if present
+    window.addEventListener('DOMContentLoaded', function() {
+      const errorMsg = document.getElementById('errorMessage');
+      if (errorMsg.textContent.trim() !== '' && errorMsg.textContent.trim() !== '^EMSG^') {
+        errorMsg.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

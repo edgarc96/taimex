@@ -1,0 +1,152 @@
+<pre>
+PicLan-IP/BASIC ^ ^
+*
+* GET_PO_TMP.XML - Retrieve Purchase Orders from TMP database
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'TMP' TO TMPF ELSE STOP 201,'TMP'
+
+XVM = CHAR(253)
+XSM = CHAR(252)
+XAM = CHAR(254)
+
+PL_GETVAR USER_FILTER FROM 'user_initials' ELSE USER_FILTER = ''
+PL_GETVAR TEMP_ID_FILTER FROM 'temp_id' ELSE TEMP_ID_FILTER = ''
+PL_ADD_HDR '"Content-Type: application/xml"'
+PL_ADD_HDR '"Access-Control-Allow-Origin: *"'
+PL_ADD_HDR '"Access-Control-Allow-Methods: GET, POST, OPTIONS"'
+PL_ADD_HDR '"Access-Control-Allow-Headers: Content-Type"'
+
+* DEBUG
+DEBUG_INFO = '<!-- DEBUG: USER_FILTER=[' : USER_FILTER : '] TEMP_ID=[' : TEMP_ID_FILTER : '] -->'
+
+* If specific temp_id requested, load that record
+IF TEMP_ID_FILTER <> '' THEN
+  GOSUB GET_TEMP_DETAIL
+  GOTO FINISH_OUTPUT
+END
+
+* Start XML response for list view
+XML_RESPONSE = '<?xml version="1.0" encoding="UTF-8"?><tmp_list>' : DEBUG_INFO
+
+SELECT TMPF
+LOOP
+   READNEXT TEMP_ID ELSE EXIT
+   IF TEMP_ID # "" THEN
+      * Only process PO records (format: PO*INITIALS or PO*TMP*)
+      TEMP_ID_UPPER = OCONV(TEMP_ID, "MCU")
+      * Check if record starts with PO* (for PO*INITIALS format)
+      IF TEMP_ID_UPPER[1,3] = "PO*" THEN
+         INCLUDE_RECORD = 1
+         IF USER_FILTER <> "" THEN
+            USER_FILTER_UPPER = OCONV(USER_FILTER, "MCU")
+            * Check if user initials match after PO* prefix (position 4 onwards)
+            * For PO*EC, user filter "EC" should match characters starting at position 4
+            IF TEMP_ID_UPPER[4,LEN(USER_FILTER_UPPER)] <> USER_FILTER_UPPER THEN
+               INCLUDE_RECORD = 0
+            END
+         END
+
+         IF INCLUDE_RECORD THEN
+            READ TMP_REC FROM TMPF, TEMP_ID ELSE CONTINUE
+            
+            * Validate record has minimum required fields
+            IF TMP_REC = "" THEN CONTINUE
+
+            PO_NUMBER = TMP_REC<1>
+            VENDOR_CODE = TMP_REC<2>
+            PO_DATE = TMP_REC<3>
+            STATUS = TMP_REC<4>
+            TIMESTAMP = TMP_REC<5>
+            USER_INITIALS = TMP_REC<6>
+            LINE_ITEMS = TMP_REC<32>
+
+            SAVE_DATE = ""
+            SAVE_TIME = ""
+            IF TIMESTAMP # "" THEN
+               SAVE_DATE = FIELD(TIMESTAMP, XSM, 1)
+               SAVE_TIME = FIELD(TIMESTAMP, XSM, 2)
+            END
+
+            SAVE_DATE_DISPLAY = ""
+            IF SAVE_DATE # "" AND NUM(SAVE_DATE) THEN
+               SAVE_DATE_DISPLAY = OCONV(SAVE_DATE, "D2/MDY[2,2,4]")
+            END
+
+            SAVE_TIME_DISPLAY = ""
+            IF SAVE_TIME # "" AND NUM(SAVE_TIME) THEN
+               SAVE_TIME_DISPLAY = OCONV(SAVE_TIME, "MT")
+            END
+
+            XML_RESPONSE = XML_RESPONSE : "<temp_po>"
+            XML_RESPONSE = XML_RESPONSE : "<temp_id>" : TEMP_ID : "</temp_id>"
+            XML_RESPONSE = XML_RESPONSE : "<po_number>" : PO_NUMBER : "</po_number>"
+            XML_RESPONSE = XML_RESPONSE : "<vendor_code>" : VENDOR_CODE : "</vendor_code>"
+            XML_RESPONSE = XML_RESPONSE : "<po_date>" : PO_DATE : "</po_date>"
+            XML_RESPONSE = XML_RESPONSE : "<status>" : STATUS : "</status>"
+            XML_RESPONSE = XML_RESPONSE : "<save_date>" : SAVE_DATE_DISPLAY : "</save_date>"
+            XML_RESPONSE = XML_RESPONSE : "<save_time>" : SAVE_TIME_DISPLAY : "</save_time>"
+            XML_RESPONSE = XML_RESPONSE : "<user_initials>" : USER_INITIALS : "</user_initials>"
+            XML_RESPONSE = XML_RESPONSE : "<line_items>" : LINE_ITEMS : "</line_items>"
+            XML_RESPONSE = XML_RESPONSE : "</temp_po>"
+         END
+      END
+   END
+REPEAT
+
+XML_RESPONSE = XML_RESPONSE : "</tmp_list>"
+
+FINISH_OUTPUT:
+WRITE XML_RESPONSE ON XMLDATAF,'GET_PO_TMP_RESPONSE.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/GET_PO_TMP_RESPONSE.XML','',ERR)
+RETURN
+
+GET_TEMP_DETAIL:
+* Load full detail for specific temp_id
+READ TMP_REC FROM TMPF, TEMP_ID_FILTER ELSE
+  XML_RESPONSE = '<?xml version="1.0" encoding="UTF-8"?><tmp_list><!-- Record not found --></tmp_list>'
+  RETURN
+END
+
+PO_NUMBER = TMP_REC<1>
+VENDOR_CODE = TMP_REC<2>
+PO_DATE = TMP_REC<3>
+STATUS = TMP_REC<4>
+TIMESTAMP = TMP_REC<5>
+USER_INITIALS = TMP_REC<6>
+LINE_ITEMS = TMP_REC<32>
+
+SAVE_DATE = ""
+SAVE_TIME = ""
+IF TIMESTAMP # "" THEN
+   SAVE_DATE = FIELD(TIMESTAMP, XSM, 1)
+   SAVE_TIME = FIELD(TIMESTAMP, XSM, 2)
+END
+
+SAVE_DATE_DISPLAY = ""
+IF SAVE_DATE # "" AND NUM(SAVE_DATE) THEN
+   SAVE_DATE_DISPLAY = OCONV(SAVE_DATE, "D2/MDY[2,2,4]")
+END
+
+SAVE_TIME_DISPLAY = ""
+IF SAVE_TIME # "" AND NUM(SAVE_TIME) THEN
+   SAVE_TIME_DISPLAY = OCONV(SAVE_TIME, "MT")
+END
+
+XML_RESPONSE = '<?xml version="1.0" encoding="UTF-8"?><tmp_list>'
+XML_RESPONSE = XML_RESPONSE : "<temp_po>"
+XML_RESPONSE = XML_RESPONSE : "<temp_id>" : TEMP_ID_FILTER : "</temp_id>"
+XML_RESPONSE = XML_RESPONSE : "<po_number>" : PO_NUMBER : "</po_number>"
+XML_RESPONSE = XML_RESPONSE : "<vendor_code>" : VENDOR_CODE : "</vendor_code>"
+XML_RESPONSE = XML_RESPONSE : "<po_date>" : PO_DATE : "</po_date>"
+XML_RESPONSE = XML_RESPONSE : "<status>" : STATUS : "</status>"
+XML_RESPONSE = XML_RESPONSE : "<save_date>" : SAVE_DATE_DISPLAY : "</save_date>"
+XML_RESPONSE = XML_RESPONSE : "<save_time>" : SAVE_TIME_DISPLAY : "</save_time>"
+XML_RESPONSE = XML_RESPONSE : "<user_initials>" : USER_INITIALS : "</user_initials>"
+XML_RESPONSE = XML_RESPONSE : "<line_items>" : LINE_ITEMS : "</line_items>"
+XML_RESPONSE = XML_RESPONSE : "</temp_po>"
+XML_RESPONSE = XML_RESPONSE : "</tmp_list>"
+
+RETURN
+</pre>

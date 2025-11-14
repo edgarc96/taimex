@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TAIMEX - WIP TRACKING</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <style>
+    :root {
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --sidebar-bg: #1e293b;
+      --sidebar-hover: #334155;
+      --sidebar-active: #475569;
+      --border-color: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-yellow: #f59e0b;
+      --accent-purple: #8b5cf6;
+      --accent-red: #ef4444;
+      --accent-orange: #f97316;
+      --card-radius: 16px;
+      --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.15);
+      --shadow-card: 0 2px 8px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
+      --shadow-hover: 0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 16px rgba(59, 130, 246, 0.08);
+      --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+    }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: #334155;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(30, 41, 59, 0.25);
+      position: relative;
+      z-index: 100;
+      width: 100%;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo-section img {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+
+    .title-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 16px;
+    }
+
+    .welcome-user {
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .welcome-user span {
+      color: #cbd5e1;
+      font-size: 0.8em;
+      font-weight: 400;
+    }
+
+    .welcome-user strong {
+      color: #3b82f6;
+      margin-left: 4px;
+      font-weight: 600;
+      font-size: 0.9em;
+    }
+
+    .title-section h2 {
+      font-size: 1em;
+      margin: 0;
+      font-weight: 600;
+      color: #f1f5f9;
+      letter-spacing: 0.3px;
+    }
+
+    .title-section p {
+      font-size: 0.8em;
+      margin: 0;
+      color: #a2a8ba;
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.2em;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .hamburger-menu svg {
+      width: 24px;
+      height: 24px;
+      fill: #fff;
+    }
+
+    .hamburger-menu svg path {
+      fill: #fff;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      width: 100%;
+      background: #f8fafc;
+    }
+
+    .wip-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+      overflow-y: auto;
+    }
+
+    .wip-card {
+      background: #fff;
+      border-radius: var(--card-radius);
+      padding: 40px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .wip-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      text-align: center;
+      letter-spacing: -0.02em;
+    }
+
+    .wip-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .welcome-banner {
+      background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%);
+      border: 2px solid #93c5fd;
+      border-radius: var(--card-radius);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      margin-bottom: 16px;
+    }
+
+    .welcome-banner-icon {
+      background: var(--accent-blue);
+      color: white;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .welcome-banner-icon i {
+      font-size: 1.2rem;
+    }
+
+    .welcome-banner-text h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .welcome-banner-text p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      width: 100%;
+      margin-bottom: 24px;
+    }
+
+    .info-item {
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .info-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .info-value {
+      font-size: 1.1rem;
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .links-section {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+      width: 100%;
+    }
+
+    .link-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%);
+      color: #1e3a8a;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all var(--transition-fast);
+      border: 1px solid #93c5fd;
+    }
+
+    .link-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(42, 82, 152, 0.2);
+      background: linear-gradient(135deg, #bfdbfe 0%, #dbeafe 100%);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .form-group label {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group select {
+      padding: 16px 20px;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      font-size: 1.1rem;
+      transition: all var(--transition-smooth);
+      background: #f9fafb;
+      color: var(--text-primary);
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+      background: #fff;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+      justify-content: center;
+      margin-top: 16px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      border: none;
+      transition: all var(--transition-smooth);
+      min-width: 140px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-green) 0%, #059669 100%);
+      color: #fff;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, var(--accent-red) 0%, #dc2626 100%);
+      color: #fff;
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .feedback {
+      padding: 16px 24px;
+      border-radius: var(--card-radius);
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 24px;
+      width: 100%;
+      display: none;
+    }
+
+    .feedback.success {
+      background: rgba(34, 197, 94, 0.12);
+      color: #15803d;
+      border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+
+    .feedback.error {
+      background: rgba(239, 68, 68, 0.12);
+      color: #dc2626;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%);
+      border: 1px solid #bfdbfe;
+      border-radius: var(--card-radius);
+      padding: 20px 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      width: 100%;
+      margin-top: 16px;
+    }
+
+    .info-box-icon {
+      color: var(--accent-blue);
+      font-size: 1.2rem;
+      margin-top: 2px;
+    }
+
+    .info-box-content strong {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .info-box-content p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .icon {
+      font-size: 1.2rem;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .title-section {
+        text-align: left;
+        align-items: flex-start;
+      }
+
+      .title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .wip-wrapper {
+        padding: 20px 16px;
+      }
+
+      .wip-card {
+        padding: 30px 20px;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn {
+        padding: 14px 24px;
+        min-width: 120px;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL" onerror="this.onerror=null;this.src='http://54.189.226.145/uploads/assets/images/taimex_logo.png';">
+        </div>
+      </div>
+      <div class="title-section">
+        <div class="title-row">
+          <div class="welcome-user">
+            <span>Welcome,</span>
+            <strong>^OPERNAME^</strong>
+          </div>
+          <div>
+            <h2>TAIMEX - WIP TRACKING</h2>
+            <p>TAIMEX - MANAGEMENT</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="wip-wrapper">
+        <div class="wip-card">
+          <!-- Welcome Banner -->
+          <div class="welcome-banner">
+            <div class="welcome-banner-icon">
+              <i class="fas fa-user-check"></i>
+            </div>
+            <div class="welcome-banner-text">
+              <h3>Welcome, ^OPERNAME^</h3>
+              <p>Work Order ^WOID^ is ready for operation</p>
+            </div>
+          </div>
+
+          <div class="wip-title">WIP Tracking</div>
+          <div class="wip-subtitle">Start operation for Work Order ^WOID^</div>
+          
+          <!-- WO Information Grid -->
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">
+                <i class="fas fa-file-alt"></i>
+                Work Order
+              </div>
+              <div class="info-value">^WOID^</div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">
+                <i class="fas fa-map-marker-alt"></i>
+                Location
+              </div>
+              <div class="info-value">^WLOC^ ^WLOCD^</div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">
+                <i class="fas fa-cog"></i>
+                Part Number
+              </div>
+              <div class="info-value">^ASSY^</div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">
+                <i class="fas fa-hashtag"></i>
+                Quantity
+              </div>
+              <div class="info-value">^WIPQTY^</div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">
+                <i class="fas fa-info-circle"></i>
+                Last Status
+              </div>
+              <div class="info-value">^LAST.STATUS^</div>
+            </div>
+          </div>
+
+          <!-- Links Section -->
+          <div class="links-section">
+            <a href="WIPTRACKLOG_EDIT.HTM?WOID=^WOID^" class="link-button">
+              <i class="fas fa-history"></i>
+              View Log
+            </a>
+            <a href="PRINTWOCDA3.HTM?ID=^WOID^" class="link-button">
+              <i class="fas fa-file-pdf"></i>
+              View WO Traveller
+            </a>
+          </div>
+          
+          <form method="post" name="getpage" action="/WIPTRACK3_EDIT.HTM" style="width: 100%;">
+            <div class="form-group">
+              <label>
+                <i class="fas fa-users icon"></i>
+                Personnel on this operation:
+              </label>
+              <select name="PEOPLE">
+                <option selected value="1">1 Person</option>
+                <option value="2">2 Persons</option>
+                <option value="3">3 Persons</option>
+                <option value="4">4 Persons</option>
+                <option value="5">5 Persons</option>
+              </select>
+            </div>
+            
+            <div class="action-buttons">
+              <button type="submit" name="UPDATE3" class="btn btn-primary">
+                <i class="fas fa-play-circle"></i> Start ^WLOCD^
+              </button>
+              <button type="submit" name="CANCEL" class="btn btn-secondary">
+                <i class="fas fa-times-circle"></i> Cancel
+              </button>
+            </div>
+            
+            <div class="feedback error" id="messageArea">
+              <i class="fas fa-exclamation-circle icon"></i>
+              <span id="messageText">^MSG^</span>
+            </div>
+            
+            <!-- Hidden Fields -->
+            <input name="BADGEID" type="hidden" value="^BADGEID^">
+            <input name="WOID" type="hidden" value="^WOID^">
+          </form>
+
+          <!-- Info Box -->
+          <div class="info-box">
+            <div class="info-box-icon">
+              <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="info-box-content">
+              <strong>Operation Instructions</strong>
+              <p>Select the number of personnel working on this operation and click "Start" to begin tracking. You can view the work order log and traveler documents using the links above.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Show message if present
+    document.addEventListener('DOMContentLoaded', () => {
+      const msgText = '^MSG^';
+      if (msgText && msgText.trim() !== '' && msgText !== '^MSG^') {
+        document.getElementById('messageArea').style.display = 'flex';
+      }
+    });
+  </script>
+
+  <PRE>
+PicLan-IP/BASIC ^ ^
+*
+      PL_GETVAR BADGEID FROM 'BADGEID' ELSE BADGEID = ''
+      PL_GETVAR UPDATE3 FROM 'UPDATE3' ELSE UPDATE3 = ''
+      PL_GETVAR WOID FROM 'WOID' ELSE WOID = ''
+      PL_GETVAR PEOPLE FROM 'PEOPLE' ELSE PEOPLE = '1'
+      PL_GETVAR CANCEL FROM 'CANCEL' ELSE CANCEL = ''
+      IF PEOPLE = '' THEN PEOPLE = '1'
+      OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+      OPEN 'BADGES' TO BADGEF ELSE STOP 201,'BADGE'
+      OPEN 'WO' TO WOF ELSE STOP 201,'WO'
+      OPEN 'WIPLOC' TO WIPLOCF ELSE STOP 201,'WIPLOC'
+      OPEN 'WIPSTATUS' TO WIPSTATUSF ELSE STOP 201,'WIPSTATUS'
+      OPEN 'EBOO' TO EBOOF ELSE STOP 201,'EBOO'
+      OPEN 'EOPS' TO EOPSF ELSE STOP 201,'EOPS'
+      PL_GETVAR OPERNAME FROM 'OPERNAME' ELSE OPERNAME = 'OPERATOR'
+      IF OPERNAME = '' THEN OPERNAME = 'OPERATOR'
+ 
+*
+*     Initialize all variables to prevent unassigned errors
+      ASSY = ''
+      WONO = ''
+      WLOC = ''
+      WLOCD = ''
+      WIPQTY = ''
+      WDESC = ''
+      OPNO = ''
+      OPDESC = ''
+      LAST.STATUS = ''
+      MSG = ''
+      WOREC = ''
+      WIPLOCREC = ''
+      OPREC = ''
+      BOO = ''
+      WIPSTATUS = ''
+      INIT = ''
+      ERR = ''
+*
+      IF CANCEL NE '' THEN
+         ERR = ''
+         BADGEID = ''
+         WOID = ''
+         CALL PLW.PAGE('WIPTRACK_EDIT.HTM','',ERR)
+         RETURN
+      END
+      
+*     Validate inputs
+      IF BADGEID = '' THEN
+         MSG = 'NO BADGE ID SPECIFIED'
+         GOTO 99
+      END
+      
+      IF WOID = '' THEN
+         MSG = 'NO WORK ORDER SPECIFIED'
+         GOTO 99
+      END
+      
+      READ WOREC FROM WOF,WOID ELSE 
+         MSG = 'INVALID WORK ORDER NUMBER .. ':WOID
+         GOTO 99
+      END
+*
+      BOOSEQ = ''
+      WN = ''
+      NWN = ''
+      I = 0
+      HIT = 0
+      LASTLI = 0
+      LASTOP = ''
+      NEXTOP = ''
+      LASTOPNO = ''
+      NEXTOPNO = ''
+      READ BOO FROM EBOOF,WOREC<32> ELSE BOO = ''
+      FOR I = 1 TO DCOUNT(BOO<14>,@VM)
+          WN = BOO<14,I>
+          NWN = BOO<14,I+1>
+          IF NWN EQ '' THEN
+             BOOSEQ<1,-1> = WN
+          END ELSE
+             IF WN NE NWN THEN
+               BOOSEQ<1,-1> = WN
+             END
+          END
+      NEXT I
+      BOO<14> = BOOSEQ
+
+      READ WIPSTATUS FROM WIPSTATUSF,WOID ELSE WIPSTATUS = ''
+      LAST.STATUS = 'New'
+      IF WIPSTATUS<1> = 'P' THEN LAST.STATUS = 'Paused'
+      IF WIPSTATUS<1> = 'O' THEN LAST.STATUS = 'In Progress'
+      IF WIPSTATUS<1> = '' THEN
+         READ BOO FROM EBOOF,WOREC<32> ELSE 
+            MSG = 'NO BOO FOR ASSY .. ':WOREC<32>
+            GOTO 99
+         END
+         BOO<14> = BOOSEQ
+         IF WIPSTATUS<16> = '' THEN
+            OPNO = BOO<14,1>
+         END ELSE
+
+            LASTLI = DCOUNT(WIPSTATUS<14>,@VM)
+            LASTOP = WIPSTATUS<14,LASTLI>
+            NEXTOP = ''
+            LOCATE(LASTOP,BOO<14>,1;HIT) THEN
+                NEXTOP = BOO<14,HIT+1>
+            END
+            IF NEXTOP NE '' THEN
+                OPNO = NEXTOP
+                READV OPDESC FROM WIPLOCF,OPNO,1 ELSE OPDESC = ''
+                WLOC = BOO<14,HIT+1>
+                READ WLOCD FROM WIPLOCF,WLOC ELSE WLOCD = ''
+            END ELSE      
+                  PL_GETVAR PEOPLE FROM 'PEOPLE' ELSE PEOPLE = 1 
+                  PL_PUTVAR WOID IN 'WOID' ELSE NULL
+                  PL_PUTVAR BADGEID IN 'BADGEID' ELSE NULL
+                  PL_PUTVAR PEOPLE IN 'PEOPLE' ELSE NULL
+                  ERR = ''
+                  CALL PLW.PAGE('WIPTRACKSCRAP2_EDIT.HTM','',ERR)
+                  RETURN
+             END
+         END
+      END ELSE
+        IF WIPSTATUS<1> = 'P' THEN
+           OPNO = WIPSTATUS<16,DCOUNT(WIPSTATUS<16>,@VM)>
+        END
+        IF WIPSTATUS<1> = '0' THEN
+           LASTOPNO = WIPSTATUS<16,DCOUNT(WIPSTATUS<16>,@VM)>
+           READ BOO FROM EBOOF,WOREC<32> ELSE
+             MSG = 'NO BOO FOR ASSY ... ':WOREC<32>
+             GOTO 99
+           END
+           LOCATE(OPNO,BOO<14>,1;HIT) THEN
+              NEXTOPNO = BOO<14,HIT+1>
+              OPNO = NEXTOPNO
+           END
+         END
+      
+
+
+      END
+
+      PRINT 'WOID = ':WOID
+      
+      ASSY = WOREC<32>
+      WONO = WOID
+      WLOC = WOREC<90,1>
+      READ WIPLOCREC FROM WIPLOCF,WLOC ELSE WIPLOCREC = ''
+      WLOCD = WIPLOCREC<1>
+      WIPQTY = WOREC<91,1>    
+      WDESC = WIPLOCREC<1>
+*      READ EOPS FROM EOPSF,OPNO ELSE EOPS = ''
+*      OPDESC = EOPS<1>
+        OPNO = WLOC
+        OPDESC = WLOCD
+*
+      INIT = FIELD(BADGEID,'|',1)
+      READ OPREC FROM OPERSF,INIT ELSE
+         OPERNAME = 'OPERATOR'
+         MSG = 'INVALID OPERS INITIALS :':INIT
+         GOTO 99
+      END
+      IF OPREC<1> NE '' THEN
+         OPERNAME = OPREC<1>
+      END ELSE
+         OPERNAME = 'OPERATOR'
+      END
+*
+      IF UPDATE3 NE '' THEN
+          PRINT 'GOING TO CDA_WIPTRACKSTART.HTM'
+          PL_GETVAR PEOPLE FROM 'PEOPLE' ELSE PEOPLE = 1 
+          PL_PUTVAR WOID IN 'WOID' ELSE NULL
+          PL_PUTVAR BADGEID IN 'BADGEID' ELSE NULL
+          PL_PUTVAR PEOPLE IN 'PEOPLE' ELSE NULL
+          PL_PUTVAR '' IN 'COMPLETE' ELSE NULL
+          
+          ERR = ''
+          CALL PLW.PAGE('WIPTRACKSTART_EDIT.HTM','',ERR)
+          RETURN
+       END
+
+*
+99 *
+*     Ensure all variables have values
+      IF ASSY = '' THEN ASSY = 'N/A'
+      IF WLOC = '' THEN WLOC = 'N/A'
+      IF WLOCD = '' THEN WLOCD = 'N/A'
+      IF WIPQTY = '' THEN WIPQTY = '0'
+      IF LAST.STATUS = '' THEN LAST.STATUS = 'N/A'
+      IF WOID = '' THEN WOID = 'N/A'
+*
+*
+  </PRE>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+<title>Shipment Barcode Label</title>
+
+<SCRIPT LANGUAGE="JavaScript"><!--
+function setFocus() {
+    document.forms[0].elements[0].focus();
+}
+//--></SCRIPT>
+
+</head>
+
+<body bgcolor="#99FF99" topmargin="0" onLoad="setTimeout('setFocus()',1)">
+<SCRIPT>
+function getSelect(s) {
+  return s.options[s.selectedIndex].value
+}
+</SCRIPT>
+
+<div align="center">
+  <center>
+
+<table border="1" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="280" id="AutoNumber1" bgcolor="#FFFFFF">
+  <tr>
+    <form method="GET" action="/SHIPCHECK3.HTM" name="PULLSHEET">
+      <td width="460">
+    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber2" height="123">
+      <tr>
+        <td width="100%" height="16">
+        <p align="center"><b>
+        <font face="Verdana" size="2">(3)<br>
+        </font><font color="#FF0000" face="Verdana">PACK LIST: </font><font face="Verdana" color="#0000FF">^INVNUM^</font></b></td>
+      </tr>
+      <tr>
+        <td width="160%" align="center" height="27">&nbsp;^RAW(RESULT)^&nbsp; <font face="Verdana" size="1">&nbsp;</font></td>
+      </tr>
+      <tr>
+        <td width="100%" height="19">
+        <p align="center"><br>
+        <br>
+        <input type="submit" value="BACK" name="MENU1" tabindex="2" style="background-color: #99FF99; font-size:8pt">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+        ^RAW(COMPLETE)^</td>
+      </tr>
+    </table>
+    </td>
+      <input type="hidden" name="INVNUM" value="^INVNUM^">
+    </form>
+  </tr>
+</table>
+
+  </center>
+</div>
+<pre>PicLan-IP/BASIC ^ ^
+*
+ PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+    ERR = '' ; INITIALS=  ''
+    CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+    RETURN
+ END
+*
+OPEN 'SHIPMENTS' TO SHIPF ELSE RETURN
+OPEN 'SHIPSCAN' TO SHIPCANF ELSE STOP 201,'SHIPSCAN'
+OPEN 'UPSADD' TO UPSADDF ELSE STOP 201,'UPSADD'
+OPEN 'UPSADD,NOTSCANNED' TO NOTSCANNEDF ELSE STOP 201,'NOTSCANNED'
+PL_GETVAR INVNUM FROM 'INVNUM' ELSE INVNUM = ''
+PL_GETVAR MENU1 FROM 'MENU1' ELSE MENU1 = ''
+PL_GETVAR DONE1 FROM 'DONE1' ELSE DONE1 = ''
+*
+SHIPNO = FIELD(INVNUM,'-',1)
+RESULT = ''
+SOUNDWAV='' ; STATUS = '' ; MSG = ''
+COMPLETE= ''
+*
+CALL BUILDSHIPSCAN(INVNUM,RESULT,STATUS)
+RESULT = PL_AMTOCRLF(RESULT)
+IF INVNUM[1,3] = '11K' THEN INVNUM = INVNUM[4,99]
+IF STATUS = '' THEN
+   COMPLETE = '&lt;input type=&quot;submit&quot; value=&quot; COMPLETE &quot; name=&quot;DONE1&quot; tabindex=&quot;2&quot; style=&quot;background-color: #99FF99; font-size:8pt&quot;&gt;'
+END
+*
+PL_PUTVAR RESULT IN 'RESULT' ELSE NULL
+PL_PUTVAR COMPLETE IN 'COMPLETE' ELSE NULL
+PL_PUTVAR INVNUM IN 'INVNUM' ELSE NULL
+*
+BEGIN CASE
+      CASE DONE1 NE ''
+           ERR = ''
+           READ UPSADD FROM NOTSCANNEDF,'11K':INVNUM ELSE UPSADD = ''
+           WRITE UPSADD ON UPSADDF,'11K':INVNUM
+**           DELETE NOTSCANNEDF,'11K':INVNUM
+           INVNUM = ''
+           PL_PUTVAR INVNUM IN 'INVNUM' ELSE NULL
+           CALL PLW.PAGE('SHIPCHECK.HTM','',ERR)
+           RETURN
+      CASE MENU1 NE ''
+           ERR = ''
+           CALL PLW.PAGE('SHIPCHECK2.HTM','',ERR)
+           RETURN
+END CASE
+*  
+</pre>
+
+</body>
+
+</html>
+

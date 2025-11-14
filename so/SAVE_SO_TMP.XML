@@ -1,0 +1,339 @@
+<pre>
+PicLan-IP/BASIC ^ ^
+*
+* SAVE_SO_TMP.XML - Save Sales Order to TMP database for "Save for Later"
+* Based on GET_SO_TMP.XML structure
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'TMP' TO TMPF ELSE STOP 201,'TMP'
+
+XVM = CHAR(253)
+XSM = CHAR(252)
+XAM = CHAR(254)
+
+PL_GETVAR TEMP_ID FROM 'temp_id' ELSE TEMP_ID = ''
+PL_GETVAR SAVE_MODE FROM 'save_mode' ELSE SAVE_MODE = ''
+PL_GETVAR MODE FROM 'mode' ELSE MODE = ''
+PL_GETVAR SO_NUMBER FROM 'so_number' ELSE SO_NUMBER = ''
+PL_GETVAR SO_STATUS FROM 'so_status' ELSE SO_STATUS = ''
+PL_GETVAR SO_DATE FROM 'so_date' ELSE SO_DATE = ''
+IF SO_DATE = '' THEN
+  PL_GETVAR SO_DATE FROM 'po_date' ELSE SO_DATE = ''
+END
+PL_GETVAR CUSTOMER_CODE FROM 'customer_code' ELSE CUSTOMER_CODE = ''
+PL_GETVAR SHIPTO_CODE FROM 'shipto_code' ELSE SHIPTO_CODE = ''
+PL_GETVAR BILLTO_CODE FROM 'billto_code' ELSE BILLTO_CODE = ''
+PL_GETVAR SHIP_VIA FROM 'ship_via' ELSE SHIP_VIA = ''
+PL_GETVAR TERMS FROM 'terms' ELSE TERMS = ''
+PL_GETVAR EMAIL FROM 'email' ELSE EMAIL = ''
+PL_GETVAR CARRIER_ACCOUNT FROM 'carrier_account' ELSE CARRIER_ACCOUNT = ''
+PL_GETVAR HEADER_NOTES FROM 'header_notes' ELSE HEADER_NOTES = ''
+PL_GETVAR LINE_ITEMS FROM 'line_items' ELSE LINE_ITEMS = ''
+PL_GETVAR PART_NUMBERS FROM 'part_numbers' ELSE PART_NUMBERS = ''
+PL_GETVAR DESCRIPTIONS FROM 'descriptions' ELSE DESCRIPTIONS = ''
+PL_GETVAR LINE_QUANTITIES FROM 'line_quantities' ELSE LINE_QUANTITIES = ''
+PL_GETVAR LINE_PRICES FROM 'line_prices' ELSE LINE_PRICES = ''
+PL_GETVAR LINE_UOMS FROM 'line_uoms' ELSE LINE_UOMS = ''
+PL_GETVAR LINE_TOTALS FROM 'line_totals' ELSE LINE_TOTALS = ''
+PL_GETVAR LINE_NOTES FROM 'line_notes' ELSE LINE_NOTES = ''
+PL_GETVAR PROD_NOTES FROM 'prod_notes' ELSE PROD_NOTES = ''
+PL_GETVAR NEED_DATA FROM 'need_data' ELSE NEED_DATA = ''
+PL_GETVAR SCHEDULE_DATA FROM 'schedule_data' ELSE SCHEDULE_DATA = ''
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Check if this is READ mode (workaround for GET_SO_TMP.XML parameter issue)
+DEBUG_READ_MODE = '<!-- DEBUG_SAVE_SO_TMP: MODE=[' : MODE : '] SAVE_MODE=[' : SAVE_MODE : '] TEMP_ID=[' : TEMP_ID : '] -->'
+IF MODE = 'read' OR SAVE_MODE = 'read' THEN
+  GOSUB READ_TMP_RECORD
+  GOTO FINISH
+END
+
+* Initialize response
+SUCCESS = 0
+MESSAGE = ''
+
+* If no temp_id provided, generate one with timestamp
+IF TEMP_ID = '' THEN
+  TEMP_ID = 'SO*tmp*' : DATE() : '*' : TIME()
+END
+
+* Allow saving empty/incomplete drafts (for "Save for Later" functionality)
+
+* Build TMP record - MUST match GET_SO.XML/SO2 structure
+* UPDATED: 2025-10-04 01:10 - Added CARRIER_ACCOUNT field
+* Field 1 = SO Number
+* Field 2 = Customer Code
+* Field 3 = Ship To Code
+* Field 4 = Bill To Code
+* Field 5 = Timestamp (date\time)
+* Field 6 = Ship Via
+* Field 7 = Terms
+* Field 8 = Email (like SO2 field 27)
+* Field 9 = Header Notes (like SO2 field 25)
+* Field 10 = SO Status (like SO2 field 15)
+* Field 11 = Carrier Account (like SO2 field 59/76)
+* Field 12 = SO Date (YYYY-MM-DD)
+* Field 32 = Part numbers
+* Field 33 = Descriptions
+* Field 34 = Schedule date*qty (like SO2)
+* Field 35 = Quantities
+* Field 36 = Prices (unit_price)
+* Field 37 = UOM (Unit of Measure)
+* Field 38 = Needs date*qty (like SO2)
+* Field 40 = Line notes
+* Field 49 = Totals (calculated field)
+
+* DEBUG: Log all incoming parameters (will be updated with conversion info later)
+DEBUG_MSG = '<!-- SAVE DEBUG: CUSTOMER=' : CUSTOMER_CODE : ' STATUS=' : SO_STATUS : ' SO_DATE=' : SO_DATE : ' SHIP_VIA=' : SHIP_VIA : ' TERMS=' : TERMS : ' EMAIL=' : EMAIL : ' CARRIER=' : CARRIER_ACCOUNT : ' NOTES=' : HEADER_NOTES : ' -->'
+
+TMP_REC = ''
+TMP_REC<1> = SO_NUMBER
+TMP_REC<2> = CUSTOMER_CODE
+TMP_REC<3> = SHIPTO_CODE
+TMP_REC<4> = BILLTO_CODE
+TMP_REC<5> = DATE() : XSM : TIME()
+TMP_REC<6> = SHIP_VIA
+TMP_REC<7> = TERMS
+TMP_REC<8> = EMAIL
+TMP_REC<9> = HEADER_NOTES
+TMP_REC<10> = SO_STATUS
+TMP_REC<11> = CARRIER_ACCOUNT
+
+* Convert SO_DATE from YYYY-MM-DD to Julian format
+SO_DATE_JULIAN = ""
+SO_DATE_DEBUG = "<!-- SO_DATE_CONV: INPUT=[" : SO_DATE : "] "
+IF SO_DATE <> "" THEN
+  * Try manual parsing of YYYY-MM-DD format (2025-10-31)
+  IF INDEX(SO_DATE, "-", 1) > 0 THEN
+    * Extract year, month, day from YYYY-MM-DD
+    YEAR = SO_DATE[1,4]
+    MONTH = SO_DATE[6,2]
+    DAY = SO_DATE[9,2]
+    * Convert to MM/DD/YYYY format that ICONV understands
+    SO_DATE_CONVERTED = MONTH : "/" : DAY : "/" : YEAR
+    SO_DATE_JULIAN = ICONV(SO_DATE_CONVERTED, "D2/")
+    SO_DATE_DEBUG := "CONVERTED_TO=[" : SO_DATE_CONVERTED : "] JULIAN=[" : SO_DATE_JULIAN : "] -->"
+  END ELSE
+    * Try direct conversion
+    SO_DATE_JULIAN = ICONV(SO_DATE, "D4-")
+    SO_DATE_DEBUG := "DIRECT_D4-=[" : SO_DATE_JULIAN : "] -->"
+  END
+END
+TMP_REC<12> = SO_DATE_JULIAN
+
+* Append date conversion debug to DEBUG_MSG
+DEBUG_MSG := SO_DATE_DEBUG
+
+* Convert | separator to XVM (multivalue mark) for line items
+IF PART_NUMBERS <> '' THEN
+  CONVERT '|' TO XVM IN PART_NUMBERS
+  TMP_REC<32> = PART_NUMBERS
+END
+
+IF DESCRIPTIONS <> '' THEN
+  CONVERT '|' TO XVM IN DESCRIPTIONS
+  TMP_REC<33> = DESCRIPTIONS
+END
+
+IF LINE_QUANTITIES <> '' THEN
+  CONVERT '|' TO XVM IN LINE_QUANTITIES
+  TMP_REC<35> = LINE_QUANTITIES
+END
+
+IF LINE_PRICES <> '' THEN
+  CONVERT '|' TO XVM IN LINE_PRICES
+  TMP_REC<36> = LINE_PRICES
+END
+
+IF LINE_UOMS <> '' THEN
+  CONVERT '|' TO XVM IN LINE_UOMS
+  TMP_REC<37> = LINE_UOMS
+END
+
+IF LINE_TOTALS <> '' THEN
+  CONVERT '|' TO XVM IN LINE_TOTALS
+  TMP_REC<49> = LINE_TOTALS
+END
+
+IF LINE_NOTES <> '' THEN
+  CONVERT '|' TO XVM IN LINE_NOTES
+  TMP_REC<40> = LINE_NOTES
+END
+
+IF PROD_NOTES <> '' THEN
+  CONVERT '|' TO XVM IN PROD_NOTES
+  TMP_REC<41> = PROD_NOTES
+END
+
+* Save tracking data with proper multivalue/subvalue format
+* Process NEED_DATA: format "lineIdx:date*qty^date*qty|lineIdx:date*qty"
+IF NEED_DATA <> '' THEN
+  DIM NEED_ARRAYS(10)
+  MAT NEED_ARRAYS = ''
+  MAX_NEED_IDX = 0
+  
+  * Parse by | to get each line's data
+  NEED_LINE_COUNT = DCOUNT(NEED_DATA, '|')
+  FOR NEED_I = 1 TO NEED_LINE_COUNT
+    NEED_LINE = FIELD(NEED_DATA, '|', NEED_I)
+    IF NEED_LINE <> '' AND INDEX(NEED_LINE, ':', 1) > 0 THEN
+      * Extract lineIdx and entries
+      LINE_IDX = FIELD(NEED_LINE, ':', 1)
+      LINE_ENTRIES = FIELD(NEED_LINE, ':', 2)
+      
+      * Convert ^ to CHAR(252) for subvalue separator
+      CONVERT '^' TO XSM IN LINE_ENTRIES
+      
+      * Store in array at correct position
+      IF NUM(LINE_IDX) THEN
+        NEED_ARRAYS(LINE_IDX) = LINE_ENTRIES
+        IF LINE_IDX > MAX_NEED_IDX THEN MAX_NEED_IDX = LINE_IDX
+      END
+    END
+  NEXT NEED_I
+  
+  * Build final field with XVM separators
+  FINAL_NEED = ''
+  FOR NEED_J = 1 TO MAX_NEED_IDX
+    IF NEED_J > 1 THEN FINAL_NEED := XVM
+    FINAL_NEED := NEED_ARRAYS(NEED_J)
+  NEXT NEED_J
+  
+  TMP_REC<38> = FINAL_NEED
+END
+
+* Process SCHEDULE_DATA: format "lineIdx:date*qty^date*qty|lineIdx:date*qty"
+IF SCHEDULE_DATA <> '' THEN
+  DIM SCHED_ARRAYS(10)
+  MAT SCHED_ARRAYS = ''
+  MAX_SCHED_IDX = 0
+  
+  * Parse by | to get each line's data
+  SCHED_LINE_COUNT = DCOUNT(SCHEDULE_DATA, '|')
+  FOR SCHED_I = 1 TO SCHED_LINE_COUNT
+    SCHED_LINE = FIELD(SCHEDULE_DATA, '|', SCHED_I)
+    IF SCHED_LINE <> '' AND INDEX(SCHED_LINE, ':', 1) > 0 THEN
+      * Extract lineIdx and entries
+      LINE_IDX = FIELD(SCHED_LINE, ':', 1)
+      LINE_ENTRIES = FIELD(SCHED_LINE, ':', 2)
+      
+      * Convert ^ to CHAR(252) for subvalue separator
+      CONVERT '^' TO XSM IN LINE_ENTRIES
+      
+      * Store in array at correct position
+      IF NUM(LINE_IDX) THEN
+        SCHED_ARRAYS(LINE_IDX) = LINE_ENTRIES
+        IF LINE_IDX > MAX_SCHED_IDX THEN MAX_SCHED_IDX = LINE_IDX
+      END
+    END
+  NEXT SCHED_I
+  
+  * Build final field with XVM separators
+  FINAL_SCHED = ''
+  FOR SCHED_J = 1 TO MAX_SCHED_IDX
+    IF SCHED_J > 1 THEN FINAL_SCHED := XVM
+    FINAL_SCHED := SCHED_ARRAYS(SCHED_J)
+  NEXT SCHED_J
+  
+  TMP_REC<34> = FINAL_SCHED
+END
+
+* Generate line positions based on part numbers count
+IF PART_NUMBERS <> '' THEN
+  NUM_LINES = DCOUNT(TMP_REC<32>, XVM)
+  FOR I = 1 TO NUM_LINES
+    IF I > 1 THEN TMP_REC<31> := XVM
+    TMP_REC<31> := I
+  NEXT I
+END
+
+* Write to TMP database
+WRITE TMP_REC ON TMPF, TEMP_ID
+
+* Success
+SUCCESS = 1
+MESSAGE = 'SO saved to TMP database for later'
+
+SEND_RESPONSE:
+* Send XML response
+XML_RESPONSE = '<?xml version="1.0"?><response>'
+XML_RESPONSE := DEBUG_MSG
+XML_RESPONSE := '<success>'
+IF SUCCESS THEN
+  XML_RESPONSE := 'true'
+END ELSE
+  XML_RESPONSE := 'false'
+END
+XML_RESPONSE := '</success>'
+XML_RESPONSE := '<message>' : MESSAGE : '</message>'
+XML_RESPONSE := '<temp_id>' : TEMP_ID : '</temp_id>'
+XML_RESPONSE := '<customer_code>' : CUSTOMER_CODE : '</customer_code>'
+XML_RESPONSE := '<so_status>' : SO_STATUS : '</so_status>'
+XML_RESPONSE := '<so_date>' : SO_DATE : '</so_date>'
+XML_RESPONSE := '<ship_via>' : SHIP_VIA : '</ship_via>'
+XML_RESPONSE := '<carrier_account>' : CARRIER_ACCOUNT : '</carrier_account>'
+XML_RESPONSE := '</response>'
+
+FINISH:
+WRITE XML_RESPONSE ON XMLDATAF,'RESPONSE.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/RESPONSE.XML','',ERR)
+RETURN
+
+READ_TMP_RECORD:
+* Read and return a TMP record (READ mode)
+READ TMP_REC FROM TMPF, TEMP_ID ELSE
+  XML_RESPONSE = '<?xml version="1.0" encoding="UTF-8"?><tmp_record><error>Record not found: ' : TEMP_ID : '</error></tmp_record>'
+  RETURN
+END
+
+* Extract all fields from TMP record
+SO_NUMBER = TMP_REC<1>
+CUSTOMER_CODE = TMP_REC<2>
+SHIPTO_CODE = TMP_REC<3>
+BILLTO_CODE = TMP_REC<4>
+TIMESTAMP = TMP_REC<5>
+SHIP_VIA = TMP_REC<6>
+TERMS = TMP_REC<7>
+EMAIL = TMP_REC<8>
+HEADER_NOTES = TMP_REC<9>
+SO_STATUS = TMP_REC<10>
+CARRIER_ACCOUNT = TMP_REC<11>
+SO_DATE = TMP_REC<12>
+PART_NUMBERS = TMP_REC<32>
+DESCRIPTIONS = TMP_REC<33>
+SCHEDULE_DATA = TMP_REC<34>
+LINE_QUANTITIES = TMP_REC<35>
+LINE_PRICES = TMP_REC<36>
+LINE_UOMS = TMP_REC<37>
+NEED_DATA = TMP_REC<38>
+LINE_NOTES = TMP_REC<40>
+LINE_TOTALS = TMP_REC<49>
+
+* Build XML response
+XML_RESPONSE = '<?xml version="1.0" encoding="UTF-8"?><tmp_record>' : DEBUG_READ_MODE
+XML_RESPONSE := '<temp_id>' : TEMP_ID : '</temp_id>'
+XML_RESPONSE := '<so_number>' : SO_NUMBER : '</so_number>'
+XML_RESPONSE := '<customer_code>' : CUSTOMER_CODE : '</customer_code>'
+XML_RESPONSE := '<shipto_code>' : SHIPTO_CODE : '</shipto_code>'
+XML_RESPONSE := '<billto_code>' : BILLTO_CODE : '</billto_code>'
+XML_RESPONSE := '<ship_via>' : SHIP_VIA : '</ship_via>'
+XML_RESPONSE := '<terms>' : TERMS : '</terms>'
+XML_RESPONSE := '<email>' : EMAIL : '</email>'
+XML_RESPONSE := '<header_notes>' : HEADER_NOTES : '</header_notes>'
+XML_RESPONSE := '<so_status>' : SO_STATUS : '</so_status>'
+XML_RESPONSE := '<so_date>' : SO_DATE : '</so_date>'
+XML_RESPONSE := '<carrier_account>' : CARRIER_ACCOUNT : '</carrier_account>'
+XML_RESPONSE := '<part_numbers>' : PART_NUMBERS : '</part_numbers>'
+XML_RESPONSE := '<descriptions>' : DESCRIPTIONS : '</descriptions>'
+XML_RESPONSE := '<schedule_data>' : SCHEDULE_DATA : '</schedule_data>'
+XML_RESPONSE := '<line_quantities>' : LINE_QUANTITIES : '</line_quantities>'
+XML_RESPONSE := '<line_prices>' : LINE_PRICES : '</line_prices>'
+XML_RESPONSE := '<line_uoms>' : LINE_UOMS : '</line_uoms>'
+XML_RESPONSE := '<need_data>' : NEED_DATA : '</need_data>'
+XML_RESPONSE := '<line_notes>' : LINE_NOTES : '</line_notes>'
+XML_RESPONSE := '<line_totals>' : LINE_TOTALS : '</line_totals>'
+XML_RESPONSE := '</tmp_record>'
+RETURN
+END
+</pre>

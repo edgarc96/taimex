@@ -1,0 +1,619 @@
+
+<pre>       
+
+PicLan-IP/BASIC ^ ^
+*
+* UPDATE_SO.XML - Sales Order update (based on UPDATE_PO2.XML)
+*
+INCLUDE PLBASIC BP.INCLUDES PLW.INCLUDES
+
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'SO' TO SO2F ELSE STOP 201,'SO'
+
+* Try to open TMP file - set flag for success/failure
+TMP_OPENED = 0
+OPEN 'TMP' TO SO_TMPF THEN
+    TMP_OPENED = 1
+    SO_TMP_STATUS = 'SUCCESS'
+END ELSE
+    SO_TMP_STATUS = 'FAILED'
+END
+
+* IMMEDIATE DEBUG - NO XML.RESPONSE YET
+WRITE '<EARLY_DEBUG>UPDATE_SO.XML STARTED</EARLY_DEBUG>' ON XMLDATAF,'DEBUG_EARLY.XML'
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize multivalue separators at global scope
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+* Initialize variables
+VERIFY_RECORD = ''
+JULIAN_DATE = ''
+
+PL_GETVAR SO_NUMBER FROM 'so_number' ELSE SO_NUMBER = ''
+PL_GETVAR SO_DATE FROM 'so_date' ELSE SO_DATE = ''
+PL_GETVAR PO_DATE_TEMP FROM 'po_date' ELSE PO_DATE_TEMP = ''
+* Also try po_date as frontend may use that field name
+IF SO_DATE = '' AND PO_DATE_TEMP <> '' THEN
+    SO_DATE = PO_DATE_TEMP
+END
+PL_GETVAR SALESPERSON_CODE FROM 'salesperson_code' ELSE SALESPERSON_CODE = ''
+PL_GETVAR CUSTOMER_CODE FROM 'customer_code' ELSE CUSTOMER_CODE = ''
+PL_GETVAR SHIPTO_CODE FROM 'shipto_code' ELSE SHIPTO_CODE = ''
+PL_GETVAR BILLTO_CODE FROM 'billto_code' ELSE BILLTO_CODE = ''
+PL_GETVAR SHIP_VIA FROM 'ship_via' ELSE SHIP_VIA = ''
+PL_GETVAR TERMS FROM 'terms' ELSE TERMS = ''
+PL_GETVAR SO_STATUS FROM 'so_status' ELSE SO_STATUS = ''
+PL_GETVAR EMAIL FROM 'email' ELSE EMAIL = ''
+PL_GETVAR LINE_ITEMS FROM 'line_items' ELSE LINE_ITEMS = ''
+PL_GETVAR LINE_POSITIONS FROM 'line_positions' ELSE LINE_POSITIONS = ''
+PL_GETVAR PART_NUMBERS FROM 'part_numbers' ELSE PART_NUMBERS = ''
+PL_GETVAR LINE_DESCRIPTIONS FROM 'descriptions' ELSE LINE_DESCRIPTIONS = ''
+PL_GETVAR LINE_QUANTITIES FROM 'line_quantities' ELSE LINE_QUANTITIES = ''
+PL_GETVAR LINE_PRICES FROM 'line_prices' ELSE LINE_PRICES = ''
+PL_GETVAR LINE_UOMS FROM 'line_uoms' ELSE LINE_UOMS = ''
+PL_GETVAR SCHEDULE_DATA FROM 'schedule_data' ELSE SCHEDULE_DATA = ''
+PL_GETVAR NEEDS_DATA FROM 'needs_data' ELSE NEEDS_DATA = ''
+PL_GETVAR ACK_DATA FROM 'ack_data' ELSE ACK_DATA = ''
+PL_GETVAR HEADER_NOTES FROM 'header_notes' ELSE HEADER_NOTES = ''
+PL_GETVAR LINE_NOTES_DATA FROM 'field_40' ELSE LINE_NOTES_DATA = ''
+PL_GETVAR PROD_NOTES_DATA FROM 'prod_notes' ELSE PROD_NOTES_DATA = ''
+PL_GETVAR CARRIER_ACCOUNT FROM 'carrier_account' ELSE CARRIER_ACCOUNT = ''
+PL_GETVAR TEMP_ID FROM 'temp_id' ELSE TEMP_ID = ''
+
+* Initialize variables
+TEMP_ID_DEBUG = 'TempID:[' : TEMP_ID : '] Len:' : LEN(TEMP_ID)
+UPDATED_FIELD = ''
+LINE_BUFFER = ''
+TARGET_LINE_IDX = ''
+LINE_STRING = ''
+LINE_DATA = ''
+LINE_COUNT = 0
+LINE_PARSE_IDX = 0
+ENTRY_COUNT = 0
+ENTRY_IDX = 0
+ENTRY = ''
+PROCESSED_ENTRY = ''
+MAX_LINE_IDX = 0
+BUFFER_IDX = 0
+FINAL_FIELD = ''
+FINAL_LINES_ADDED = 0
+I = 0
+J = 0
+DEBUG_I = 0
+NUM_ITEMS = 0
+NUM_PRICES = 0
+ITEM_DATA = ''
+PART_NUMBER = ''
+PART_NUMBERS = ''
+QUANTITIES = ''
+QUANTITY = ''
+UNIT_PRICE = ''
+UNIT_PRICES = ''
+UNIT_PRICE_DISPLAY = ''
+DISPLAY_PRICE = ''
+INTERNAL_PRICE = ''
+CONVERTED_PRICES = ''
+PART_COUNT = 0
+FIRST_PART = ''
+PRICE_COUNT = 0
+UNIT_PRICE_COUNT = 0
+FIELD36_COUNT = 0
+FIELD34_COUNT = 0
+NOTES_COUNT = 0
+CONVERTED_NOTES = ''
+DEBUG_NOTE = ''
+CURRENT_FIELD_NUM = 0
+CURRENT_TRACKING_DATA = ''
+MIN_IDX = 1
+MAX_IDX = 10
+TARGET_LINE_IDX_STR = ''
+XML.RESPONSE = '<?xml version="1.0"?><update_response>'
+XML.RESPONSE = XML.RESPONSE : '<debug_start>UPDATE_SO_EXECUTING</debug_start>'
+XML.RESPONSE = XML.RESPONSE : '<debug_so_tmp_file_status>' : SO_TMP_STATUS : '</debug_so_tmp_file_status>'
+XML.RESPONSE = XML.RESPONSE : '<debug_temp_id_received>[' : TEMP_ID : ']</debug_temp_id_received>'
+XML.RESPONSE = XML.RESPONSE : '<debug_temp_id_length>' : LEN(TEMP_ID) : '</debug_temp_id_length>'
+XML.RESPONSE = XML.RESPONSE : '<debug_params_received>'
+XML.RESPONSE = XML.RESPONSE : '<so_date>[' : SO_DATE : ']</so_date>'
+XML.RESPONSE = XML.RESPONSE : '<po_date_temp>[' : PO_DATE_TEMP : ']</po_date_temp>'
+XML.RESPONSE = XML.RESPONSE : '<so_number>[' : SO_NUMBER : ']</so_number>'
+XML.RESPONSE = XML.RESPONSE : '</debug_params_received>'
+
+* Write updated record back to SO2
+* Read from SO database (all data copied, no cornell restriction)
+* If record doesn't exist, initialize new empty record (CREATE mode)
+READ SO.RECORD FROM SO2F, SO_NUMBER ELSE
+    XML.RESPONSE = XML.RESPONSE : '<debug_so_not_found>SO ' : SO_NUMBER : ' not found - creating new record</debug_so_not_found>'
+    SO.RECORD = ''
+    XML.RESPONSE = XML.RESPONSE : '<debug_create_mode>CREATE MODE ENABLED</debug_create_mode>'
+END
+
+* Update basic fields - NEW STRUCTURE: Position 2 = Ship To, Position 4 = Bill To
+XML.RESPONSE = XML.RESPONSE : '<debug_so_date_received>[' : SO_DATE : ']</debug_so_date_received>'
+IF SO_DATE <> "" THEN
+    * Convert from calendar format (YYYY-MM-DD) to Julian format
+    IF LEN(SO_DATE) = 10 AND INDEX(SO_DATE, '-', 1) > 0 THEN
+        * Try DATE() function which converts mm/dd/yyyy or yyyy-mm-dd to internal Julian
+        JULIAN_DATE = ICONV(SO_DATE, 'D4-')
+        IF JULIAN_DATE = '' OR JULIAN_DATE = 0 THEN
+            * Try alternative format
+            JULIAN_DATE = ICONV(SO_DATE, 'D-')
+        END
+        IF JULIAN_DATE = '' OR JULIAN_DATE = 0 THEN
+            * Manual conversion: Extract year, month, day
+            YEAR_STR = SO_DATE[1,4]
+            MONTH_STR = SO_DATE[6,2]
+            DAY_STR = SO_DATE[9,2]
+            * Build mm/dd/yyyy format
+            MM_DD_YYYY = MONTH_STR : '/' : DAY_STR : '/' : YEAR_STR
+            JULIAN_DATE = ICONV(MM_DD_YYYY, 'D')
+            XML.RESPONSE = XML.RESPONSE : '<debug_manual_conversion>Converted ' : MM_DD_YYYY : ' to Julian: ' : JULIAN_DATE : '</debug_manual_conversion>'
+        END
+        XML.RESPONSE = XML.RESPONSE : '<debug_julian_before_write>JULIAN_DATE value: [' : JULIAN_DATE : '] Length: ' : LEN(JULIAN_DATE) : '</debug_julian_before_write>'
+        SO.RECORD<1> = JULIAN_DATE
+        XML.RESPONSE = XML.RESPONSE : '<debug_so_date_converted>' : SO_DATE : ' -> Julian: ' : JULIAN_DATE : '</debug_so_date_converted>'
+        XML.RESPONSE = XML.RESPONSE : '<debug_field1_after_assignment>Field 1 = [' : SO.RECORD<1> : ']</debug_field1_after_assignment>'
+    END ELSE
+        * Already in Julian or other format, write as-is
+        SO.RECORD<1> = SO_DATE
+        XML.RESPONSE = XML.RESPONSE : '<debug_so_date_no_conversion>Date already in Julian: ' : SO_DATE : '</debug_so_date_no_conversion>'
+    END
+    XML.RESPONSE = XML.RESPONSE : '<debug_so_date_written>YES</debug_so_date_written>'
+END ELSE
+    XML.RESPONSE = XML.RESPONSE : '<debug_so_date_written>NO - DATE WAS EMPTY</debug_so_date_written>'
+END
+IF SHIPTO_CODE <> "" THEN SO.RECORD<2> = SHIPTO_CODE
+IF BILLTO_CODE <> "" THEN SO.RECORD<4> = BILLTO_CODE
+IF SALESPERSON_CODE <> "" THEN SO.RECORD<8> = SALESPERSON_CODE
+IF SHIP_VIA <> "" THEN SO.RECORD<11> = SHIP_VIA
+IF TERMS <> "" THEN SO.RECORD<18> = TERMS
+IF SO_STATUS <> "" THEN SO.RECORD<15> = SO_STATUS 
+IF EMAIL <> "" THEN SO.RECORD<27,1> = EMAIL
+
+* Carrier Account - Check Ship Via to determine position
+IF CARRIER_ACCOUNT <> "" THEN
+    IF INDEX(SHIP_VIA, 'UPS', 1) > 0 THEN
+        SO.RECORD<59> = CARRIER_ACCOUNT
+        SO.RECORD<76> = ''
+    END ELSE
+        SO.RECORD<76> = CARRIER_ACCOUNT
+        SO.RECORD<59> = ''
+    END
+    XML.RESPONSE = XML.RESPONSE : '<debug_carrier_account_saved>' : CARRIER_ACCOUNT : '</debug_carrier_account_saved>'
+END
+
+* Process line items data - convert from pipe format to multivalues
+IF LINE_ITEMS <> "" THEN
+    * Debug: Log received line items data
+    XML.RESPONSE = XML.RESPONSE : '<debug_line_items>' : LINE_ITEMS : '</debug_line_items>'
+    * LINE_ITEMS format: "part1*qty1*price1|part2*qty2*price2"
+    * Convert to multivalues using CORRECT separators XVM (CHAR 253) and XSM (CHAR 252)
+    CONVERT "|" TO XVM IN LINE_ITEMS
+    PART_NUMBERS = ""
+    QUANTITIES = ""
+    UNIT_PRICES = ""
+    
+    NUM_ITEMS = DCOUNT(LINE_ITEMS, XVM)
+    FOR I = 1 TO NUM_ITEMS
+        ITEM_DATA = FIELD(LINE_ITEMS, XVM, I)
+        IF ITEM_DATA <> "" THEN
+            * Parse item_data: "part*qty*price"
+            PART_NUMBER = FIELD(ITEM_DATA, '*', 1)
+            QUANTITY = FIELD(ITEM_DATA, '*', 2)
+            UNIT_PRICE_DISPLAY = FIELD(ITEM_DATA, '*', 3)
+            
+            * MR4 CONVERSION: Convert display format to internal format (4 decimal places)
+            * Display: 4, Internal: 40000 (entero seguido de 4 ceros)
+            * Formula: internal = display * 10000 (10^4 para 4 decimales)
+            IF UNIT_PRICE_DISPLAY <> '' AND NUM(UNIT_PRICE_DISPLAY) THEN UNIT_PRICE = UNIT_PRICE_DISPLAY * 10000 ELSE UNIT_PRICE = UNIT_PRICE_DISPLAY
+            
+            IF I = 1 THEN PART_NUMBERS = PART_NUMBER; QUANTITIES = QUANTITY; UNIT_PRICES = UNIT_PRICE ELSE PART_NUMBERS = PART_NUMBERS : XVM : PART_NUMBER; QUANTITIES = QUANTITIES : XVM : QUANTITY; UNIT_PRICES = UNIT_PRICES : XVM : UNIT_PRICE
+        END
+    NEXT I
+    
+    * Update PO record with line item data using correct field assignments
+    IF LINE_POSITIONS <> '' THEN
+        CONVERT '|' TO XVM IN LINE_POSITIONS
+        SO.RECORD<31> = LINE_POSITIONS   ; * Field 31: Line positions (1]2]3)
+    END
+    
+    IF PART_NUMBERS <> '' THEN
+        * Count how many part numbers were saved
+        PART_COUNT = DCOUNT(PART_NUMBERS, XVM)
+        FIRST_PART = FIELD(PART_NUMBERS, XVM, 1)
+        XML.RESPONSE = XML.RESPONSE : '<debug_saved_parts_count>' : PART_COUNT : '</debug_saved_parts_count>'
+        XML.RESPONSE = XML.RESPONSE : '<debug_first_part>' : FIRST_PART : '</debug_first_part>'
+        SO.RECORD<32> = PART_NUMBERS     ; * Field 32: Part numbers (already XVM converted)
+    END
+    
+    IF LINE_DESCRIPTIONS <> '' THEN
+        CONVERT '|' TO XVM IN LINE_DESCRIPTIONS
+        SO.RECORD<33> = LINE_DESCRIPTIONS ; * Field 33: Descriptions
+    END
+    
+    IF LINE_QUANTITIES <> '' THEN
+        * Count how many quantities were saved
+        QTY_COUNT = DCOUNT(QUANTITIES, XVM)
+        XML.RESPONSE = XML.RESPONSE : '<debug_saved_qtys_count>' : QTY_COUNT : '</debug_saved_qtys_count>'
+        SO.RECORD<35> = QUANTITIES  ; * Field 35: Quantities (already XVM converted)
+    END
+    
+    IF LINE_PRICES <> '' THEN
+        * Convert LINE_PRICES from pipe format to multivalue format
+        CONVERT '|' TO XVM IN LINE_PRICES
+        XML.RESPONSE = XML.RESPONSE : '<debug_line_prices_raw>' : LINE_PRICES : '</debug_line_prices_raw>'
+        
+        * MR4 CONVERSION: Convert each price from display to internal format (4 decimal places)
+        CONVERTED_PRICES = ''
+        NUM_PRICES = DCOUNT(LINE_PRICES, XVM)
+        FOR J = 1 TO NUM_PRICES
+            DISPLAY_PRICE = FIELD(LINE_PRICES, XVM, J)
+            IF DISPLAY_PRICE <> '' AND NUM(DISPLAY_PRICE) THEN INTERNAL_PRICE = DISPLAY_PRICE * 10000 ELSE INTERNAL_PRICE = DISPLAY_PRICE
+            
+            XML.RESPONSE = XML.RESPONSE : '<debug_price_conversion_' : J : '>Display:' : DISPLAY_PRICE : ' -> Internal:' : INTERNAL_PRICE : '</debug_price_conversion_' : J : '>'
+            
+            IF J = 1 THEN CONVERTED_PRICES = INTERNAL_PRICE ELSE CONVERTED_PRICES = CONVERTED_PRICES : XVM : INTERNAL_PRICE
+        NEXT J
+        XML.RESPONSE = XML.RESPONSE : '<debug_converted_prices>' : CONVERTED_PRICES : '</debug_converted_prices>'
+        
+        SO.RECORD<36> = CONVERTED_PRICES  ; * Field 36: Prices (converted to internal format)
+    END ELSE
+        IF UNIT_PRICES <> '' THEN 
+            XML.RESPONSE = XML.RESPONSE : '<debug_using_unit_prices>' : UNIT_PRICES : '</debug_using_unit_prices>'
+            SO.RECORD<36> = UNIT_PRICES
+        END
+    END
+    
+    * Debug: Log counts only (raw data has invalid XML chars)
+    PRICE_COUNT = DCOUNT(LINE_PRICES, XVM)
+    UNIT_PRICE_COUNT = DCOUNT(UNIT_PRICES, XVM)
+    FIELD36_COUNT = DCOUNT(SO.RECORD<36>, XVM)
+    XML.RESPONSE = XML.RESPONSE : '<debug_line_prices_count>' : PRICE_COUNT : '</debug_line_prices_count>'
+    XML.RESPONSE = XML.RESPONSE : '<debug_unit_prices_count>' : UNIT_PRICE_COUNT : '</debug_unit_prices_count>'
+    XML.RESPONSE = XML.RESPONSE : '<debug_field36_count>' : FIELD36_COUNT : '</debug_field36_count>'
+    
+    * Process UOMs (Unit of Measure) - Field 37
+    IF LINE_UOMS <> '' THEN
+        CONVERT '|' TO XVM IN LINE_UOMS
+        SO.RECORD<37> = LINE_UOMS
+        UOM_COUNT = DCOUNT(LINE_UOMS, XVM)
+        XML.RESPONSE = XML.RESPONSE : '<debug_line_uoms_count>' : UOM_COUNT : '</debug_line_uoms_count>'
+        XML.RESPONSE = XML.RESPONSE : '<debug_field37_saved>UOMs saved to field 37</debug_field37_saved>'
+    END
+END
+
+* Process tracking data - preserve line alignment and subvalues
+CURRENT_FIELD_NUM = 34
+CURRENT_TRACKING_DATA = SCHEDULE_DATA
+GOSUB UPDATE_TRACKING_FIELD
+FIELD34_COUNT = DCOUNT(SO.RECORD<34>, XVM)
+XML.RESPONSE = XML.RESPONSE : '<debug_final_field34_count>' : FIELD34_COUNT : '</debug_final_field34_count>'
+
+CURRENT_FIELD_NUM = 38
+CURRENT_TRACKING_DATA = NEEDS_DATA
+GOSUB UPDATE_TRACKING_FIELD
+
+* FIELD 40: Line Item Notes - SPECIAL PROCESSING (not tracking data)
+IF LINE_NOTES_DATA <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<debug_line_notes_raw_received>' : LINE_NOTES_DATA : '</debug_line_notes_raw_received>'
+    
+    * Convert pipe separator to CHAR(253) multivalue separator
+    CONVERTED_NOTES = LINE_NOTES_DATA
+    CONVERT '|' TO XVM IN CONVERTED_NOTES
+    
+    NOTES_COUNT = DCOUNT(CONVERTED_NOTES, XVM)
+    XML.RESPONSE = XML.RESPONSE : '<debug_line_notes_count>' : NOTES_COUNT : '</debug_line_notes_count>'
+    XML.RESPONSE = XML.RESPONSE : '<debug_line_notes_converted>' : CONVERTED_NOTES : '</debug_line_notes_converted>'
+    XML.RESPONSE = XML.RESPONSE : '<debug_line_notes_length>' : LEN(CONVERTED_NOTES) : '</debug_line_notes_length>'
+    
+    * Log each multivalue position
+    FOR DEBUG_I = 1 TO NOTES_COUNT
+        DEBUG_NOTE = FIELD(CONVERTED_NOTES, XVM, DEBUG_I)
+        XML.RESPONSE = XML.RESPONSE : '<debug_note_' : DEBUG_I : '>' : DEBUG_NOTE : '</debug_note_' : DEBUG_I : '>'
+    NEXT DEBUG_I
+    
+    * CRITICAL: Line notes are simple multivalue text, NOT tracking data format
+    * Store the converted notes with proper CHAR(253) separators
+    SO.RECORD<40> = CONVERTED_NOTES
+    XML.RESPONSE = XML.RESPONSE : '<debug_field40_after_save>' : SO.RECORD<40> : '</debug_field40_after_save>'
+END ELSE
+    * Clear field if no data provided
+    SO.RECORD<40> = ''
+    XML.RESPONSE = XML.RESPONSE : '<debug_line_notes_cleared>Field 40 cleared - no data provided</debug_line_notes_cleared>'
+END
+
+* FIELD 73: Production Notes - SPECIAL PROCESSING (not tracking data)
+IF PROD_NOTES_DATA <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<debug_prod_notes_raw_received>' : PROD_NOTES_DATA : '</debug_prod_notes_raw_received>'
+    
+    * Convert pipe separator to CHAR(253) multivalue separator
+    CONVERTED_PROD_NOTES = PROD_NOTES_DATA
+    CONVERT '|' TO XVM IN CONVERTED_PROD_NOTES
+    
+    PROD_NOTES_COUNT = DCOUNT(CONVERTED_PROD_NOTES, XVM)
+    XML.RESPONSE = XML.RESPONSE : '<debug_prod_notes_count>' : PROD_NOTES_COUNT : '</debug_prod_notes_count>'
+    
+    * Store the converted production notes with proper CHAR(253) separators
+    SO.RECORD<73> = CONVERTED_PROD_NOTES
+    XML.RESPONSE = XML.RESPONSE : '<debug_field73_after_save>' : SO.RECORD<73> : '</debug_field73_after_save>'
+END ELSE
+    * Clear field if no data provided
+    SO.RECORD<73> = ''
+    XML.RESPONSE = XML.RESPONSE : '<debug_prod_notes_cleared>Field 73 cleared - no data provided</debug_prod_notes_cleared>'
+END
+
+CURRENT_FIELD_NUM = 49
+CURRENT_TRACKING_DATA = ACK_DATA
+XML.RESPONSE = XML.RESPONSE : '<debug_ack_data_received>' : ACK_DATA : '</debug_ack_data_received>'
+GOSUB UPDATE_TRACKING_FIELD
+
+* Process header notes
+IF HEADER_NOTES <> "" THEN
+    * Convert newlines to multivalue separator
+    CRLF_CHAR = CHAR(13):CHAR(10)
+    LF_CHAR = CHAR(10)
+    CR_CHAR = CHAR(13)
+    * First convert CRLF pairs to @VM
+    CONVERT CRLF_CHAR TO @VM IN HEADER_NOTES
+    * Then convert any remaining LF to @VM
+    CONVERT LF_CHAR TO @VM IN HEADER_NOTES
+    * Then convert any remaining CR to @VM
+    CONVERT CR_CHAR TO @VM IN HEADER_NOTES
+    * Also handle pipe separator from frontend
+    CONVERT "|" TO @VM IN HEADER_NOTES
+    SO.RECORD<25> = HEADER_NOTES
+END
+
+* Write to SO database - should bypass cornell,bp,snappoupd
+XML.RESPONSE = XML.RESPONSE : '<debug_before_write>About to write SO.RECORD to SO2F</debug_before_write>'
+XML.RESPONSE = XML.RESPONSE : '<debug_before_write_field1>[' : SO.RECORD<1> : ']</debug_before_write_field1>'
+XML.RESPONSE = XML.RESPONSE : '<debug_before_write_field2>[' : SO.RECORD<2> : ']</debug_before_write_field2>'
+XML.RESPONSE = XML.RESPONSE : '<debug_before_write_field4>[' : SO.RECORD<4> : ']</debug_before_write_field4>'
+WRITE SO.RECORD ON SO2F, SO_NUMBER
+
+* Verify what was written
+READ VERIFY_RECORD FROM SO2F, SO_NUMBER ELSE VERIFY_RECORD = ''
+XML.RESPONSE = XML.RESPONSE : '<debug_verify_field1>[' : VERIFY_RECORD<1> : ']</debug_verify_field1>'
+XML.RESPONSE = XML.RESPONSE : '<debug_verify_field2>[' : VERIFY_RECORD<2> : ']</debug_verify_field2>'
+XML.RESPONSE = XML.RESPONSE : '<debug_verify_field4>[' : VERIFY_RECORD<4> : ']</debug_verify_field4>'
+
+XML.RESPONSE = XML.RESPONSE : '<debug_after_write>SO.RECORD successfully written to SOF</debug_after_write>'
+
+* If this came from a draft (temp_id provided), delete the draft from TMP
+IF TEMP_ID <> '' AND TMP_OPENED = 1 THEN
+    XML.RESPONSE = XML.RESPONSE : '<debug_deleting_draft>Attempting to delete draft: ' : TEMP_ID : '</debug_deleting_draft>'
+    XML.RESPONSE = XML.RESPONSE : '<debug_tmp_file_opened>TMP file is open and ready</debug_tmp_file_opened>'
+    
+    * First check if record exists
+    READ TEST_RECORD FROM SO_TMPF, TEMP_ID THEN
+        XML.RESPONSE = XML.RESPONSE : '<debug_draft_exists>Draft record found, proceeding with deletion</debug_draft_exists>'
+        DELETE SO_TMPF, TEMP_ID
+        XML.RESPONSE = XML.RESPONSE : '<debug_draft_deleted>Draft ' : TEMP_ID : ' has been deleted from TMP</debug_draft_deleted>'
+    END ELSE
+        XML.RESPONSE = XML.RESPONSE : '<debug_draft_not_found>Warning: Draft ' : TEMP_ID : ' not found in TMP (may have been already deleted)</debug_draft_not_found>'
+    END
+END ELSE
+    IF TEMP_ID = '' THEN
+        XML.RESPONSE = XML.RESPONSE : '<debug_no_draft>No temp_id provided - skip draft deletion</debug_no_draft>'
+    END
+    IF TMP_OPENED = 0 THEN
+        XML.RESPONSE = XML.RESPONSE : '<debug_tmp_not_available>TMP file not available - skip draft deletion</debug_tmp_not_available>'
+    END
+END
+XML.RESPONSE = XML.RESPONSE : '<status>SUCCESS</status>'
+XML.RESPONSE = XML.RESPONSE : '<message>PO ' : SO_NUMBER : ' updated successfully in SO database</message>'
+XML.RESPONSE = XML.RESPONSE : '<database>SO</database>'
+XML.RESPONSE = XML.RESPONSE : '<updated_fields>'
+XML.RESPONSE = XML.RESPONSE : '<so_date>' : SO_DATE : '</so_date>'
+XML.RESPONSE = XML.RESPONSE : '<customer>' : CUSTOMER_CODE : '</customer>'
+XML.RESPONSE = XML.RESPONSE : '<shipto>' : SHIPTO_CODE : '</shipto>'
+XML.RESPONSE = XML.RESPONSE : '<salesperson>' : SALESPERSON_CODE : '</salesperson>'
+XML.RESPONSE = XML.RESPONSE : '<status>' : SO_STATUS : '</status>'
+XML.RESPONSE = XML.RESPONSE : '<email>' : EMAIL : '</email>'
+XML.RESPONSE = XML.RESPONSE : '</updated_fields>'
+XML.RESPONSE = XML.RESPONSE : '<redirect>SO_EDIT.HTM</redirect>'
+XML.RESPONSE = XML.RESPONSE : '<clear_form>true</clear_form>'
+XML.RESPONSE = XML.RESPONSE : '</update_response>'
+
+* Clean XML response before writing
+CONVERT CHAR(0) TO '' IN XML.RESPONSE
+CONVERT CHAR(1) TO '' IN XML.RESPONSE  
+CONVERT CHAR(2) TO '' IN XML.RESPONSE
+CONVERT CHAR(255) TO '' IN XML.RESPONSE
+
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_SO.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_SO.XML','',ERR)
+RETURN
+
+UPDATE_TRACKING_FIELD:
+    * Initialize local variables to avoid unassigned warnings
+    EXISTING_LINE_COUNT = 0
+    EXISTING_COUNT = 0
+    EXISTING_FIELD = ''
+    CONTAMINATED = 0
+    MAX_LINE_IDX = 0
+    MIN_IDX = 1
+    MAX_IDX = 10
+    LINE_DATA = ''
+    LINE_STRING = ''
+    LINE_BUFFER = ''
+    EXISTING_IDX = 0
+    EXISTING_LINE_DATA = ''
+    LINE3_DATA = ''
+    TARGET_LINE_IDX = 0
+    TARGET_LINE_IDX_STR = ''
+    ENTRY_COUNT = 0
+    ENTRY_IDX = 0
+    ENTRY = ''
+    PROCESSED_ENTRY = ''
+    LINE_COUNT = 0
+    LINE_PARSE_IDX = 0
+    PRESERVED_LINES = 0
+    BUFFER_IDX = 0
+    FINAL_FIELD = ''
+    FINAL_LINES_ADDED = 0
+    FINAL_COUNT = 0
+    LINE3_SUBVAL_COUNT = 0
+    TRACKING_DATA = CURRENT_TRACKING_DATA
+    FIELD_NUM = CURRENT_FIELD_NUM
+    
+    * CRITICAL: Field 31 contains line item positions, NOT tracking data - skip processing
+    IF FIELD_NUM = 31 THEN
+        XML.RESPONSE = XML.RESPONSE : '<debug_field_31_skip>Field 31 contains line item positions, not tracking data - skipping</debug_field_31_skip>'
+        RETURN
+    END
+    
+    XML.RESPONSE = XML.RESPONSE : '<debug_field_' : FIELD_NUM : '_start>REWRITTEN: Processing field ' : FIELD_NUM : ' with data: ' : TRACKING_DATA : '</debug_field_' : FIELD_NUM : '_start>'
+    
+    * CRITICAL CHANGE: NO MORE PRESERVING CORRUPTED DATA - START FRESH
+    IF TRACKING_DATA = '' THEN
+        XML.RESPONSE = XML.RESPONSE : '<debug_field_' : FIELD_NUM : '_empty>No data provided, clearing field completely</debug_field_' : FIELD_NUM : '_empty>'
+        SO.RECORD<FIELD_NUM> = ''
+        RETURN
+    END
+
+    * REWRITTEN LOGIC: Build field from scratch using ONLY new data
+    * Create clean array to hold line data
+    DIM CLEAN_LINE_BUFFERS(20)
+    MAT CLEAN_LINE_BUFFERS = ''
+    MAX_LINE_IDX = 0
+    
+    * Parse tracking data format: "lineIdx:entry1\entry2\entry3|lineIdx:entry1\entry2" (\ = CHAR(252))
+    IF INDEX(TRACKING_DATA, ':', 1) > 0 THEN
+        XML.RESPONSE = XML.RESPONSE : '<debug_new_format>Using NEW indexed format - REPLACING all data (no preservation)</debug_new_format>'
+        
+        * CRITICAL FIX: DO NOT preserve existing data - start fresh to avoid accumulation
+        * Frontend always sends ALL tracking data for ALL line items in each save
+        EXISTING_FIELD = ''
+        EXISTING_COUNT = 0
+        XML.RESPONSE = XML.RESPONSE : '<debug_clean_start>Starting with clean slate - frontend sends complete data</debug_clean_start>'
+        
+        * Initialize line arrays (empty - no preservation)
+        DIM LINE_ARRAYS(10)
+        MAT LINE_ARRAYS = ''
+        
+        * Process new tracking data to build lines from scratch
+        LINE_COUNT = DCOUNT(TRACKING_DATA, '|')
+        FOR LINE_PARSE_IDX = 1 TO LINE_COUNT
+            LINE_DATA = FIELD(TRACKING_DATA, '|', LINE_PARSE_IDX)
+            LINE_DATA = TRIM(LINE_DATA)
+            
+            IF LINE_DATA <> '' THEN
+                * Extract line index and data
+                TARGET_LINE_IDX_STR = FIELD(LINE_DATA, ':', 1)
+                LINE_STRING = FIELD(LINE_DATA, ':', 2)
+                
+                * Validate TARGET_LINE_IDX is numeric and positive
+                TARGET_LINE_IDX = 0
+                IF TARGET_LINE_IDX_STR <> '' THEN
+                    IF NUM(TARGET_LINE_IDX_STR) THEN
+                        TARGET_LINE_IDX = TARGET_LINE_IDX_STR + 0
+                    END
+                END
+                
+                * Skip if invalid line index (MIN_IDX=1, MAX_IDX=10 already set at subroutine start)
+                IF TARGET_LINE_IDX < MIN_IDX OR TARGET_LINE_IDX > MAX_IDX THEN
+                    XML.RESPONSE = XML.RESPONSE : '<debug_invalid_line_idx>Skipping invalid line index: [' : TARGET_LINE_IDX_STR : ']</debug_invalid_line_idx>'
+                    GOTO SKIP_LINE_PARSE
+                END
+                
+                * Frontend sends entries separated by literal backslashes
+                
+                * CLEAN BUILD: Parse entries and build with CHAR(252) directly
+                LINE_BUFFER = ''
+                IF LINE_STRING <> '' THEN
+                    * Split by literal backslashes to get individual entries
+                    ENTRY_COUNT = DCOUNT(LINE_STRING, '\')
+                    FOR ENTRY_IDX = 1 TO ENTRY_COUNT
+                        ENTRY = TRIM(FIELD(LINE_STRING, '\', ENTRY_IDX))
+                        PROCESSED_ENTRY = ''
+                        IF ENTRY <> '' THEN
+                            * Keep entries as-is
+                            PROCESSED_ENTRY = ENTRY
+                            
+                            IF PROCESSED_ENTRY <> '' THEN
+                                * Build line buffer using CHAR(252) as subvalue separator
+                                IF LINE_BUFFER <> '' THEN LINE_BUFFER = LINE_BUFFER : CHAR(252) : PROCESSED_ENTRY ELSE LINE_BUFFER = PROCESSED_ENTRY
+                            END
+                        END
+                    NEXT ENTRY_IDX
+                END
+                
+                * Update specific line in preserved array
+                IF LINE_BUFFER <> '' THEN
+                    LINE_ARRAYS(TARGET_LINE_IDX) = LINE_BUFFER
+                    IF TARGET_LINE_IDX > MAX_LINE_IDX THEN MAX_LINE_IDX = TARGET_LINE_IDX
+                END
+                
+SKIP_LINE_PARSE:
+            END
+        NEXT LINE_PARSE_IDX
+        
+        * Build final field from new data only
+        FINAL_FIELD = ''
+        FINAL_LINES_ADDED = 0
+        FOR BUFFER_IDX = 1 TO MAX_LINE_IDX
+            LINE_DATA = LINE_ARRAYS(BUFFER_IDX)
+            
+            IF LINE_DATA <> '' THEN
+                IF FINAL_LINES_ADDED > 0 THEN FINAL_FIELD = FINAL_FIELD : XVM : LINE_DATA ELSE FINAL_FIELD = LINE_DATA
+                FINAL_LINES_ADDED = FINAL_LINES_ADDED + 1
+            END
+        NEXT BUFFER_IDX
+        
+        XML.RESPONSE = XML.RESPONSE : '<debug_final_summary>Total lines added: ' : FINAL_LINES_ADDED : '</debug_final_summary>'
+        
+        * FINAL DEBUG: Check for any ^ before writing
+        IF INDEX(FINAL_FIELD, '^', 1) > 0 THEN
+            XML.RESPONSE = XML.RESPONSE : '<debug_error_caret_detected>ERROR: ^ still found in FINAL_FIELD before write!</debug_error_caret_detected>'
+            * Emergency clean
+            CONVERT '^' TO CHAR(252) IN FINAL_FIELD
+            XML.RESPONSE = XML.RESPONSE : '<debug_emergency_clean>Emergency cleaned ^ in FINAL_FIELD</debug_emergency_clean>'
+        END
+        
+        * CRITICAL DEBUG FOR ROW 5 LINE ITEM 3 - BEFORE FINAL SET
+        IF FIELD_NUM = 34 OR FIELD_NUM = 38 OR FIELD_NUM = 49 THEN
+            XML.RESPONSE = XML.RESPONSE : '<debug_row5_check_before_write>CRITICAL: Checking if line item 3 data exists in FINAL_FIELD before write</debug_row5_check_before_write>'
+            LINE3_DATA = FIELD(FINAL_FIELD, XVM, 3)
+            LINE3_SUBVAL_COUNT = DCOUNT(LINE3_DATA, XSM)
+            XML.RESPONSE = XML.RESPONSE : '<debug_row5_line3_subval_count>' : LINE3_SUBVAL_COUNT : '</debug_row5_line3_subval_count>'
+        END
+        
+        * CLEAN SET: Replace field completely with new clean data
+        SO.RECORD<FIELD_NUM> = FINAL_FIELD
+        FINAL_COUNT = DCOUNT(FINAL_FIELD, XVM)
+        XML.RESPONSE = XML.RESPONSE : '<debug_field_' : FIELD_NUM : '_final_count>' : FINAL_COUNT : '</debug_field_' : FIELD_NUM : '_final_count>'
+    
+    END ELSE
+        * Old format fallback - treat as single line item data
+        XML.RESPONSE = XML.RESPONSE : '<debug_old_format>Using old format - single line item</debug_old_format>'
+        SO.RECORD<FIELD_NUM> = TRACKING_DATA
+    END
+
+RETURN
+
+WRITE_FAILED:
+XML.RESPONSE = XML.RESPONSE : '<status>ERROR</status>'
+XML.RESPONSE = XML.RESPONSE : '<message>WRITE operation failed on SO database</message>'
+XML.RESPONSE = XML.RESPONSE : '</update_response>'
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_SO.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_SO.XML','',ERR)
+RETURN
+
+PO_NOT_FOUND:
+* PO not found in SOF - this should not happen for existing POs
+XML.RESPONSE = XML.RESPONSE : '<debug_po_not_found>PO ' : SO_NUMBER : ' not found in SOF</debug_po_not_found>'
+XML.RESPONSE = XML.RESPONSE : '<status>ERROR</status>'
+XML.RESPONSE = XML.RESPONSE : '<message>PO ' : SO_NUMBER : ' not found in SO database</message> '
+XML.RESPONSE = XML.RESPONSE : '<so_number>' : SO_NUMBER : '</so_number>'
+XML.RESPONSE = XML.RESPONSE : '</update_response>'
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_SO.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_SO.XML','',ERR)
+RETURN
+</pre>
+

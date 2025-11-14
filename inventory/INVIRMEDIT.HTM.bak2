@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TAIMEX - Inventory Inquiry</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-body: #f1f5f9;
+      --bg-card: #ffffff;
+      --sidebar-width: 300px;
+      --sidebar-bg: rgba(15, 23, 42, 0.92);
+      --sidebar-border: rgba(255, 255, 255, 0.12);
+      --accent-blue: #1d4ed8;
+      --accent-muted: #64748b;
+      --danger: #dc2626;
+      --danger-bg: rgba(220, 38, 38, 0.12);
+      --danger-border: rgba(220, 38, 38, 0.35);
+      --info-bg: rgba(30, 64, 175, 0.1);
+      --info-border: rgba(30, 64, 175, 0.2);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --shadow-card: 0 18px 46px rgba(15, 23, 42, 0.18);
+      --radius-lg: 20px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.35);
+      position: relative;
+      z-index: 50;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .logo-section img {
+      height: 44px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+
+    .title-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 18px;
+    }
+
+    .title-section h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+    }
+
+    .title-section p {
+      font-size: 0.82rem;
+      color: rgba(226, 232, 240, 0.8);
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .hamburger-menu svg {
+      width: 26px;
+      height: 26px;
+      fill: currentColor;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      background: var(--bg-body);
+    }
+
+    .inventory-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 20px;
+      overflow-y: auto;
+    }
+
+    .inventory-card {
+      width: 100%;
+      max-width: 640px;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: 40px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .card-header h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .card-header p {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .inventory-form {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .form-group label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-group .icon {
+      font-size: 1.2rem;
+      color: var(--accent-blue);
+    }
+
+    .form-group input {
+      padding: 16px 18px;
+      border: 2px solid #e2e8f0;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      transition: all 0.2s ease;
+      background: #f8fafc;
+      color: var(--text-primary);
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+      background: #fff;
+    }
+
+    .primary-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .secondary-actions {
+      display: none;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn i {
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue) 0%, #1e3a8a 100%);
+      color: #fff;
+      box-shadow: 0 14px 30px rgba(30, 64, 175, 0.22);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 36px rgba(30, 64, 175, 0.28);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, var(--accent-muted) 0%, #475569 100%);
+      color: #fff;
+      box-shadow: 0 12px 28px rgba(71, 85, 105, 0.2);
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 32px rgba(71, 85, 105, 0.26);
+    }
+
+    .message-area {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--info-border);
+      background: var(--info-bg);
+      color: #1e3a8a;
+      font-size: 0.95rem;
+    }
+
+    .message-area.error {
+      border-color: var(--danger-border);
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    .result-section {
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .result-top {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .result-title {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .result-part {
+      color: var(--accent-blue);
+    }
+
+    .result-body {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .result-block {
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 18px 20px;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .result-block h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .result-text {
+      font-size: 0.92rem;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+      line-height: 1.55;
+      font-family: "Inter", "Segoe UI", sans-serif;
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      opacity: 0;
+      visibility: hidden;
+      z-index: 1500;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+      cursor: pointer;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: calc(-1 * var(--sidebar-width));
+      width: var(--sidebar-width);
+      height: 100vh;
+      background: var(--sidebar-bg);
+      color: #fff;
+      transition: left 0.25s ease;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 18px 0 36px rgba(15, 23, 42, 0.32);
+    }
+
+    .sidebar-header {
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid var(--sidebar-border);
+    }
+
+    .sidebar-header h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .sidebar-header p {
+      font-size: 0.85rem;
+      color: rgba(226, 232, 240, 0.7);
+    }
+
+    .sidebar-content {
+      padding: 24px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sidebar-menu label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      color: rgba(226, 232, 240, 0.9);
+      cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease;
+      font-weight: 500;
+    }
+
+    .sidebar-menu label:hover {
+      background-color: rgba(59, 130, 246, 0.18);
+      color: #fff;
+    }
+
+    .sidebar-menu label.active {
+      background-color: rgba(59, 130, 246, 0.26);
+      color: #bfdbfe;
+    }
+
+    .sidebar-menu label i {
+      width: 22px;
+      text-align: center;
+    }
+
+    #sb-toggle {
+      position: absolute;
+      left: -9999px;
+    }
+
+    #sb-toggle:checked ~ .sidebar {
+      left: 0;
+    }
+
+    #sb-toggle:checked ~ .sidebar-overlay {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .title-section {
+        text-align: left;
+        align-items: flex-start;
+      }
+
+      .title-row {
+        justify-content: flex-start;
+      }
+
+      .inventory-card {
+        padding: 32px 24px;
+        border-radius: 18px;
+      }
+
+      .primary-actions,
+      .secondary-actions {
+        width: 100%;
+      }
+
+      .btn {
+        flex: 1 1 100%;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .inventory-card {
+        padding: 28px 20px;
+        border-radius: 16px;
+      }
+
+      .card-header h1 {
+        font-size: 1.6rem;
+      }
+
+      .form-group input {
+        font-size: 1rem;
+        padding: 14px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <input type="checkbox" id="sb-toggle">
+  <label for="sb-toggle" class="sidebar-overlay" aria-hidden="true"></label>
+
+  <aside class="sidebar" aria-label="Main menu">
+    <div class="sidebar-header">
+      <h3>Inventory Tools</h3>
+      <p>Quick navigation</p>
+    </div>
+    <div class="sidebar-content">
+      <ul class="sidebar-menu">
+        <li><label for="sb-toggle"><i class="fas fa-house"></i>Dashboard</label></li>
+        <li><label for="sb-toggle"><i class="fas fa-clipboard-list"></i>Work Orders</label></li>
+        <li><label for="sb-toggle"><i class="fas fa-boxes-stacked"></i>Stock Management</label></li>
+        <li><label for="sb-toggle" class="active"><i class="fas fa-industry"></i>Raw Material Inquiry</label></li>
+      </ul>
+    </div>
+  </aside>
+
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">
+          <svg viewBox="0 0 448 512" role="img" aria-hidden="true" focusable="false">
+            <path d="M0 96C0 78.3 14.3 64 32 64H416C433.7 64 448 78.3 448 96C448 113.7 433.7 128 416 128H32C14.3 128 0 113.7 0 96zM0 256C0 238.3 14.3 224 32 224H416C433.7 224 448 238.3 448 256C448 273.7 433.7 288 416 288H32C14.3 288 0 273.7 0 256zM448 416C448 433.7 433.7 448 416 448H32C14.3 448 0 433.7 0 416C0 398.3 14.3 384 32 384H416C433.7 384 448 398.3 448 416z"></path>
+          </svg>
+        </label>
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL" onerror="this.onerror=null;this.src='http://54.189.226.145/uploads/assets/images/taimex_logo.png';">
+        </div>
+      </div>
+      <div class="title-section">
+        <div class="title-row">
+          <div>
+            <h2>TAIMEX - Inventory Inquiry</h2>
+            <p>Raw Materials Management</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <section class="inventory-wrapper">
+        <div class="inventory-card">
+          <div class="card-header">
+            <h1>Raw Material Lookup</h1>
+            <p>Scan or enter the part number to review current raw material availability and open inspections.</p>
+          </div>
+
+          <form method="GET" action="/INVIRMEDIT.HTM" name="inventoryForm" class="inventory-form">
+            <div class="form-group">
+              <label for="partNumber">
+                <i class="fas fa-barcode icon" aria-hidden="true"></i>
+                Part Number
+              </label>
+              <input type="text" id="partNumber" name="PARTNUM" value="^PARTNUM^" placeholder="Scan or type part number" autocomplete="off" inputmode="text">
+            </div>
+
+            <div class="primary-actions">
+              <button type="submit" name="OK" value="Search" class="btn btn-primary">
+                <i class="fas fa-search"></i>
+                Search
+              </button>
+              <button type="reset" class="btn btn-secondary">
+                <i class="fas fa-eraser"></i>
+                Clear
+              </button>
+            </div>
+
+            <div class="message-area" id="messageDisplay" role="alert" aria-live="polite">
+              <i class="fas fa-circle-info"></i>
+              <span id="messageText">^MSG^</span>
+            </div>
+
+            <div class="result-section" id="resultSection">
+              <div class="result-top">
+                <div class="result-title">
+                  Inquiry for <span class="result-part">^PARTNUM^</span>
+                </div>
+                <div class="secondary-actions" id="secondaryActions">
+                  <button type="submit" name="MENU" value="Main Menu" class="btn btn-secondary">
+                    <i class="fas fa-home"></i>
+                    Main Menu
+                  </button>
+                  <button type="submit" name="CREATE" value="Add PullOrder" class="btn btn-primary">
+                    <i class="fas fa-plus-circle"></i>
+                    Add PullOrder
+                  </button>
+                </div>
+              </div>
+
+              <div class="result-body">
+                <div class="result-block" id="resultBlock">
+                  <h3>Inventory Details</h3>
+                  <div class="result-text" id="resultData">^RAW(RESULT)^</div>
+                </div>
+
+                <div class="result-block" id="inspectionBlock">
+                  <h3 id="inspectionTitle">^IQC^</h3>
+                  <div class="result-text" id="inspectionData">^RAW(IQCDATA)^</div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const partField = document.getElementById('partNumber');
+      if (partField) {
+        partField.focus();
+        if (partField.value.trim() !== '') {
+          partField.select();
+        }
+      }
+
+      const messageDisplay = document.getElementById('messageDisplay');
+      const messageText = document.getElementById('messageText');
+      if (messageDisplay && messageText) {
+        const rawMessage = messageText.textContent ? messageText.textContent.trim() : '';
+        if (rawMessage && rawMessage !== '^MSG^') {
+          messageDisplay.style.display = 'flex';
+          const normalized = rawMessage.toLowerCase();
+          if (normalized.includes('invalid') || normalized.includes('error') || normalized.includes('unable')) {
+            messageDisplay.classList.add('error');
+            const icon = messageDisplay.querySelector('i');
+            if (icon) {
+              icon.className = 'fas fa-triangle-exclamation';
+            }
+          }
+        } else {
+          messageDisplay.style.display = 'none';
+        }
+      }
+
+      const resultSection = document.getElementById('resultSection');
+      const resultBlock = document.getElementById('resultBlock');
+      const resultData = document.getElementById('resultData');
+      const inspectionBlock = document.getElementById('inspectionBlock');
+      const inspectionTitle = document.getElementById('inspectionTitle');
+      const inspectionData = document.getElementById('inspectionData');
+      const secondaryActions = document.getElementById('secondaryActions');
+      const resultPart = document.querySelector('.result-part');
+
+      if (resultPart && partField) {
+        const currentPart = partField.value.trim();
+        resultPart.textContent = currentPart || '—';
+      }
+
+      const hasResultData = resultData && resultData.textContent.trim() !== '' && resultData.textContent.trim() !== '^RAW(RESULT)^';
+      const hasInspectionTitle = inspectionTitle && inspectionTitle.textContent.trim() !== '' && inspectionTitle.textContent.trim() !== '^IQC^';
+      const hasInspectionData = inspectionData && inspectionData.textContent.trim() !== '' && inspectionData.textContent.trim() !== '^RAW(IQCDATA)^';
+      const hasInspection = hasInspectionTitle || hasInspectionData;
+
+      if (inspectionBlock && !hasInspection) {
+        inspectionBlock.style.display = 'none';
+      }
+
+      if (resultBlock) {
+        if (hasResultData) {
+          resultBlock.style.display = 'flex';
+        } else {
+          resultBlock.style.display = 'none';
+        }
+      }
+
+      if (resultSection) {
+        if (hasResultData || hasInspection) {
+          resultSection.style.display = 'flex';
+        } else {
+          resultSection.style.display = 'none';
+        }
+      }
+
+      if (secondaryActions) {
+        if (hasResultData || hasInspection) {
+          secondaryActions.style.display = 'flex';
+        } else {
+          secondaryActions.style.display = 'none';
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
+
+<pre>
+PicLan-IP/BASIC ^ ^
+*
+ PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+    ERR = '' ; INITIALS=  ''
+    CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+    RETURN
+ END
+*
+PL_GETVAR PARTNUM FROM 'PARTNUM' ELSE PARTNUM = ''
+PL_GETVAR MENU FROM 'MENU' ELSE MENU = ''
+PL_GETVAR CREATE FROM 'CREATE' ELSE CREATE = ''
+PL_GETVAR OK FROM 'OK' ELSE OK = ''
+*
+RESULT = ''
+IQC = ''
+IQCDATA = ''
+MSG = ''
+*
+IF MENU NE '' THEN
+  ERR = ''
+  CALL PLW.PAGE('STOCKMENU.HTM','',ERR)
+  RETURN
+END
+*
+IF CREATE NE '' THEN
+  PL_PUTVAR PARTNUM IN 'PARTNUM' ELSE NULL
+  ERR = ''
+  CALL PLW.PAGE('INVPULL1.HTM','',ERR)
+  RETURN
+END
+*
+IF PARTNUM NE '' AND OK NE '' THEN
+  OPEN '','PARTS' TO PARTSF ELSE
+    MSG = 'UNABLE TO OPEN PARTS FILE'
+    GOTO 900
+  END
+*
+  PREC = OCONV(PARTNUM,'TPARTS;X;;0')
+  IF PREC = '' AND PARTNUM[1,1] = 'P' THEN
+    PARTNUM = PARTNUM[2,99]
+  END
+*
+  READ TEST FROM PARTSF,PARTNUM ELSE
+    MSG = 'INVALID PART#'
+    GOTO 900
+  END
+*
+  MSG = ''
+  DESCR = TEST<2>
+  IF DESCR = '' THEN DESCR = 'N/A'
+  RESULT = 'Part Number: ' : PARTNUM : CHAR(10) : 'Description: ' : DESCR : CHAR(10) : 'Status: Active'
+  IQC = 'Incoming Inspection'
+  IQCDATA = 'No open receipts at this time'
+END
+*
+900 CONTINUE
+*
+PL_PUTVAR PARTNUM IN 'PARTNUM' ELSE NULL
+PL_PUTVAR '' IN 'MENU' ELSE NULL
+PL_PUTVAR '' IN 'CREATE' ELSE NULL
+PL_PUTVAR '' IN 'OK' ELSE NULL
+PL_PUTVAR MSG IN 'MSG' ELSE NULL
+PL_PUTVAR RESULT IN 'RESULT' ELSE NULL
+PL_PUTVAR IQC IN 'IQC' ELSE NULL
+PL_PUTVAR IQCDATA IN 'IQCDATA' ELSE NULL
+*
+RETURN
+</pre>
+          

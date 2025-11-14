@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAIMEX - Generador de Sistemas</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Prism.js para syntax highlighting con mejor soporte -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+
+        .config-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .preview-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 12px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #374151;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .preview-frame {
+            flex: 1;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .color-input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .color-input-group input[type="color"] {
+            width: 50px;
+            height: 40px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .color-input-group input[type="text"] {
+            flex: 1;
+        }
+
+        .field-item {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: grid;
+            grid-template-columns: 2fr 1fr 2fr auto;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .field-item input,
+        .field-item select {
+            margin-bottom: 0;
+        }
+
+        .btn-remove {
+            background: #ef4444;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-remove:hover {
+            background: #dc2626;
+        }
+
+        .btn-add {
+            width: 100%;
+            background: #10b981;
+            color: white;
+            margin-top: 8px;
+        }
+
+        .btn-add:hover {
+            background: #059669;
+        }
+
+        /* Drag & Drop Styles */
+        .button-item {
+            cursor: move;
+            user-select: none;
+            transition: all 0.2s;
+        }
+
+        .button-item.dragging {
+            opacity: 0.5;
+            transform: scale(1.05);
+        }
+
+        .drop-zone {
+            min-height: 60px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 8px 0;
+            background: #f8fafc;
+            transition: all 0.2s;
+        }
+
+        .drop-zone.drag-over {
+            border-color: #667eea;
+            background: #eef2ff;
+            border-style: solid;
+        }
+
+        .drop-zone-label {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Estilos para código con syntax highlighting Prism */
+        #previewCodeView {
+            background: #282c34 !important;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        #previewCodeView pre {
+            background: #282c34 !important;
+            border-radius: 0;
+            margin: 0;
+            padding: 16px !important;
+            font-size: 12px !important;
+            line-height: 1.6 !important;
+        }
+
+        #previewCodeHighlight {
+            white-space: pre !important;
+            word-wrap: break-word;
+            tab-size: 2;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace !important;
+            color: #abb2bf !important;
+        }
+
+        /* Prism.js colores mejorados */
+        .token.tag {
+            color: #e06c75 !important;
+        }
+
+        .token.attr-name {
+            color: #e06c75 !important;
+        }
+
+        .token.attr-value,
+        .token.string {
+            color: #98c379 !important;
+        }
+
+        .token.punctuation {
+            color: #abb2bf !important;
+        }
+
+        .token.doctype {
+            color: #c678dd !important;
+        }
+
+        .token.comment {
+            color: #5c6370 !important;
+            font-style: italic;
+        }
+
+        .token.keyword {
+            color: #c678dd !important;
+        }
+
+        .token.boolean {
+            color: #56b6c2 !important;
+        }
+
+        .token.number {
+            color: #d19a66 !important;
+        }
+
+        /* Scrollbar para código */
+        #previewCodeView::-webkit-scrollbar,
+        #sourceCodeEditor::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        #previewCodeView::-webkit-scrollbar-track,
+        #sourceCodeEditor::-webkit-scrollbar-track {
+            background: #2d2d2d;
+        }
+
+        #previewCodeView::-webkit-scrollbar-thumb,
+        #sourceCodeEditor::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 6px;
+        }
+
+        #previewCodeView::-webkit-scrollbar-thumb:hover,
+        #sourceCodeEditor::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+
+        .button-preview {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            margin: 4px;
+            cursor: move;
+        }
+
+        .button-preview:hover {
+            opacity: 0.9;
+        }
+
+        .layout-preview {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Panel de Configuración -->
+        <div class="config-panel">
+            <h1><i class="fas fa-magic"></i> Generador de Sistemas</h1>
+            <p class="subtitle">Configura y genera tu sistema personalizado</p>
+
+            <!-- Templates Predefinidos -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-layer-group"></i>
+                    Templates Rápidos
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <button class="btn btn-secondary" onclick="loadTemplate('inventario')" style="font-size: 12px; padding: 8px;">
+                        <i class="fas fa-boxes"></i> Inventario
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadTemplate('clientes')" style="font-size: 12px; padding: 8px;">
+                        <i class="fas fa-users"></i> Clientes
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadTemplate('empleados')" style="font-size: 12px; padding: 8px;">
+                        <i class="fas fa-id-badge"></i> Empleados
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadTemplate('productos')" style="font-size: 12px; padding: 8px;">
+                        <i class="fas fa-shopping-cart"></i> Productos
+                    </button>
+                </div>
+            </div>
+
+            <!-- Información Básica -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    Información del Sistema
+                </div>
+                <div class="form-group">
+                    <label>Título del Sistema (Header)</label>
+                    <input type="text" id="systemTitle" value="TAIMEX - SISTEMA" onchange="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>Subtítulo (Header)</label>
+                    <input type="text" id="systemSubtitle" value="MANAGEMENT SYSTEM" onchange="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>Usuario</label>
+                    <input type="text" id="userName" value="Admin User" onchange="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>Título del Formulario</label>
+                    <input type="text" id="formTitle" value="Formulario de Datos" onchange="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>Logo URL (opcional)</label>
+                    <input type="text" id="logoUrl" value="http://54.189.226.145/uploads/assets/images/taimex_logo.png" onchange="updatePreview()">
+                </div>
+            </div>
+
+            <!-- Colores -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-palette"></i>
+                    Colores
+                </div>
+                <div class="form-group">
+                    <label>Color Primario</label>
+                    <div class="color-input-group">
+                        <input type="color" id="primaryColor" value="#1e293b" onchange="updatePreview()">
+                        <input type="text" id="primaryColorText" value="#1e293b" onchange="document.getElementById('primaryColor').value = this.value; updatePreview();">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Color Secundario</label>
+                    <div class="color-input-group">
+                        <input type="color" id="secondaryColor" value="#3b82f6" onchange="updatePreview()">
+                        <input type="text" id="secondaryColorText" value="#3b82f6" onchange="document.getElementById('secondaryColor').value = this.value; updatePreview();">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Color de Acento</label>
+                    <div class="color-input-group">
+                        <input type="color" id="accentColor" value="#10b981" onchange="updatePreview()">
+                        <input type="text" id="accentColorText" value="#10b981" onchange="document.getElementById('accentColor').value = this.value; updatePreview();">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campos -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-list"></i>
+                    Campos del Formulario
+                </div>
+                <div id="fieldsContainer">
+                    <div class="field-item">
+                        <input type="text" placeholder="Nombre del campo" value="Cliente" onchange="updatePreview()">
+                        <select onchange="updatePreview()">
+                            <option value="text" selected>Texto</option>
+                            <option value="number">Número</option>
+                            <option value="date">Fecha</option>
+                            <option value="email">Email</option>
+                            <option value="tel">Teléfono</option>
+                            <option value="textarea">Área de texto</option>
+                        </select>
+                        <input type="text" placeholder="Placeholder" value="Nombre del cliente" onchange="updatePreview()">
+                        <button class="btn-remove" onclick="this.parentElement.remove(); updatePreview();">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="field-item">
+                        <input type="text" placeholder="Nombre del campo" value="Número de Parte" onchange="updatePreview()">
+                        <select onchange="updatePreview()">
+                            <option value="text" selected>Texto</option>
+                            <option value="number">Número</option>
+                            <option value="date">Fecha</option>
+                            <option value="email">Email</option>
+                            <option value="tel">Teléfono</option>
+                            <option value="textarea">Área de texto</option>
+                        </select>
+                        <input type="text" placeholder="Placeholder" value="Código de parte" onchange="updatePreview()">
+                        <button class="btn-remove" onclick="this.parentElement.remove(); updatePreview();">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="field-item">
+                        <input type="text" placeholder="Nombre del campo" value="Fecha" onchange="updatePreview()">
+                        <select onchange="updatePreview()">
+                            <option value="text">Texto</option>
+                            <option value="number">Número</option>
+                            <option value="date" selected>Fecha</option>
+                            <option value="email">Email</option>
+                            <option value="tel">Teléfono</option>
+                            <option value="textarea">Área de texto</option>
+                        </select>
+                        <input type="text" placeholder="Placeholder" value="Seleccionar fecha" onchange="updatePreview()">
+                        <button class="btn-remove" onclick="this.parentElement.remove(); updatePreview();">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <button class="btn btn-add" onclick="addField()">
+                    <i class="fas fa-plus"></i> Agregar Campo
+                </button>
+            </div>
+
+            <!-- Botones del Sistema -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-mouse-pointer"></i>
+                    Botones del Sistema - Arrastra y Suelta
+                </div>
+                <p style="color: #6b7280; font-size: 13px; margin-bottom: 12px;">🖱️ Arrastra los botones a las zonas donde quieres que aparezcan</p>
+                
+                <!-- Panel de Botones Disponibles -->
+                <div style="background: #f9fafb; padding: 12px; border-radius: 8px; margin-bottom: 16px; border: 2px solid #e5e7eb;">
+                    <div style="font-weight: 600; margin-bottom: 8px; color: #374151; display: flex; justify-content: space-between; align-items: center;">
+                        <span><i class="fas fa-box"></i> Botones Disponibles</span>
+                        <button class="btn btn-add" onclick="addCustomButton()" style="margin: 0; padding: 6px 12px; font-size: 12px;">
+                            <i class="fas fa-plus"></i> Nuevo
+                        </button>
+                    </div>
+                    <div id="availableButtons" style="min-height: 50px; display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; border: 2px dashed transparent; border-radius: 6px; transition: all 0.2s;" ondrop="dropToAvailable(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+                        <!-- Botones disponibles se cargarán aquí -->
+                    </div>
+                </div>
+
+                <!-- Layout Visual -->
+                <div class="layout-preview">
+                    <h3 style="margin-bottom: 16px; color: #1f2937; font-size: 16px;"><i class="fas fa-th-large"></i> Layout del Sistema</h3>
+                    
+                    <!-- Header Zone -->
+                    <div class="drop-zone" data-position="header" ondrop="dropButton(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+                        <div class="drop-zone-label"><i class="fas fa-arrow-up"></i> HEADER - Encabezado Superior</div>
+                        <div id="headerButtons"></div>
+                    </div>
+
+                    <!-- Form Zone -->
+                    <div class="drop-zone" data-position="form" ondrop="dropButton(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+                        <div class="drop-zone-label"><i class="fas fa-wpforms"></i> FORMULARIO - Botones del Form</div>
+                        <div id="formButtons"></div>
+                    </div>
+
+                    <!-- Table Zone -->
+                    <div class="drop-zone" data-position="table" ondrop="dropButton(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+                        <div class="drop-zone-label"><i class="fas fa-table"></i> TABLA - Acciones de Registros</div>
+                        <div id="tableButtons"></div>
+                    </div>
+
+                    <!-- Footer Zone -->
+                    <div class="drop-zone" data-position="footer" ondrop="dropButton(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+                        <div class="drop-zone-label"><i class="fas fa-arrow-down"></i> FOOTER - Pie de Página</div>
+                        <div id="footerButtons"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Código Personalizado -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-code"></i>
+                    Código Personalizado (Opcional)
+                </div>
+                <div class="form-group">
+                    <label>Script/HTML adicional (se insertará antes del cierre de body)</label>
+                    <textarea id="customCode" rows="5" placeholder="<!-- Ejemplo: Analytics, scripts adicionales, etc. -->" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 6px; font-family: monospace; font-size: 12px;"></textarea>
+                    <small style="color: #6b7280; font-size: 12px;">💡 Puedes agregar Google Analytics, Facebook Pixel, scripts personalizados, etc.</small>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="generateSystem()">
+                    <i class="fas fa-download"></i> Generar Sistema
+                </button>
+            </div>
+            
+            <div class="action-buttons" style="margin-top: 12px;">
+                <button class="btn btn-secondary" onclick="exportConfig()" style="flex: 1; font-size: 12px; padding: 8px;">
+                    <i class="fas fa-file-export"></i> Exportar Config
+                </button>
+                <button class="btn btn-secondary" onclick="importConfig()" style="flex: 1; font-size: 12px; padding: 8px;">
+                    <i class="fas fa-file-import"></i> Importar Config
+                </button>
+            </div>
+            
+            <div class="action-buttons" style="margin-top: 12px;">
+                <button class="btn btn-primary" onclick="toggleCodeEditor()" style="width: 100%;">
+                    <i class="fas fa-terminal"></i> <span id="codeEditorToggleText">Ver/Editar Código Fuente</span>
+                </button>
+            </div>
+            <input type="file" id="configFileInput" accept=".json" style="display: none;" onchange="handleConfigImport(event)">
+            
+            <!-- Editor de Código -->
+            <div id="codeEditorSection" style="display: none; margin-top: 20px;">
+                <div class="section">
+                    <div class="section-title">
+                        <i class="fas fa-file-code"></i>
+                        Editor de Código HTML
+                    </div>
+                    <div style="background: #f9fafb; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+                        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                            <button class="btn btn-secondary" onclick="copySourceCode()" style="flex: 1; font-size: 12px; padding: 8px;">
+                                <i class="fas fa-copy"></i> Copiar Código
+                            </button>
+                            <button class="btn btn-secondary" onclick="updatePreviewFromCode()" style="flex: 1; font-size: 12px; padding: 8px;">
+                                <i class="fas fa-sync"></i> Actualizar Preview
+                            </button>
+                            <button class="btn btn-secondary" onclick="downloadEditedCode()" style="flex: 1; font-size: 12px; padding: 8px;">
+                                <i class="fas fa-download"></i> Descargar
+                            </button>
+                        </div>
+                        <textarea id="sourceCodeEditor" style="width: 100%; height: 400px; padding: 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.5; resize: vertical; background: #1e1e1e; color: #d4d4d4; tab-size: 2;" spellcheck="false" onkeydown="handleEditorKeydown(event)" oninput="updateCodeStats()"></textarea>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                            <small style="color: #6b7280; font-size: 12px;">
+                                💡 Edita el código • Tab para indentar • Ctrl/Cmd+S para actualizar preview
+                            </small>
+                            <small id="codeStats" style="color: #6b7280; font-size: 11px; font-family: monospace;">
+                                Líneas: 0 | Caracteres: 0
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Vista Previa -->
+        <div class="preview-panel">
+            <div class="section-title" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <i class="fas fa-eye"></i>
+                    <span id="previewModeLabel">Vista Previa</span>
+                </div>
+                <button class="btn btn-secondary" onclick="togglePreviewMode()" style="padding: 6px 12px; font-size: 12px; margin: 0;">
+                    <i class="fas fa-code" id="previewToggleIcon"></i>
+                    <span id="previewToggleText">Ver Código</span>
+                </button>
+            </div>
+            <iframe id="previewFrame" class="preview-frame" style="display: block;"></iframe>
+            <div id="previewCodeView" class="preview-frame" style="display: none; overflow: auto; background: #1e1e1e; border: 2px solid #e5e7eb; border-radius: 6px; padding: 0;">
+                <pre style="margin: 0; height: 100%; overflow: auto;"><code id="previewCodeHighlight" class="language-html" style="font-size: 11px; line-height: 1.6; display: block; padding: 16px; background: #1e1e1e;"></code></pre>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-top: 1px solid #e5e7eb; margin-top: 8px;" id="previewCodeActions" style="display: none;">
+                <small style="color: #6b7280; font-size: 11px;" id="previewCodeStats">Líneas: 0 | Caracteres: 0</small>
+                <button class="btn btn-secondary" onclick="copyPreviewCode()" style="padding: 4px 10px; font-size: 11px; margin: 0;">
+                    <i class="fas fa-copy"></i> Copiar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sistema de botones
+        let systemButtons = [
+            {id: 'save', text: 'Guardar', color: '#10b981', icon: 'fa-save', position: 'form', action: 'save', enabled: true},
+            {id: 'view', text: 'Ver', color: '#3b82f6', icon: 'fa-eye', position: 'table', action: 'view', enabled: true},
+            {id: 'edit', text: 'Editar', color: '#f59e0b', icon: 'fa-edit', position: 'table', action: 'edit', enabled: true},
+            {id: 'delete', text: 'Eliminar', color: '#ef4444', icon: 'fa-trash', position: 'table', action: 'delete', enabled: true},
+            {id: 'export', text: 'Exportar CSV', color: '#6366f1', icon: 'fa-file-export', position: 'available', action: 'export', enabled: true},
+            {id: 'print', text: 'Imprimir', color: '#8b5cf6', icon: 'fa-print', position: 'available', action: 'custom', enabled: true},
+            {id: 'cancel', text: 'Cancelar', color: '#6b7280', icon: 'fa-times', position: 'available', action: 'custom', enabled: true},
+            {id: 'ok', text: 'OK', color: '#22c55e', icon: 'fa-check', position: 'available', action: 'custom', enabled: true}
+        ];
+        
+        let buttonIdCounter = 1000;
+        
+        function initializeButtons() {
+            renderButtons();
+        }
+        
+        let draggedButtonId = null;
+        
+        function renderButtons() {
+            // Render available buttons (unassigned)
+            const availableContainer = document.getElementById('availableButtons');
+            availableContainer.innerHTML = '';
+            
+            systemButtons.filter(btn => !btn.position || btn.position === 'available').forEach((button, index) => {
+                const btnEl = createButtonElement(button, index);
+                availableContainer.appendChild(btnEl);
+            });
+            
+            // Render buttons in each zone
+            ['header', 'form', 'table', 'footer'].forEach(position => {
+                const container = document.getElementById(position + 'Buttons');
+                container.innerHTML = '';
+                
+                systemButtons.filter(btn => btn.position === position && btn.enabled).forEach((button, index) => {
+                    const btnEl = createButtonElement(button, index);
+                    container.appendChild(btnEl);
+                });
+            });
+            
+            updatePreview();
+        }
+        
+        function createButtonElement(button, index) {
+            const btnEl = document.createElement('div');
+            btnEl.className = 'button-preview button-item';
+            btnEl.draggable = true;
+            btnEl.style.background = button.color;
+            btnEl.setAttribute('data-button-id', button.id);
+            btnEl.title = 'Arrastra para mover • Doble clic para quitar • Click en ⚙️ para editar';
+            btnEl.innerHTML = '<i class="' + button.icon + '"></i> <span>' + button.text + '</span>' +
+                '<button onclick="editButton(event, \'' + button.id + '\')" style="margin-left: 8px; padding: 2px 6px; background: rgba(255,255,255,0.3); border: none; border-radius: 3px; cursor: pointer;" title="Editar">⚙️</button>';
+            
+            btnEl.ondragstart = function(e) {
+                draggedButtonId = button.id;
+                this.classList.add('dragging');
+            };
+            
+            btnEl.ondragend = function(e) {
+                this.classList.remove('dragging');
+                draggedButtonId = null;
+            };
+            
+            // Double click to remove from current position
+            btnEl.ondblclick = function(e) {
+                e.stopPropagation();
+                if (button.position !== 'available') {
+                    if (confirm('¿Quitar "' + button.text + '" de esta posición?')) {
+                        button.position = 'available';
+                        renderButtons();
+                    }
+                }
+            };
+            
+            return btnEl;
+        }
+        
+        function allowDrop(e) {
+            e.preventDefault();
+            if (e.currentTarget.classList.contains('drop-zone')) {
+                e.currentTarget.classList.add('drag-over');
+            } else {
+                e.currentTarget.style.borderColor = '#667eea';
+            }
+        }
+        
+        function dragLeave(e) {
+            if (e.currentTarget.classList.contains('drop-zone')) {
+                e.currentTarget.classList.remove('drag-over');
+            } else {
+                e.currentTarget.style.borderColor = 'transparent';
+            }
+        }
+        
+        function dropButton(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            
+            const newPosition = e.currentTarget.getAttribute('data-position');
+            const button = systemButtons.find(btn => btn.id === draggedButtonId);
+            
+            if (button) {
+                button.position = newPosition;
+                button.enabled = true;
+                renderButtons();
+            }
+        }
+        
+        function dropToAvailable(e) {
+            e.preventDefault();
+            e.currentTarget.style.borderColor = 'transparent';
+            
+            const button = systemButtons.find(btn => btn.id === draggedButtonId);
+            
+            if (button) {
+                button.position = 'available';
+                button.enabled = true;
+                renderButtons();
+            }
+        }
+        
+        function editButton(e, buttonId) {
+            e.stopPropagation();
+            const button = systemButtons.find(btn => btn.id === buttonId);
+            if (!button) return;
+            
+            const newText = prompt('Texto del botón:', button.text);
+            if (newText && newText.trim()) {
+                button.text = newText.trim();
+            }
+            
+            const newColor = prompt('Color del botón (hex):', button.color);
+            if (newColor && /^#[0-9A-F]{6}$/i.test(newColor)) {
+                button.color = newColor;
+            }
+            
+            renderButtons();
+        }
+        
+        function addCustomButton() {
+            const btnName = prompt('Nombre del botón:', 'Mi Botón');
+            if (!btnName) return;
+            
+            systemButtons.push({
+                id: 'custom' + buttonIdCounter++,
+                text: btnName,
+                color: '#6b7280',
+                icon: 'fa-check',
+                position: 'available',
+                action: 'custom',
+                enabled: true
+            });
+            renderButtons();
+        }
+        
+        // Templates predefinidos
+        const templates = {
+            inventario: {
+                title: 'Sistema de Inventario TAIMEX',
+                user: 'Gerente',
+                color1: '#1e40af',
+                color2: '#3b82f6',
+                color3: '#10b981',
+                fields: [
+                    {name: 'Código', type: 'text', placeholder: 'Código del producto'},
+                    {name: 'Nombre', type: 'text', placeholder: 'Nombre del producto'},
+                    {name: 'Cantidad', type: 'number', placeholder: '0'},
+                    {name: 'Precio', type: 'number', placeholder: '0.00'},
+                    {name: 'Ubicación', type: 'text', placeholder: 'Almacén/Pasillo'}
+                ]
+            },
+            clientes: {
+                title: 'Sistema de Clientes TAIMEX',
+                user: 'Ventas',
+                color1: '#7c3aed',
+                color2: '#a78bfa',
+                color3: '#10b981',
+                fields: [
+                    {name: 'Nombre', type: 'text', placeholder: 'Nombre completo'},
+                    {name: 'Email', type: 'email', placeholder: 'correo@ejemplo.com'},
+                    {name: 'Teléfono', type: 'tel', placeholder: '555-1234'},
+                    {name: 'Empresa', type: 'text', placeholder: 'Nombre de empresa'},
+                    {name: 'Notas', type: 'textarea', placeholder: 'Información adicional'}
+                ]
+            },
+            empleados: {
+                title: 'Sistema de Empleados TAIMEX',
+                user: 'RRHH',
+                color1: '#dc2626',
+                color2: '#ef4444',
+                color3: '#fbbf24',
+                fields: [
+                    {name: 'Nombre Completo', type: 'text', placeholder: 'Nombre del empleado'},
+                    {name: 'Puesto', type: 'text', placeholder: 'Cargo'},
+                    {name: 'Departamento', type: 'text', placeholder: 'Área'},
+                    {name: 'Fecha Ingreso', type: 'date', placeholder: ''},
+                    {name: 'Salario', type: 'number', placeholder: '0.00'}
+                ]
+            },
+            productos: {
+                title: 'Sistema de Productos TAIMEX',
+                user: 'Administrador',
+                color1: '#15803d',
+                color2: '#22c55e',
+                color3: '#fbbf24',
+                fields: [
+                    {name: 'SKU', type: 'text', placeholder: 'Código SKU'},
+                    {name: 'Producto', type: 'text', placeholder: 'Nombre del producto'},
+                    {name: 'Categoría', type: 'text', placeholder: 'Categoría'},
+                    {name: 'Precio Venta', type: 'number', placeholder: '0.00'},
+                    {name: 'Stock', type: 'number', placeholder: '0'}
+                ]
+            }
+        };
+
+        function loadTemplate(templateName) {
+            const template = templates[templateName];
+            if (!template) return;
+            
+            document.getElementById('systemTitle').value = template.title;
+            document.getElementById('userName').value = template.user;
+            document.getElementById('primaryColor').value = template.color1;
+            document.getElementById('primaryColorText').value = template.color1;
+            document.getElementById('secondaryColor').value = template.color2;
+            document.getElementById('secondaryColorText').value = template.color2;
+            document.getElementById('accentColor').value = template.color3;
+            document.getElementById('accentColorText').value = template.color3;
+            
+            // Limpiar campos existentes
+            document.getElementById('fieldsContainer').innerHTML = '';
+            
+            // Agregar campos del template
+            template.fields.forEach(field => {
+                const fieldItem = document.createElement('div');
+                fieldItem.className = 'field-item';
+                fieldItem.innerHTML = 
+                    '<input type="text" placeholder="Nombre del campo" value="' + field.name + '" onchange="updatePreview()">' +
+                    '<select onchange="updatePreview()">' +
+                        '<option value="text"' + (field.type === 'text' ? ' selected' : '') + '>Texto</option>' +
+                        '<option value="number"' + (field.type === 'number' ? ' selected' : '') + '>Número</option>' +
+                        '<option value="date"' + (field.type === 'date' ? ' selected' : '') + '>Fecha</option>' +
+                        '<option value="email"' + (field.type === 'email' ? ' selected' : '') + '>Email</option>' +
+                        '<option value="tel"' + (field.type === 'tel' ? ' selected' : '') + '>Teléfono</option>' +
+                        '<option value="textarea"' + (field.type === 'textarea' ? ' selected' : '') + '>Área de texto</option>' +
+                    '</select>' +
+                    '<input type="text" placeholder="Placeholder" value="' + field.placeholder + '" onchange="updatePreview()">' +
+                    '<button class="btn-remove" onclick="this.parentElement.remove(); updatePreview();"><i class="fas fa-trash"></i></button>';
+                document.getElementById('fieldsContainer').appendChild(fieldItem);
+            });
+            
+            updatePreview();
+            alert('Template "' + templateName + '" cargado exitosamente!');
+        }
+
+        // Exportar configuración
+        function exportConfig() {
+            const config = {
+                systemTitle: document.getElementById('systemTitle').value,
+                userName: document.getElementById('userName').value,
+                primaryColor: document.getElementById('primaryColor').value,
+                secondaryColor: document.getElementById('secondaryColor').value,
+                accentColor: document.getElementById('accentColor').value,
+                customCode: document.getElementById('customCode').value,
+                crudButtons: {
+                    create: {
+                        enabled: document.getElementById('btnCreateEnabled').checked,
+                        text: document.getElementById('btnCreateText').value,
+                        color: document.getElementById('btnCreateColor').value
+                    },
+                    view: {
+                        enabled: document.getElementById('btnViewEnabled').checked,
+                        text: document.getElementById('btnViewText').value,
+                        color: document.getElementById('btnViewColor').value
+                    },
+                    edit: {
+                        enabled: document.getElementById('btnEditEnabled').checked,
+                        text: document.getElementById('btnEditText').value,
+                        color: document.getElementById('btnEditColor').value
+                    },
+                    delete: {
+                        enabled: document.getElementById('btnDeleteEnabled').checked,
+                        text: document.getElementById('btnDeleteText').value,
+                        color: document.getElementById('btnDeleteColor').value
+                    }
+                },
+                fields: []
+            };
+            
+            document.querySelectorAll('#fieldsContainer .field-item').forEach(item => {
+                const inputs = item.querySelectorAll('input');
+                const select = item.querySelector('select');
+                if (inputs[0].value) {
+                    config.fields.push({
+                        name: inputs[0].value,
+                        type: select.value,
+                        placeholder: inputs[1].value
+                    });
+                }
+            });
+            
+            const dataStr = JSON.stringify(config, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'config_sistema_' + Date.now() + '.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Importar configuración
+        function importConfig() {
+            document.getElementById('configFileInput').click();
+        }
+
+        function handleConfigImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const config = JSON.parse(e.target.result);
+                    
+                    document.getElementById('systemTitle').value = config.systemTitle || 'Sistema TAIMEX';
+                    document.getElementById('userName').value = config.userName || 'Admin';
+                    document.getElementById('primaryColor').value = config.primaryColor || '#1e293b';
+                    document.getElementById('primaryColorText').value = config.primaryColor || '#1e293b';
+                    document.getElementById('secondaryColor').value = config.secondaryColor || '#3b82f6';
+                    document.getElementById('secondaryColorText').value = config.secondaryColor || '#3b82f6';
+                    document.getElementById('accentColor').value = config.accentColor || '#10b981';
+                    document.getElementById('accentColorText').value = config.accentColor || '#10b981';
+                    document.getElementById('customCode').value = config.customCode || '';
+                    
+                    // Cargar botones CRUD
+                    if (config.crudButtons) {
+                        document.getElementById('btnCreateEnabled').checked = config.crudButtons.create.enabled !== false;
+                        document.getElementById('btnCreateText').value = config.crudButtons.create.text || 'Agregar';
+                        document.getElementById('btnCreateColor').value = config.crudButtons.create.color || '#10b981';
+                        document.getElementById('btnCreateColorText').value = config.crudButtons.create.color || '#10b981';
+                        
+                        document.getElementById('btnViewEnabled').checked = config.crudButtons.view.enabled !== false;
+                        document.getElementById('btnViewText').value = config.crudButtons.view.text || 'Ver';
+                        document.getElementById('btnViewColor').value = config.crudButtons.view.color || '#3b82f6';
+                        document.getElementById('btnViewColorText').value = config.crudButtons.view.color || '#3b82f6';
+                        
+                        document.getElementById('btnEditEnabled').checked = config.crudButtons.edit.enabled !== false;
+                        document.getElementById('btnEditText').value = config.crudButtons.edit.text || 'Editar';
+                        document.getElementById('btnEditColor').value = config.crudButtons.edit.color || '#f59e0b';
+                        document.getElementById('btnEditColorText').value = config.crudButtons.edit.color || '#f59e0b';
+                        
+                        document.getElementById('btnDeleteEnabled').checked = config.crudButtons.delete.enabled !== false;
+                        document.getElementById('btnDeleteText').value = config.crudButtons.delete.text || 'Eliminar';
+                        document.getElementById('btnDeleteColor').value = config.crudButtons.delete.color || '#ef4444';
+                        document.getElementById('btnDeleteColorText').value = config.crudButtons.delete.color || '#ef4444';
+                    }
+                    
+                    // Limpiar y cargar campos
+                    document.getElementById('fieldsContainer').innerHTML = '';
+                    
+                    if (config.fields && config.fields.length > 0) {
+                        config.fields.forEach(field => {
+                            const fieldItem = document.createElement('div');
+                            fieldItem.className = 'field-item';
+                            fieldItem.innerHTML = 
+                                '<input type="text" placeholder="Nombre del campo" value="' + field.name + '" onchange="updatePreview()">' +
+                                '<select onchange="updatePreview()">' +
+                                    '<option value="text"' + (field.type === 'text' ? ' selected' : '') + '>Texto</option>' +
+                                    '<option value="number"' + (field.type === 'number' ? ' selected' : '') + '>Número</option>' +
+                                    '<option value="date"' + (field.type === 'date' ? ' selected' : '') + '>Fecha</option>' +
+                                    '<option value="email"' + (field.type === 'email' ? ' selected' : '') + '>Email</option>' +
+                                    '<option value="tel"' + (field.type === 'tel' ? ' selected' : '') + '>Teléfono</option>' +
+                                    '<option value="textarea"' + (field.type === 'textarea' ? ' selected' : '') + '>Área de texto</option>' +
+                                '</select>' +
+                                '<input type="text" placeholder="Placeholder" value="' + field.placeholder + '" onchange="updatePreview()">' +
+                                '<button class="btn-remove" onclick="this.parentElement.remove(); updatePreview();"><i class="fas fa-trash"></i></button>';
+                            document.getElementById('fieldsContainer').appendChild(fieldItem);
+                        });
+                    }
+                    
+                    updatePreview();
+                    alert('Configuración importada exitosamente!');
+                } catch (error) {
+                    alert('Error al importar la configuración: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // Agregar campo
+        function addField() {
+            const container = document.getElementById('fieldsContainer');
+            const fieldItem = document.createElement('div');
+            fieldItem.className = 'field-item';
+            fieldItem.innerHTML = 
+                '<input type="text" placeholder="Nombre del campo" value="Nuevo Campo" onchange="updatePreview()">' +
+                '<select onchange="updatePreview()">' +
+                    '<option value="text" selected>Texto</option>' +
+                    '<option value="number">Número</option>' +
+                    '<option value="date">Fecha</option>' +
+                    '<option value="email">Email</option>' +
+                    '<option value="tel">Teléfono</option>' +
+                    '<option value="textarea">Área de texto</option>' +
+                '</select>' +
+                '<input type="text" placeholder="Placeholder" value="Ingrese valor" onchange="updatePreview()">' +
+                '<button class="btn-remove" onclick="this.parentElement.remove(); updatePreview();"><i class="fas fa-trash"></i></button>';
+            container.appendChild(fieldItem);
+            updatePreview();
+        }
+
+        // Actualizar vista previa
+        function updatePreview() {
+            const systemTitle = document.getElementById('systemTitle').value;
+            const systemSubtitle = document.getElementById('systemSubtitle').value;
+            const userName = document.getElementById('userName').value;
+            const formTitle = document.getElementById('formTitle').value;
+            const logoUrl = document.getElementById('logoUrl').value;
+            const primaryColor = document.getElementById('primaryColor').value;
+            const secondaryColor = document.getElementById('secondaryColor').value;
+            const accentColor = document.getElementById('accentColor').value;
+
+            // Recolectar campos
+            const fields = [];
+            document.querySelectorAll('#fieldsContainer .field-item').forEach(item => {
+                const inputs = item.querySelectorAll('input');
+                const select = item.querySelector('select');
+                if (inputs[0].value) {
+                    fields.push({
+                        name: inputs[0].value,
+                        type: select.value,
+                        placeholder: inputs[1].value
+                    });
+                }
+            });
+
+            // Generar HTML del preview
+            const previewHTML = generatePreviewHTML(systemTitle, systemSubtitle, userName, formTitle, logoUrl, primaryColor, secondaryColor, accentColor, systemButtons, fields);
+            
+            // Actualizar iframe
+            const frame = document.getElementById('previewFrame');
+            frame.srcdoc = previewHTML;
+            
+            // Actualizar editor de código
+            const sourceEditor = document.getElementById('sourceCodeEditor');
+            if (sourceEditor) {
+                sourceEditor.value = previewHTML;
+                updateCodeStats();
+            }
+            
+            // Actualizar vista de código del preview con syntax highlighting
+            const previewCodeHighlight = document.getElementById('previewCodeHighlight');
+            if (previewCodeHighlight) {
+                previewCodeHighlight.textContent = formatHTML(previewHTML);
+                if (typeof Prism !== 'undefined') {
+                    Prism.highlightElement(previewCodeHighlight);
+                }
+                updatePreviewCodeStats();
+            }
+        }
+        
+        // Formatear HTML con indentación bonita
+        function formatHTML(html) {
+            const tab = '  ';
+            let result = '';
+            let indent = 0;
+            
+            // Limpiar espacios extra
+            html = html.replace(/>\s+</g, '><').trim();
+            
+            // Separar por tags
+            const tokens = html.split(/(<[^>]+>)/g).filter(token => token.trim().length > 0);
+            
+            tokens.forEach(token => {
+                if (token.match(/^<\/\w/)) {
+                    // Tag de cierre
+                    indent = Math.max(indent - 1, 0);
+                }
+                
+                if (token.match(/^<\w[^>]*[^\/]>$/)) {
+                    // Tag de apertura
+                    result += tab.repeat(indent) + token + '\n';
+                    indent++;
+                } else if (token.match(/^<\w[^>]*\/>$/) || token.match(/^<(meta|link|img|br|hr|input)/)) {
+                    // Tag auto-cerrado
+                    result += tab.repeat(indent) + token + '\n';
+                } else if (token.match(/^<\/\w/)) {
+                    // Tag de cierre
+                    result += tab.repeat(indent) + token + '\n';
+                } else if (token.match(/^<!DOCTYPE/i)) {
+                    result += token + '\n';
+                } else {
+                    // Contenido de texto
+                    if (token.trim().length > 0) {
+                        result += tab.repeat(indent) + token.trim() + '\n';
+                    }
+                }
+            });
+            
+            return result.trim();
+        }
+        
+        // Funciones del preview code view
+        let isPreviewCodeMode = false;
+        
+        function togglePreviewMode() {
+            isPreviewCodeMode = !isPreviewCodeMode;
+            
+            const iframe = document.getElementById('previewFrame');
+            const codeView = document.getElementById('previewCodeView');
+            const codeActions = document.getElementById('previewCodeActions');
+            const toggleIcon = document.getElementById('previewToggleIcon');
+            const toggleText = document.getElementById('previewToggleText');
+            const modeLabel = document.getElementById('previewModeLabel');
+            
+            if (isPreviewCodeMode) {
+                // Mostrar código
+                iframe.style.display = 'none';
+                codeView.style.display = 'block';
+                codeActions.style.display = 'flex';
+                toggleIcon.className = 'fas fa-eye';
+                toggleText.textContent = 'Ver Preview';
+                modeLabel.innerHTML = '<i class="fas fa-code"></i> Código Fuente';
+            } else {
+                // Mostrar preview
+                iframe.style.display = 'block';
+                codeView.style.display = 'none';
+                codeActions.style.display = 'none';
+                toggleIcon.className = 'fas fa-code';
+                toggleText.textContent = 'Ver Código';
+                modeLabel.innerHTML = '<i class="fas fa-eye"></i> Vista Previa';
+            }
+        }
+        
+        function copyPreviewCode() {
+            const codeElement = document.getElementById('previewCodeHighlight');
+            const text = codeElement.textContent;
+            
+            // Crear un textarea temporal para copiar
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            // Feedback visual
+            const btn = event.target.closest('button');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> ¡Copiado!';
+            btn.style.background = '#10b981';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.style.background = '';
+            }, 2000);
+        }
+        
+        function updatePreviewCodeStats() {
+            const codeElement = document.getElementById('previewCodeHighlight');
+            const statsEl = document.getElementById('previewCodeStats');
+            
+            if (codeElement && statsEl) {
+                const text = codeElement.textContent;
+                const lines = text.split('\n').length;
+                const chars = text.length;
+                statsEl.textContent = 'Líneas: ' + lines + ' | Caracteres: ' + chars;
+            }
+        }
+        
+        // Funciones del editor de código
+        function toggleCodeEditor() {
+            const section = document.getElementById('codeEditorSection');
+            const toggleText = document.getElementById('codeEditorToggleText');
+            
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                toggleText.textContent = 'Ocultar Editor de Código';
+                // Actualizar el código cuando se abre
+                updatePreview();
+            } else {
+                section.style.display = 'none';
+                toggleText.textContent = 'Ver/Editar Código Fuente';
+            }
+        }
+        
+        function copySourceCode() {
+            const editor = document.getElementById('sourceCodeEditor');
+            editor.select();
+            document.execCommand('copy');
+            
+            // Notificación visual
+            const btn = event.target.closest('button');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> ¡Copiado!';
+            btn.style.background = '#10b981';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.style.background = '';
+            }, 2000);
+        }
+        
+        function updatePreviewFromCode() {
+            const editor = document.getElementById('sourceCodeEditor');
+            const frame = document.getElementById('previewFrame');
+            
+            try {
+                frame.srcdoc = editor.value;
+                alert('✅ Preview actualizado con tu código editado');
+            } catch (error) {
+                alert('❌ Error al actualizar el preview: ' + error.message);
+            }
+        }
+        
+        function downloadEditedCode() {
+            const editor = document.getElementById('sourceCodeEditor');
+            const code = editor.value;
+            
+            const blob = new Blob([code], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sistema_editado_' + Date.now() + '.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('✅ Código descargado exitosamente');
+        }
+        
+        function handleEditorKeydown(e) {
+            // Permitir Tab en el editor
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const editor = e.target;
+                const start = editor.selectionStart;
+                const end = editor.selectionEnd;
+                
+                // Insertar tab (2 espacios)
+                editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
+                editor.selectionStart = editor.selectionEnd = start + 2;
+            }
+            
+            // Ctrl/Cmd + S para actualizar preview
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                updatePreviewFromCode();
+            }
+        }
+        
+        function updateCodeStats() {
+            const editor = document.getElementById('sourceCodeEditor');
+            const statsEl = document.getElementById('codeStats');
+            
+            if (editor && statsEl) {
+                const lines = editor.value.split('\n').length;
+                const chars = editor.value.length;
+                statsEl.textContent = 'Líneas: ' + lines + ' | Caracteres: ' + chars;
+            }
+        }
+
+        // Generar HTML de vista previa
+        function generatePreviewHTML(title, subtitle, user, formTitle, logoUrl, color1, color2, color3, buttons, fields) {
+            let fieldsHTML = '';
+            for (let i = 0; i < fields.length; i++) {
+                const inputHTML = fields[i].type === 'textarea' 
+                    ? '<textarea placeholder=\'' + fields[i].placeholder.replace(/'/g, "\\'") + '\' rows=\'3\'></textarea>'
+                    : '<input type=\'' + fields[i].type + '\' placeholder=\'' + fields[i].placeholder.replace(/'/g, "\\'") + '\'>';
+                
+                fieldsHTML += '<div class=\'form-group\'>' +
+                    '<label>' + fields[i].name + '</label>' +
+                    inputHTML +
+                    '</div>';
+            }
+            
+            // Generar botones por posición
+            const headerButtons = buttons.filter(btn => btn.enabled && btn.position === 'header')
+                .map(btn => '<button class=\'btn\' style=\'background:' + btn.color + '; margin: 0 4px;\'><i class=\'' + btn.icon + '\'></i> ' + btn.text + '</button>').join('');
+            
+            const formButtons = buttons.filter(btn => btn.enabled && btn.position === 'form')
+                .map(btn => '<button class=\'btn\' style=\'background:' + btn.color + '; margin-right: 8px;\'><i class=\'' + btn.icon + '\'></i> ' + btn.text + '</button>').join('');
+            
+            const footerButtons = buttons.filter(btn => btn.enabled && btn.position === 'footer')
+                .map(btn => '<button class=\'btn\' style=\'background:' + btn.color + '; margin: 0 4px;\'><i class=\'' + btn.icon + '\'></i> ' + btn.text + '</button>').join('');
+            
+            // Generar estilos de botones
+            const buttonStyles = buttons.map(btn => '.btn-' + btn.id + ' { background: ' + btn.color + '; }').join(' ');
+            
+            return '<!DOCTYPE html>' +
+                '<html lang=\'es\'>' +
+                '<head>' +
+                    '<meta charset=\'UTF-8\'>' +
+                    '<meta name=\'viewport\' content=\'width=device-width, initial-scale=1.0\'>' +
+                    '<title>' + title + '</title>' +
+                    '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">' +
+                    '<style>' +
+                        '* { margin: 0; padding: 0; box-sizing: border-box; }' +
+                        'html, body { height: 100vh; overflow: hidden; width: 100%; }' +
+                        'body { font-family: Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); color: #334155; }' +
+                        '.container { width: 100%; height: 100vh; background: #fff; display: flex; flex-direction: column; overflow: hidden; }' +
+                        '.header { background: linear-gradient(135deg, ' + color1 + ' 0%, ' + color2 + ' 100%); color: #fff; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(30,41,59,.25); position: relative; z-index: 100; }' +
+                        '.header-left { display: flex; align-items: center; gap: 20px; }' +
+                        '.hamburger-menu { background: none; border: none; color: #fff; font-size: 1.2em; cursor: pointer; padding: 8px; border-radius: 6px; transition: background-color .2s ease; }' +
+                        '.hamburger-menu:hover { background-color: rgba(255,255,255,.12); }' +
+                        '.hamburger-menu svg { width: 24px; height: 24px; fill: currentColor; }' +
+                        '.logo-section img { height: 40px; width: auto; object-fit: contain; filter: brightness(1.05); }' +
+                        '.title-section { text-align: right; }' +
+                        '.title-row { display: flex; align-items: center; justify-content: flex-end; gap: 15px; }' +
+                        '.welcome-user { white-space: nowrap; }' +
+                        '.welcome-user span { color: #cbd5e1; font-size: .8em; font-weight: 400; }' +
+                        '.welcome-user strong { color: #3b82f6; margin-left: 4px; font-weight: 600; }' +
+                        '.title-section h2 { font-size: .95em; margin: 0; font-weight: 500; color: #fff; letter-spacing: .3px; }' +
+                        '.title-section p { font-size: .75em; margin: 2px 0 0 0; color: #cbd5e1; font-weight: 400; }' +
+                        '.header-buttons { display: flex; gap: 8px; }' +
+                        '.main-content { flex: 1; padding: 24px; overflow-y: auto; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); }' +
+                        '.form-container { background: rgba(255,255,255,0.95); padding: 24px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-width: 1000px; margin: 0 auto; }' +
+                        '.form-group { margin-bottom: 16px; }' +
+                        '.form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 14px; }' +
+                        '.form-group input, .form-group textarea { width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; font-family: Arial, sans-serif; transition: border-color 0.2s; }' +
+                        '.form-group input:focus, .form-group textarea:focus { outline: none; border-color: ' + color1 + '; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }' +
+                        '.form-group textarea { resize: vertical; min-height: 60px; }' +
+                        '.btn { color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; transition: all 0.2s; }' +
+                        '.btn:hover { opacity: 0.9; transform: translateY(-1px); }' +
+                        '.footer { background: #f9fafb; padding: 16px; text-align: center; border-top: 1px solid #e5e7eb; }' +
+                        buttonStyles +
+                    '</style>' +
+                '</head>' +
+                '<body>' +
+                    '<div class="container">' +
+                        '<div class="header">' +
+                            '<div class="header-left">' +
+                                '<button class="hamburger-menu" onclick="alert(\'Menu clicked\')">' +
+                                    '<svg viewBox="0 0 448 512"><path d="M0 96C0 78.3 14.3 64 32 64H416C433.7 64 448 78.3 448 96C448 113.7 433.7 128 416 128H32C14.3 128 0 113.7 0 96zM0 256C0 238.3 14.3 224 32 224H416C433.7 224 448 238.3 448 256C448 273.7 433.7 288 416 288H32C14.3 288 0 273.7 0 256zM448 416C448 433.7 433.7 448 416 448H32C14.3 448 0 433.7 0 416C0 398.3 14.3 384 32 384H416C433.7 384 448 398.3 448 416z"></path></svg>' +
+                                '</button>' +
+                                (logoUrl ? '<div class="logo-section"><img src="' + logoUrl + '" alt="Logo" onerror="this.style.display=\'none\'"></div>' : '') +
+                                (headerButtons ? '<div class="header-buttons">' + headerButtons + '</div>' : '') +
+                            '</div>' +
+                            '<div class="title-section">' +
+                                '<div class="title-row">' +
+                                    '<div class="welcome-user"><span>Welcome,</span><strong>' + user + '</strong></div>' +
+                                    '<div><h2>' + title + '</h2><p>' + subtitle + '</p></div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="main-content">' +
+                            '<div class="form-container">' +
+                                '<h2 style="margin-bottom: 20px; color: #1f2937; font-size: 1.5em;">' + formTitle + '</h2>' +
+                                fieldsHTML +
+                                (formButtons ? '<div style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">' + formButtons + '</div>' : '') +
+                            '</div>' +
+                        '</div>' +
+                        (footerButtons ? '<div class="footer">' + footerButtons + '</div>' : '') +
+                    '</div>' +
+                '</body>' +
+                '</html>';
+        }
+
+        // Generar sistema completo
+        function generateSystem() {
+            const systemTitle = document.getElementById('systemTitle').value;
+            const systemSubtitle = document.getElementById('systemSubtitle').value;
+            const userName = document.getElementById('userName').value;
+            const formTitle = document.getElementById('formTitle').value;
+            const logoUrl = document.getElementById('logoUrl').value;
+            const primaryColor = document.getElementById('primaryColor').value;
+            const secondaryColor = document.getElementById('secondaryColor').value;
+            const accentColor = document.getElementById('accentColor').value;
+            const customCode = document.getElementById('customCode').value;
+
+            // Recolectar campos
+            const fields = [];
+            document.querySelectorAll('#fieldsContainer .field-item').forEach(item => {
+                const inputs = item.querySelectorAll('input');
+                const select = item.querySelector('select');
+                if (inputs[0].value) {
+                    fields.push({
+                        name: inputs[0].value,
+                        type: select.value,
+                        placeholder: inputs[1].value
+                    });
+                }
+            });
+
+            // Generar HTML completo del sistema
+            const fullHTML = generateCompleteSystemHTML(systemTitle, systemSubtitle, userName, formTitle, logoUrl, primaryColor, secondaryColor, accentColor, customCode, systemButtons, fields);
+
+            // Actualizar editor de código con el HTML completo
+            const sourceEditor = document.getElementById('sourceCodeEditor');
+            if (sourceEditor) {
+                sourceEditor.value = fullHTML;
+                updateCodeStats();
+            }
+
+            // Descargar archivo
+            const blob = new Blob([fullHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sistema_' + Date.now() + '.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert('¡Sistema generado exitosamente! El archivo se ha descargado.\n\n💡 Tip: Haz clic en "Ver/Editar Código Fuente" para ver y editar el código completo.');
+        }
+
+        // Generar HTML completo del sistema
+        function generateCompleteSystemHTML(title, subtitle, user, formTitle, logoUrl, color1, color2, color3, customCode, buttons, fields) {
+            let fieldsHTML = '';
+            let tableHeaders = '';
+            let fieldIds = '';
+            for (let i = 0; i < fields.length; i++) {
+                const inputHTML = fields[i].type === 'textarea'
+                    ? '<textarea id=\'field' + i + '\' placeholder=\'' + fields[i].placeholder.replace(/'/g, "\\'") + '\' rows=\'3\' required></textarea>'
+                    : '<input type=\'' + fields[i].type + '\' id=\'field' + i + '\' placeholder=\'' + fields[i].placeholder.replace(/'/g, "\\'") + '\' required>';
+                
+                fieldsHTML += '<div class=\'form-group\'>' +
+                    '<label>' + fields[i].name + '</label>' +
+                    inputHTML +
+                    '</div>';
+                tableHeaders += '<th>' + fields[i].name + '</th>';
+                if (i > 0) fieldIds += ', ';
+                fieldIds += '\'field' + i + '\'';
+            }
+            return '<!DOCTYPE html>' +
+                '<html lang=\'es\'>' +
+                '<head>' +
+                    '<meta charset=\'UTF-8\'>' +
+                    '<meta name=\'viewport\' content=\'width=device-width, initial-scale=1.0\'>' +
+                    '<title>' + title + '</title>' +
+                    '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">' +
+                    '<style>' +
+                        '* { margin: 0; padding: 0; box-sizing: border-box; }' +
+                        'html, body { height: 100vh; overflow: hidden; width: 100%; }' +
+                        'body { font-family: Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); color: #334155; }' +
+                        '.container { width: 100%; height: 100vh; background: #fff; display: flex; flex-direction: column; overflow: hidden; }' +
+                        '.header { background: linear-gradient(135deg, ' + color1 + ' 0%, ' + color2 + ' 100%); color: #fff; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(30,41,59,.25); position: relative; z-index: 100; }' +
+                        '.header-left { display: flex; align-items: center; gap: 20px; }' +
+                        '.hamburger-menu { background: none; border: none; color: #fff; font-size: 1.2em; cursor: pointer; padding: 8px; border-radius: 6px; transition: background-color .2s ease; }' +
+                        '.hamburger-menu:hover { background-color: rgba(255,255,255,.12); }' +
+                        '.hamburger-menu svg { width: 24px; height: 24px; fill: currentColor; }' +
+                        '.logo-section img { height: 40px; width: auto; object-fit: contain; filter: brightness(1.05); }' +
+                        '.title-section { text-align: right; }' +
+                        '.title-row { display: flex; align-items: center; justify-content: flex-end; gap: 15px; }' +
+                        '.welcome-user { white-space: nowrap; }' +
+                        '.welcome-user span { color: #cbd5e1; font-size: .8em; font-weight: 400; }' +
+                        '.welcome-user strong { color: #3b82f6; margin-left: 4px; font-weight: 600; }' +
+                        '.title-section h2 { font-size: .95em; margin: 0; font-weight: 500; color: #fff; letter-spacing: .3px; }' +
+                        '.title-section p { font-size: .75em; margin: 2px 0 0 0; color: #cbd5e1; font-weight: 400; }' +
+                        '.main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); }' +
+                        '.tabs { display: flex; gap: 4px; padding: 12px 24px 0; background: transparent; border-bottom: 2px solid rgba(226,232,240,0.8); }' +
+                        '.tab { padding: 12px 24px; background: rgba(255,255,255,0.7); border: none; cursor: pointer; font-weight: 600; color: #64748b; border-radius: 8px 8px 0 0; transition: all 0.2s; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; }' +
+                        '.tab.active { background: white; color: ' + color1 + '; box-shadow: 0 -2px 8px rgba(0,0,0,0.05); }' +
+                        '.tab:hover { background: rgba(255,255,255,0.9); color: ' + color1 + '; }' +
+                        '.tab-content { display: none; padding: 24px; overflow-y: auto; flex: 1; }' +
+                        '.tab-content.active { display: block; }' +
+                        '.form-container { background: rgba(255,255,255,0.95); padding: 28px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); max-width: 1200px; margin: 0 auto; }' +
+                        '.form-group { margin-bottom: 18px; }' +
+                        '.form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #334155; font-size: 14px; }' +
+                        '.form-group input, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: inherit; transition: all 0.2s; background: white; }' +
+                        '.form-group input:focus, .form-group textarea:focus { outline: none; border-color: ' + color1 + '; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }' +
+                        '.form-group textarea { resize: vertical; min-height: 80px; }' +
+                        '.btn { color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }' +
+                        '.btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }' +
+                        buttons.map(btn => '.btn-' + btn.id + ' { background: ' + btn.color + '; }').join(' ') +
+                        'table { width: 100%; border-collapse: collapse; margin-top: 16px; background: white; border-radius: 8px; overflow: hidden; }' +
+                        'th, td { padding: 14px; text-align: left; border-bottom: 1px solid #e2e8f0; }' +
+                        'th { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); font-weight: 600; color: #334155; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }' +
+                        'tbody tr { transition: background 0.15s; }' +
+                        'tbody tr:hover { background: #f8fafc; }' +
+                        '.action-btn { padding: 8px 14px; margin-right: 6px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; }' +
+                        '.action-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }' +
+                        '.notification { position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 16px 24px; border-radius: 10px; box-shadow: 0 8px 24px rgba(16,185,129,0.3); z-index: 1000; display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease; }' +
+                        '@keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }' +
+                    '</style>' +
+                '</head>' +
+                '<body>' +
+                    '<div class="container">' +
+                        '<div class="header">' +
+                            '<div class="header-left">' +
+                                '<button class="hamburger-menu" onclick="alert(\'Menu\')">' +
+                                    '<svg viewBox="0 0 448 512"><path d="M0 96C0 78.3 14.3 64 32 64H416C433.7 64 448 78.3 448 96C448 113.7 433.7 128 416 128H32C14.3 128 0 113.7 0 96zM0 256C0 238.3 14.3 224 32 224H416C433.7 224 448 238.3 448 256C448 273.7 433.7 288 416 288H32C14.3 288 0 273.7 0 256zM448 416C448 433.7 433.7 448 416 448H32C14.3 448 0 433.7 0 416C0 398.3 14.3 384 32 384H416C433.7 384 448 398.3 448 416z"></path></svg>' +
+                                '</button>' +
+                                (logoUrl ? '<div class="logo-section"><img src="' + logoUrl + '" alt="Logo" onerror="this.style.display=\'none\'"></div>' : '') +
+                            '</div>' +
+                            '<div class="title-section">' +
+                                '<div class="title-row">' +
+                                    '<div class="welcome-user"><span>Welcome,</span><strong>' + user + '</strong></div>' +
+                                    '<div><h2>' + title + '</h2><p>' + subtitle + '</p></div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<main class="main-content">' +
+                            '<div class="tabs">' +
+                                '<button class="tab active" onclick="switchTab(0)"><i class="fas fa-plus"></i> Agregar</button>' +
+                                '<button class="tab" onclick="switchTab(1)"><i class="fas fa-list"></i> Ver Registros</button>' +
+                            '</div>' +
+                            '<div id="tab0" class="tab-content active">' +
+                                '<div class="form-container">' +
+                                    '<h2 style="margin-bottom: 20px; color: #1f2937;">' + formTitle + '</h2>' +
+                                '<form onsubmit="addRecord(event)">' +
+                                    fieldsHTML +
+                                    '<div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;">' +
+                                        buttons.filter(btn => btn.enabled && btn.position === 'form').map(btn => 
+                                            '<button type="' + (btn.action === 'save' ? 'submit' : 'button') + '" class="btn btn-' + btn.id + '" ' + 
+                                            (btn.action !== 'save' ? 'onclick="' + btn.action + 'Action()"' : '') + '>' +
+                                            '<i class="' + btn.icon + '"></i> ' + btn.text + '</button>'
+                                        ).join('') +
+                                    '</div>' +
+                                '</form>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div id="tab1" class="tab-content">' +
+                            '<div class="form-container">' +
+                                '<h2 style="margin-bottom: 20px; color: #1f2937;">Registros Guardados (<span id="recordCount">0</span>)</h2>' +
+                                '<div style="display: flex; gap: 12px; margin-bottom: 16px;">' +
+                                    '<input type="text" id="searchInput" placeholder="Buscar..." style="flex: 1; padding: 10px; border: 2px solid #e5e7eb; border-radius: 6px;" onkeyup="filterRecords()">' +
+                                    '<button class="btn" onclick="exportToCSV()" style="margin-top: 0;"><i class="fas fa-file-export"></i> Exportar CSV</button>' +
+                                '</div>' +
+                                '<table>' +
+                                    '<thead><tr>' + tableHeaders + '<th>Acciones</th></tr></thead>' +
+                                    '<tbody id="recordsTable"></tbody>' +
+                                '</table>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<script>' +
+                        'let records = [];' +
+                        'const fieldIds = [' + fieldIds + '];' +
+                        'function switchTab(index) {' +
+                            'document.querySelectorAll(".tab").forEach(function(t, i) {' +
+                                't.classList.toggle("active", i === index);' +
+                            '});' +
+                            'document.querySelectorAll(".tab-content").forEach(function(c, i) {' +
+                                'c.classList.toggle("active", i === index);' +
+                            '});' +
+                        '}' +
+                        'function addRecord(e) {' +
+                            'e.preventDefault();' +
+                            'const record = {};' +
+                            'fieldIds.forEach(function(id) {' +
+                                'record[id] = document.getElementById(id).value;' +
+                                'document.getElementById(id).value = "";' +
+                            '});' +
+                            'records.push(record);' +
+                            'renderRecords();' +
+                            'showNotification("Registro guardado exitosamente");' +
+                        '}' +
+                        'function renderRecords() {' +
+                            'const tbody = document.getElementById("recordsTable");' +
+                            'tbody.innerHTML = "";' +
+                            'records.forEach(function(record, index) {' +
+                                'const tr = document.createElement("tr");' +
+                                'fieldIds.forEach(function(id) {' +
+                                    'const td = document.createElement("td");' +
+                                    'td.textContent = record[id];' +
+                                    'tr.appendChild(td);' +
+                                '});' +
+                                'const actionTd = document.createElement("td");' +
+                                
+                                buttons.filter(btn => btn.enabled && btn.position === 'table').map(btn => {
+                                    return 'const btn' + btn.id + ' = document.createElement("button");' +
+                                    'btn' + btn.id + '.className = "action-btn btn-' + btn.id + '";' +
+                                    'btn' + btn.id + '.innerHTML = "<i class=\'' + btn.icon + '\'></i> ' + btn.text + '";' +
+                                    'btn' + btn.id + '.setAttribute("onclick", "' + btn.action + 'Record(" + index + ")");' +
+                                    'actionTd.appendChild(btn' + btn.id + ');';
+                                }).join('') +
+                                
+                                'tr.appendChild(actionTd);' +
+                                'tbody.appendChild(tr);' +
+                            '});' +
+                            'updateRecordCount();' +
+                        '}' +
+                        'function viewRecord(index) {' +
+                            'const record = records[index];' +
+                            'let details = "";' +
+                            'fieldIds.forEach(function(id) {' +
+                                'details += id.replace("field", "Campo ") + ": " + record[id] + "\\n";' +
+                            '});' +
+                            'alert("DETALLES DEL REGISTRO\\n\\n" + details);' +
+                        '}' +
+                        'function editRecord(index) {' +
+                            'const record = records[index];' +
+                            'fieldIds.forEach(function(id) {' +
+                                'const input = document.getElementById(id);' +
+                                'if (input) input.value = record[id];' +
+                            '});' +
+                            'switchTab(0);' +
+                            'records.splice(index, 1);' +
+                            'renderRecords();' +
+                            'showNotification("Editando registro...");' +
+                        '}' +
+                        'function deleteRecord(index) {' +
+                            'if (confirm("Eliminar este registro?")) {' +
+                                'records.splice(index, 1);' +
+                                'renderRecords();' +
+                                'showNotification("Registro eliminado");' +
+                            '}' +
+                        '}' +
+                        'function updateRecordCount() {' +
+                            'const countEl = document.getElementById("recordCount");' +
+                            'if (countEl) countEl.textContent = records.length;' +
+                        '}' +
+                        'function filterRecords() {' +
+                            'const searchTerm = document.getElementById("searchInput").value.toLowerCase();' +
+                            'const tbody = document.getElementById("recordsTable");' +
+                            'const rows = tbody.getElementsByTagName("tr");' +
+                            'for (let i = 0; i < rows.length; i++) {' +
+                                'const row = rows[i];' +
+                                'const text = row.textContent.toLowerCase();' +
+                                'if (text.includes(searchTerm)) {' +
+                                    'row.style.display = "";' +
+                                '} else {' +
+                                    'row.style.display = "none";' +
+                                '}' +
+                            '}' +
+                        '}' +
+                        'function exportToCSV() {' +
+                            'if (records.length === 0) {' +
+                                'alert("No hay registros para exportar");' +
+                                'return;' +
+                            '}' +
+                            'let csv = fieldIds.join(",") + "\\n";' +
+                            'records.forEach(function(record) {' +
+                                'const values = [];' +
+                                'fieldIds.forEach(function(id) {' +
+                                    'const val = record[id] || "";' +
+                                    'values.push("\\"" + val.replace(/"/g, "\\"\\"") + "\\"");' +
+                                '});' +
+                                'csv += values.join(",") + "\\n";' +
+                            '});' +
+                            'const blob = new Blob([csv], { type: "text/csv" });' +
+                            'const url = URL.createObjectURL(blob);' +
+                            'const a = document.createElement("a");' +
+                            'a.href = url;' +
+                            'a.download = "datos_' + Date.now() + '.csv";' +
+                            'a.click();' +
+                            'URL.revokeObjectURL(url);' +
+                            'showNotification("Datos exportados a CSV");' +
+                        '}' +
+                        'function showNotification(message) {' +
+                            'const notif = document.createElement("div");' +
+                            'notif.className = "notification";' +
+                            'const icon = document.createElement("i");' +
+                            'icon.className = "fas fa-check-circle";' +
+                            'notif.appendChild(icon);' +
+                            'notif.appendChild(document.createTextNode(" " + message));' +
+                            'document.body.appendChild(notif);' +
+                            'setTimeout(function() { notif.remove(); }, 3000);' +
+                        '}' +
+                    '<\/script>' +
+                    (customCode ? '\n' + customCode + '\n' : '') +
+                        '</main>' +
+                    '</div>' +
+                '</body>' +
+                '</html>';
+        }
+
+        // Inicializar vista previa
+        window.addEventListener('DOMContentLoaded', function() {
+            initializeButtons();
+            updatePreview();
+        });
+    </script>
+</body>
+</html>

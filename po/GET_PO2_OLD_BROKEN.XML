@@ -1,0 +1,715 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO2' TO PO2F ELSE STOP 201,'PO2'
+OPEN 'VENDOR' TO VENDORF ELSE STOP 201,'VENDOR'
+OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+OPEN 'CUSTOMER' TO CUSTOMERF ELSE STOP 201,'CUSTOMER'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+* Get parameters from URL
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = ''
+
+PO_NUMBER = TRIM(PO_NUMBER)
+
+* GET_PO2 optimized version started
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML response
+CRLF = CHAR(13):CHAR(10)
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>':CRLF
+XML.RESPONSE = XML.RESPONSE:'<purchaseorders>':CRLF:'<po>':CRLF
+
+* Validate PO number
+IF PO_NUMBER = '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<error>No PO number provided</error></po></purchaseorders>'
+    GOTO FINISH_OUTPUT
+END
+
+* Read PO2 record
+READ PO.RECORD FROM PO2F, PO_NUMBER ELSE
+    WRITE 'PO NOT FOUND ':PO_NUMBER ON XMLDATAF,'DEBUG_NOT_FOUND.TXT'
+    XML.RESPONSE = XML.RESPONSE : '<error>PO not found</error></po></purchaseorders>'
+    GOTO FINISH_OUTPUT
+END
+
+* PO read successful
+
+* Pre-clean PO record to escape ampersands globally
+CONVERT '&' TO '&amp;' IN PO.RECORD
+
+* Initialize variables
+FIELD_VALUE = ''
+VENDOR_NUMBER_CLEAN = ''
+VENDOR_NAME = ''
+VENDOR_ADDRESS = ''
+VENDOR_CITY = ''
+SHIPTO_CODE = ''
+SHIPTO_NAME = ''
+SHIPTO_ADDRESS1 = ''
+SHIPTO_ADDRESS2 = ''
+SHIPTO_CITY = ''
+SHIPTO_STATE = ''
+SHIPTO_ZIP = ''
+CUSTOMER_FOUND = ''
+VENDOR_SHIPTO_FOUND = ''
+LINE_ITEMS_RAW = ''
+PART_NUMBERS_RAW = ''
+DESCRIPTIONS_RAW = ''
+SCHED_DATES_RAW = ''
+PRICES_RAW = ''
+LINE_NOTES_RAW = ''
+NEEDS_DATES_RAW = ''
+LINE_COUNT = 0
+NEED_COUNT = 0
+SCHED_COUNT = 0
+LINE_INDEX = 0
+IDX = 0
+SCHED_FIELD = ''
+NEED_FIELD = ''
+
+* Extract and output basic PO fields
+FIELD_VALUE = PO_NUMBER
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<po_number>' : FIELD_VALUE : '</po_number>'
+
+FIELD_VALUE = PO.RECORD<1>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<po_date>' : FIELD_VALUE : '</po_date>'
+
+FIELD_VALUE = PO.RECORD<8>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<buyer>' : FIELD_VALUE : '</buyer>'
+
+* Try multiple vendor fields - 7, 13, 14, 6, 12
+FIELD_VALUE = PO.RECORD<7>
+IF FIELD_VALUE = '' THEN FIELD_VALUE = PO.RECORD<13>
+IF FIELD_VALUE = '' THEN FIELD_VALUE = PO.RECORD<14>
+IF FIELD_VALUE = '' THEN FIELD_VALUE = PO.RECORD<6>
+IF FIELD_VALUE = '' THEN FIELD_VALUE = PO.RECORD<12>
+GOSUB CLEAN_FIELD
+VENDOR_NUMBER_CLEAN = FIELD_VALUE
+XML.RESPONSE = XML.RESPONSE : '<vendor_number>' : FIELD_VALUE : '</vendor_number>'
+* Vendor fields processed
+
+FIELD_VALUE = PO.RECORD<15>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<po_status>' : FIELD_VALUE : '</po_status>'
+
+FIELD_VALUE = PO.RECORD<11>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<ship_via>' : FIELD_VALUE : '</ship_via>'
+
+FIELD_VALUE = PO.RECORD<80>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<email>' : FIELD_VALUE : '</email>'
+
+* Get vendor information from correct field positions
+* Only try to read vendor if vendor number is not empty
+IF VENDOR_NUMBER_CLEAN <> '' THEN
+    READ VENDOR.RECORD FROM VENDORF, VENDOR_NUMBER_CLEAN ELSE VENDOR.RECORD = ''
+    IF VENDOR.RECORD <> '' THEN
+        * Field 001: Vendor Name (e.g., "CITY OF NEW BEDFORD, MA")
+        FIELD_VALUE = VENDOR.RECORD<1>
+        GOSUB CLEAN_FIELD
+        VENDOR_NAME = FIELD_VALUE
+        * Field 002: Address Line 1 (remove multivalue separator CHAR(253))
+        FIELD_VALUE = VENDOR.RECORD<2>
+        IF FIELD_VALUE <> '' THEN CONVERT XVM TO ' ' IN FIELD_VALUE
+        GOSUB CLEAN_FIELD
+        VENDOR_ADDRESS = FIELD_VALUE
+        * Field 003: City/State/ZIP (e.g., "NEW BEDFORD, MA 02740")
+        FIELD_VALUE = VENDOR.RECORD<3>
+        GOSUB CLEAN_FIELD
+        VENDOR_CITY = FIELD_VALUE
+    END ELSE
+        VENDOR_NAME = ''
+        VENDOR_ADDRESS = ''
+        VENDOR_CITY = ''
+    END
+END ELSE
+    VENDOR_NAME = ''
+    VENDOR_ADDRESS = ''
+    VENDOR_CITY = ''
+END
+
+* Output vendor information
+XML.RESPONSE = XML.RESPONSE : '<vendor_info>'
+FIELD_VALUE = VENDOR_NUMBER_CLEAN
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<vendor_number>' : FIELD_VALUE : '</vendor_number>'
+FIELD_VALUE = VENDOR_NAME
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<vendor_name>' : FIELD_VALUE : '</vendor_name>'
+FIELD_VALUE = VENDOR_ADDRESS
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<vendor_address1>' : FIELD_VALUE : '</vendor_address1>'
+FIELD_VALUE = VENDOR_CITY
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<vendor_city>' : FIELD_VALUE : '</vendor_city>'
+XML.RESPONSE = XML.RESPONSE : '</vendor_info>'
+
+* Get ship-to information from vendor file only, using correct field mapping
+SHIPTO_CODE = ''
+SHIPTO_NAME = ''
+SHIPTO_ADDRESS1 = ''
+SHIPTO_ADDRESS2 = ''
+SHIPTO_CITY = ''
+SHIPTO_STATE = ''
+SHIPTO_ZIP = ''
+
+* Prefer PO record fields first, then fall back to vendor file position <8> 
+SHIPTO_CODE = ''
+* First priority: Check PO record field 4 (primary Ship-To location)
+IF SHIPTO_CODE = '' THEN SHIPTO_CODE = PO.RECORD<4>
+IF SHIPTO_CODE = '' THEN SHIPTO_CODE = PO.RECORD<2>
+IF SHIPTO_CODE = '' THEN SHIPTO_CODE = PO.RECORD<3>
+IF SHIPTO_CODE = '' THEN SHIPTO_CODE = PO.RECORD<6>
+* Last resort: Check vendor file position <8> only if PO fields are empty
+IF SHIPTO_CODE = '' AND VENDOR.RECORD <> '' THEN
+    FIELD_VALUE = VENDOR.RECORD<8>
+    GOSUB CLEAN_FIELD
+    IF FIELD_VALUE <> '' THEN SHIPTO_CODE = FIELD_VALUE
+END
+
+* Ship-to lookup from VENDOR file
+IF SHIPTO_CODE <> '' THEN
+    IF SHIPTO_CODE <> VENDOR_NUMBER_CLEAN THEN
+        READ SHIPTO.RECORD FROM VENDORF, SHIPTO_CODE ELSE SHIPTO.RECORD = ''
+        IF SHIPTO.RECORD <> '' THEN
+            * Map fields as: <1> = name, <2> = address1, <3> = city/state/zip
+            FIELD_VALUE = SHIPTO.RECORD<1>
+            GOSUB CLEAN_FIELD
+            SHIPTO_NAME = FIELD_VALUE
+            FIELD_VALUE = SHIPTO.RECORD<2>
+            CONVERT XVM TO ' ' IN FIELD_VALUE ;* CHAR(253) → space
+            GOSUB CLEAN_FIELD
+            SHIPTO_ADDRESS1 = FIELD_VALUE
+            * Normalize legacy ']' separator in address line (in case older exports used it)
+            CONVERT ']' TO ' ' IN SHIPTO_ADDRESS1
+            FIELD_VALUE = SHIPTO.RECORD<3>
+            GOSUB CLEAN_FIELD
+            SHIPTO_CITY = FIELD_VALUE
+            * Parse CITY, STATE ZIP into components
+            CITY_PART = SHIPTO_CITY
+            STATE_PART = ''
+            ZIP_PART = ''
+            POSCOM = INDEX(SHIPTO_CITY, ',', 1)
+            IF POSCOM > 0 THEN
+                CITY_PART = TRIM(SHIPTO_CITY[1,POSCOM-1])
+                REST = TRIM(SHIPTO_CITY[POSCOM+1,999])
+                * Expect REST like "MA 02740" or just "MA"
+                STATE_PART = FIELD(REST, ' ', 1)
+                ZIP_PART = FIELD(REST, ' ', 2)
+            END
+            SHIPTO_CITY = CITY_PART
+            SHIPTO_STATE = STATE_PART
+            SHIPTO_ZIP = ZIP_PART
+        ELSE
+            SHIPTO_NAME = ''
+            SHIPTO_ADDRESS1 = ''
+            SHIPTO_CITY = ''
+        END
+    ELSE
+        * If SHIPTO_CODE matches vendor, use vendor record as Ship To source
+        SHIPTO_NAME = VENDOR_NAME
+        SHIPTO_ADDRESS1 = VENDOR_ADDRESS
+        SHIPTO_CITY = VENDOR_CITY
+        * Parse VENDOR_CITY into CITY/STATE/ZIP
+        CITY_PART = SHIPTO_CITY
+        STATE_PART = ''
+        ZIP_PART = ''
+        POSCOM = INDEX(SHIPTO_CITY, ',', 1)
+        IF POSCOM > 0 THEN
+            CITY_PART = TRIM(SHIPTO_CITY[1,POSCOM-1])
+            REST = TRIM(SHIPTO_CITY[POSCOM+1,999])
+            STATE_PART = FIELD(REST, ' ', 1)
+            ZIP_PART = FIELD(REST, ' ', 2)
+        END
+        SHIPTO_CITY = CITY_PART
+        SHIPTO_STATE = STATE_PART
+        SHIPTO_ZIP = ZIP_PART
+    END
+ELSE
+    SHIPTO_NAME = ''
+    SHIPTO_ADDRESS1 = ''
+    SHIPTO_ADDRESS2 = ''
+    SHIPTO_CITY = ''
+    SHIPTO_STATE = ''
+    SHIPTO_ZIP = ''
+END
+
+* Provide top-level ship_to code
+IF SHIPTO_CODE <> '' THEN
+    FIELD_VALUE = SHIPTO_CODE
+    GOSUB CLEAN_FIELD
+    XML.RESPONSE = XML.RESPONSE : '<ship_to>' : FIELD_VALUE : '</ship_to>'
+END
+
+* Output shipto information (fields cleaned and output even if empty)
+XML.RESPONSE = XML.RESPONSE : '<shipto_info>'
+FIELD_VALUE = SHIPTO_CODE
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<shipto_number>' : FIELD_VALUE : '</shipto_number>'
+FIELD_VALUE = SHIPTO_NAME
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<shipto_name>' : FIELD_VALUE : '</shipto_name>'
+XML.RESPONSE = XML.RESPONSE : '<name>' : FIELD_VALUE : '</name>'
+FIELD_VALUE = SHIPTO_ADDRESS1
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<shipto_address1>' : FIELD_VALUE : '</shipto_address1>'
+XML.RESPONSE = XML.RESPONSE : '<address1>' : FIELD_VALUE : '</address1>'
+FIELD_VALUE = SHIPTO_ADDRESS2
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<shipto_address2>' : FIELD_VALUE : '</shipto_address2>'
+XML.RESPONSE = XML.RESPONSE : '<address2>' : FIELD_VALUE : '</address2>'
+FIELD_VALUE = SHIPTO_CITY
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<shipto_city>' : FIELD_VALUE : '</shipto_city>'
+XML.RESPONSE = XML.RESPONSE : '<city>' : FIELD_VALUE : '</city>'
+FIELD_VALUE = SHIPTO_STATE
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<shipto_state>' : FIELD_VALUE : '</shipto_state>'
+XML.RESPONSE = XML.RESPONSE : '<state>' : FIELD_VALUE : '</state>'
+FIELD_VALUE = SHIPTO_ZIP
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<shipto_zip>' : FIELD_VALUE : '</shipto_zip>'
+XML.RESPONSE = XML.RESPONSE : '<zip>' : FIELD_VALUE : '</zip>'
+XML.RESPONSE = XML.RESPONSE : '</shipto_info>'
+
+* Process line items
+LINE_ITEMS_RAW = PO.RECORD<31>
+PART_NUMBERS_RAW = PO.RECORD<32>
+DESCRIPTIONS_RAW = PO.RECORD<33>
+SCHED_DATES_RAW = PO.RECORD<34>
+PRICES_RAW = PO.RECORD<36>
+LINE_NOTES_RAW = PO.RECORD<40>
+NEEDS_DATES_RAW = PO.RECORD<38>
+QUANTITIES_RAW = PO.RECORD<35>
+
+* DEBUG: Check where tracking data is actually stored
+XML.RESPONSE = XML.RESPONSE : '<debug_field34_sched>' : SCHED_DATES_RAW : '</debug_field34_sched>'
+XML.RESPONSE = XML.RESPONSE : '<debug_field38_needs>' : NEEDS_DATES_RAW : '</debug_field38_needs>'
+XML.RESPONSE = XML.RESPONSE : '<debug_field49_acks>' : PO.RECORD<49> : '</debug_field49_acks>'
+
+XML.RESPONSE = XML.RESPONSE : '<line_items>'
+IF LINE_ITEMS_RAW <> '' THEN
+    LINE_COUNT = DCOUNT(LINE_ITEMS_RAW, XVM)
+    FOR LINE_INDEX = 1 TO LINE_COUNT
+        XML.RESPONSE = XML.RESPONSE : '<line_item>'
+
+        * Line item code
+        FIELD_VALUE = FIELD(LINE_ITEMS_RAW, XVM, LINE_INDEX)
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<line_item_code>' : FIELD_VALUE : '</line_item_code>'
+
+        * Part number
+        FIELD_VALUE = FIELD(PART_NUMBERS_RAW, XVM, LINE_INDEX)
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<part_number>' : FIELD_VALUE : '</part_number>'
+
+        * Description - try field 33, then 32 if empty
+        FIELD_VALUE = FIELD(DESCRIPTIONS_RAW, XVM, LINE_INDEX)
+        IF FIELD_VALUE = '' THEN FIELD_VALUE = FIELD(PART_NUMBERS_RAW, XVM, LINE_INDEX)
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<description>' : FIELD_VALUE : '</description>'
+
+        * Scheduled date and quantity (subvalue parsing)
+        SCHED_FIELD = FIELD(SCHED_DATES_RAW, XVM, LINE_INDEX)
+        IF SCHED_FIELD <> '' AND INDEX(SCHED_FIELD, XSM, 1) > 0 THEN
+            SCHED_DATE = FIELD(SCHED_FIELD, XSM, 1)
+            SCHED_QTY = FIELD(SCHED_FIELD, XSM, 2)
+        ELSE
+            SCHED_DATE = SCHED_FIELD
+            SCHED_QTY = '' ;* No default a 1 para evitar overwrite
+        END
+        FIELD_VALUE = SCHED_QTY
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<quantity>' : FIELD_VALUE : '</quantity>'
+
+        * Convert Julian date to YYYY-MM-DD format for line item
+        JULIAN_DAY = SCHED_DATE
+        IF JULIAN_DAY = '' THEN JULIAN_DAY = '0'
+        GOSUB CONVERT_JULIAN_TO_DATE
+        FIELD_VALUE = FORMATTED_DATE
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<scheduled_date>' : FIELD_VALUE : '</scheduled_date>'
+
+        * Unit price - MR4 conversion (4 decimals)
+        FIELD_VALUE = FIELD(PRICES_RAW, XVM, LINE_INDEX)
+        IF FIELD_VALUE <> '' AND NUM(FIELD_VALUE) THEN
+            FIELD_VALUE = FIELD_VALUE / 10000
+        END
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<unit_price>' : FIELD_VALUE : '</unit_price>'
+
+        * Line notes
+        FIELD_VALUE = FIELD(LINE_NOTES_RAW, XVM, LINE_INDEX)
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<line_notes>' : FIELD_VALUE : '</line_notes>'
+
+        * Vendor part number (empty for now)
+        XML.RESPONSE = XML.RESPONSE : '<vendor_part_number></vendor_part_number>'
+
+        * Need date and quantity
+        NEED_FIELD = FIELD(NEEDS_DATES_RAW, XVM, LINE_INDEX)
+        IF NEED_FIELD <> '' AND INDEX(NEED_FIELD, XSM, 1) > 0 THEN
+            NEED_DATE = FIELD(NEED_FIELD, XSM, 1)
+            NEED_QTY = FIELD(NEED_FIELD, XSM, 2)
+        ELSE
+            NEED_DATE = NEED_FIELD
+            NEED_QTY = '' ;* No copiar SCHED_QTY por default
+        END
+        * Convert Julian date to YYYY-MM-DD format
+        JULIAN_DAY = NEED_DATE
+        IF JULIAN_DAY = '' THEN JULIAN_DAY = '0'
+        GOSUB CONVERT_JULIAN_TO_DATE
+        FIELD_VALUE = FORMATTED_DATE
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<need_date>' : FIELD_VALUE : '</need_date>'
+
+        FIELD_VALUE = NEED_QTY
+        GOSUB CLEAN_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<need_qty>' : FIELD_VALUE : '</need_qty>'
+        * Need values processed
+
+        * Acknowledgment fields (empty as per user requirement)
+        XML.RESPONSE = XML.RESPONSE : '<ack_date></ack_date>'
+        XML.RESPONSE = XML.RESPONSE : '<ack_qty></ack_qty>'
+        * Acknowledgment values empty per current logic
+
+        XML.RESPONSE = XML.RESPONSE : '</line_item>'
+    NEXT LINE_INDEX
+END
+XML.RESPONSE = XML.RESPONSE : '</line_items>'
+
+* Output full schedule entries independent of line items
+IF SCHED_DATES_RAW <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<all_schedule_entries>'
+    SCHED_COUNT = DCOUNT(SCHED_DATES_RAW, XVM)
+    FOR IDX = 1 TO SCHED_COUNT
+        SCHED_FIELD = FIELD(SCHED_DATES_RAW, XVM, IDX)
+        IF SCHED_FIELD <> '' THEN
+            XML.RESPONSE = XML.RESPONSE : '<schedule_line>'
+            * Procesa todos los subvalores para esta línea
+            SUBCOUNT = DCOUNT(SCHED_FIELD, XSM)
+            IF SUBCOUNT = 0 THEN SUBCOUNT = 1
+            FOR SUBIDX = 1 TO SUBCOUNT
+                SCHED_ENTRY = FIELD(SCHED_FIELD, XSM, SUBIDX)
+                IF SCHED_ENTRY <> '' THEN
+                    SCHED_DATE = FIELD(SCHED_ENTRY, '*', 1)
+                    SCHED_QTY = FIELD(SCHED_ENTRY, '*', 2)
+                    JULIAN_DAY = SCHED_DATE
+                    IF JULIAN_DAY = '' THEN JULIAN_DAY = '0'
+                    GOSUB CONVERT_JULIAN_TO_DATE
+                    FIELD_VALUE = FORMATTED_DATE
+                    GOSUB CLEAN_FIELD
+                    XML.RESPONSE = XML.RESPONSE : '<schedule_entry>'
+                    XML.RESPONSE = XML.RESPONSE : '<schedule_date>' : FIELD_VALUE : '</schedule_date>'
+                    FIELD_VALUE = SCHED_QTY
+                    GOSUB CLEAN_FIELD
+                    XML.RESPONSE = XML.RESPONSE : '<schedule_qty>' : FIELD_VALUE : '</schedule_qty>'
+                    XML.RESPONSE = XML.RESPONSE : '</schedule_entry>'
+                END
+            NEXT SUBIDX
+            XML.RESPONSE = XML.RESPONSE : '</schedule_line>'
+        END
+    NEXT IDX
+    XML.RESPONSE = XML.RESPONSE : '</all_schedule_entries>'
+END
+
+* Output full needs entries independent of line items
+IF NEEDS_DATES_RAW <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<all_needs_entries>'
+    NEED_COUNT = DCOUNT(NEEDS_DATES_RAW, XVM)
+    FOR IDX = 1 TO NEED_COUNT
+        NEED_FIELD = FIELD(NEEDS_DATES_RAW, XVM, IDX)
+        IF NEED_FIELD <> '' THEN
+            XML.RESPONSE = XML.RESPONSE : '<need_line>'
+            SUBCOUNT = DCOUNT(NEED_FIELD, XSM)
+            IF SUBCOUNT = 0 THEN SUBCOUNT = 1
+            FOR SUBIDX = 1 TO SUBCOUNT
+                NEED_ENTRY = FIELD(NEED_FIELD, XSM, SUBIDX)
+                IF NEED_ENTRY <> '' THEN
+                    NEED_DATE = FIELD(NEED_ENTRY, '*', 1)
+                    NEED_QTY = FIELD(NEED_ENTRY, '*', 2)
+                    JULIAN_DAY = NEED_DATE
+                    IF JULIAN_DAY = '' THEN JULIAN_DAY = '0'
+                    GOSUB CONVERT_JULIAN_TO_DATE
+                    FIELD_VALUE = FORMATTED_DATE
+                    GOSUB CLEAN_FIELD
+                    XML.RESPONSE = XML.RESPONSE : '<need_entry>'
+                    XML.RESPONSE = XML.RESPONSE : '<need_date>' : FIELD_VALUE : '</need_date>'
+                    FIELD_VALUE = NEED_QTY
+                    GOSUB CLEAN_FIELD
+                    XML.RESPONSE = XML.RESPONSE : '<need_qty>' : FIELD_VALUE : '</need_qty>'
+                    XML.RESPONSE = XML.RESPONSE : '</need_entry>'
+                END
+            NEXT SUBIDX
+            XML.RESPONSE = XML.RESPONSE : '</need_line>'
+        END
+    NEXT IDX
+    XML.RESPONSE = XML.RESPONSE : '</all_needs_entries>'
+END
+
+* Output full ack entries independent of line items
+IF PO.RECORD<49> <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<all_ack_entries>'
+    ACK_COUNT = DCOUNT(PO.RECORD<49>, XVM)
+    FOR IDX = 1 TO ACK_COUNT
+        ACK_LINE = FIELD(PO.RECORD<49>, XVM, IDX)
+        IF ACK_LINE <> '' THEN
+            XML.RESPONSE = XML.RESPONSE : '<ack_line>'
+            SUBCOUNT = DCOUNT(ACK_LINE, XSM)
+            IF SUBCOUNT = 0 THEN SUBCOUNT = 1
+            FOR SUBIDX = 1 TO SUBCOUNT
+                ACK_ENTRY = FIELD(ACK_LINE, XSM, SUBIDX)
+                IF ACK_ENTRY <> '' THEN
+                    ACK_DATE = FIELD(ACK_ENTRY, '*', 1)
+                    ACK_QTY = FIELD(ACK_ENTRY, '*', 2)
+                    JULIAN_DAY = ACK_DATE
+                    IF JULIAN_DAY = '' THEN JULIAN_DAY = '0'
+                    GOSUB CONVERT_JULIAN_TO_DATE
+                    FIELD_VALUE = FORMATTED_DATE
+                    GOSUB CLEAN_FIELD
+                    XML.RESPONSE = XML.RESPONSE : '<ack_entry>'
+                    XML.RESPONSE = XML.RESPONSE : '<ack_date>' : FIELD_VALUE : '</ack_date>'
+                    FIELD_VALUE = ACK_QTY
+                    GOSUB CLEAN_FIELD
+                    XML.RESPONSE = XML.RESPONSE : '<ack_qty>' : FIELD_VALUE : '</ack_qty>'
+                    XML.RESPONSE = XML.RESPONSE : '</ack_entry>'
+                END
+            NEXT SUBIDX
+            XML.RESPONSE = XML.RESPONSE : '</ack_line>'
+        END
+    NEXT IDX
+    XML.RESPONSE = XML.RESPONSE : '</all_ack_entries>'
+END
+
+* Output Need Info if available (e.g., field 38 has dates/qty)
+IF NEEDS_DATES_RAW <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<needs_info>'
+    NEED_COUNT = DCOUNT(NEEDS_DATES_RAW, XVM)
+    FOR IDX = 1 TO NEED_COUNT
+        NEED_FIELD = FIELD(NEEDS_DATES_RAW, XVM, IDX)
+        IF NEED_FIELD <> '' THEN
+            * Parse date*qty format using * as separator
+            NEED_DATE = FIELD(NEED_FIELD, '*', 1)
+            NEED_QTY = FIELD(NEED_FIELD, '*', 2)
+            
+            * Convert date format from YYYY-MM-DD to MM/DD/YYYY for needs
+            IF NEED_DATE MATCHES "4N'-'2N'-'2N" THEN
+                YEAR = FIELD(NEED_DATE, '-', 1)
+                MONTH = FIELD(NEED_DATE, '-', 2)
+                DAY = FIELD(NEED_DATE, '-', 3)
+                NEED_DATE = MONTH : '/' : DAY : '/' : YEAR
+            END
+            
+            XML.RESPONSE = XML.RESPONSE : '<needs_entry>'
+            * Convert Julian date to YYYY-MM-DD format
+            JULIAN_DAY = NEED_DATE
+            IF JULIAN_DAY = '' THEN JULIAN_DAY = '0'
+            GOSUB CONVERT_JULIAN_TO_DATE
+            FIELD_VALUE = FORMATTED_DATE
+            GOSUB CLEAN_FIELD
+            XML.RESPONSE = XML.RESPONSE : '<need_date>' : FIELD_VALUE : '</need_date>'
+            FIELD_VALUE = NEED_QTY
+            GOSUB CLEAN_FIELD
+            XML.RESPONSE = XML.RESPONSE : '<need_qty>' : FIELD_VALUE : '</need_qty>'
+            XML.RESPONSE = XML.RESPONSE : '</needs_entry>'
+        END
+    NEXT IDX
+    XML.RESPONSE = XML.RESPONSE : '</needs_info>'
+END
+
+* Output Acknowledgements from field 49 first, then field 38 as fallback
+ACK_FIELD = ''
+IF PO.RECORD<49> <> '' THEN
+    ACK_FIELD = PO.RECORD<49>
+ELSE
+    IF PO.RECORD<38> <> '' THEN
+        ACK_FIELD = PO.RECORD<38>
+    END
+END 
+
+IF ACK_FIELD <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<acknowledgments>'
+    
+    * Parse multivalue/subvalue structure to extract first date and qty
+    FIRST_MULTIVALUE = FIELD(ACK_FIELD, XVM, 1)
+    IF FIRST_MULTIVALUE = '' OR FIRST_MULTIVALUE = ACK_FIELD THEN
+        FIRST_MULTIVALUE = FIELD(ACK_FIELD, XAM, 1)
+        IF FIRST_MULTIVALUE = '' OR FIRST_MULTIVALUE = ACK_FIELD THEN
+            FIRST_MULTIVALUE = FIELD(ACK_FIELD, '*', 1)
+            IF FIRST_MULTIVALUE = '' OR FIRST_MULTIVALUE = ACK_FIELD THEN
+                FIRST_MULTIVALUE = ACK_FIELD
+            END
+        END
+    END
+    
+    * Enhanced parsing logic to handle concatenated date*qty pairs
+    * Parse the first date*qty pattern from potentially concatenated data
+    IF INDEX(FIRST_MULTIVALUE, '*', 1) > 0 THEN
+        ACK_DATE = FIELD(FIRST_MULTIVALUE, '*', 1)
+        
+        * Extract qty by finding everything after first date until next date pattern
+        REST = FIRST_MULTIVALUE
+        REST = FIELD(REST, ACK_DATE : '*', 2)  ; * Everything after first date*
+        
+        * Now clean qty by removing any embedded date patterns
+        ACK_QTY = REST
+        IF INDEX(ACK_QTY, '*', 1) > 0 THEN
+            * Find position of next potential date pattern
+            POS = 1
+            QTY_CLEAN = ''
+            POSCOM = LEN(ACK_QTY)
+            FOR CHAR_IDX = 1 TO POSCOM
+                NEXTCHAR = ACK_QTY[CHAR_IDX,1]
+                IF NEXTCHAR MATCHES "0N":"1N":"2N":"3N":"4N":"5N":"6N":"7N":"8N":"9N" THEN
+                    QTY_CLEAN = QTY_CLEAN : NEXTCHAR
+                ELSE
+                    IF NEXTCHAR = '*' OR NEXTCHAR = '-' THEN
+                        * Check if this starts a new date pattern (YYYY-MM-DD)
+                        IF CHAR_IDX < POSCOM - 8 THEN
+                            NEXT_SEGMENT = ACK_QTY[CHAR_IDX+1,10]
+                            IF NEXT_SEGMENT MATCHES "4N'-'2N'-'2N" THEN
+                                * This is start of new date, stop extracting qty
+                                CHAR_IDX = POSCOM + 1
+                            ELSE
+                                IF NEXTCHAR <> '-' THEN QTY_CLEAN = QTY_CLEAN : NEXTCHAR
+                            END
+                        ELSE
+                            IF NEXTCHAR <> '-' THEN QTY_CLEAN = QTY_CLEAN : NEXTCHAR
+                        END
+                    END
+                END
+            NEXT CHAR_IDX
+            ACK_QTY = QTY_CLEAN
+        END
+    ELSE
+        * If no * separator, try space separator
+        IF INDEX(FIRST_MULTIVALUE, ' ', 1) > 0 THEN
+            ACK_DATE = FIELD(FIRST_MULTIVALUE, ' ', 1)
+            ACK_QTY = FIELD(FIRST_MULTIVALUE, ' ', 2)
+        ELSE
+            ACK_DATE = FIRST_MULTIVALUE
+            ACK_QTY = ''
+        END
+    END
+    
+    * Convert date format from YYYY-MM-DD to MM/DD/YYYY
+    IF ACK_DATE MATCHES "4N'-'2N'-'2N" THEN
+        YEAR = FIELD(ACK_DATE, '-', 1)
+        MONTH = FIELD(ACK_DATE, '-', 2)
+        DAY = FIELD(ACK_DATE, '-', 3)
+        ACK_DATE = MONTH : '/' : DAY : '/' : YEAR
+    END
+    
+    * Convert Julian date to YYYY-MM-DD format
+    JULIAN_DAY = ACK_DATE
+    IF JULIAN_DAY = '' THEN JULIAN_DAY = '0'
+    GOSUB CONVERT_JULIAN_TO_DATE
+    FIELD_VALUE = FORMATTED_DATE
+    GOSUB CLEAN_FIELD
+    XML.RESPONSE = XML.RESPONSE : '<ack_date>' : FIELD_VALUE : '</ack_date>'
+    FIELD_VALUE = ACK_QTY
+    GOSUB CLEAN_FIELD
+    XML.RESPONSE = XML.RESPONSE : '<ack_qty>' : FIELD_VALUE : '</ack_qty>'
+    FIELD_VALUE = ACK_FIELD
+    GOSUB CLEAN_FIELD
+    XML.RESPONSE = XML.RESPONSE : '<ack_field49>' : FIELD_VALUE : '</ack_field49>'
+    XML.RESPONSE = XML.RESPONSE : '</acknowledgments>'
+END
+
+* Output Schedules if available (field 34)
+IF SCHED_DATES_RAW <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<schedule_info>'
+    SCHED_COUNT = DCOUNT(SCHED_DATES_RAW, XVM)
+    FOR IDX = 1 TO SCHED_COUNT
+        SCHED_FIELD = FIELD(SCHED_DATES_RAW, XVM, IDX)
+        IF SCHED_FIELD <> '' THEN
+            * Parse date*qty format using * as separator
+            SCHED_DATE = FIELD(SCHED_FIELD, '*', 1)
+            SCHED_QTY = FIELD(SCHED_FIELD, '*', 2)
+            
+            * Convert date format from YYYY-MM-DD to MM/DD/YYYY for schedules
+            IF SCHED_DATE MATCHES "4N'-'2N'-'2N" THEN
+                YEAR = FIELD(SCHED_DATE, '-', 1)
+                MONTH = FIELD(SCHED_DATE, '-', 2)
+                DAY = FIELD(SCHED_DATE, '-', 3)
+                SCHED_DATE = MONTH : '/' : DAY : '/' : YEAR
+            END
+            
+            XML.RESPONSE = XML.RESPONSE : '<schedule_entry>'
+            * Convert Julian date to YYYY-MM-DD format
+            JULIAN_DAY = SCHED_DATE
+            IF JULIAN_DAY = '' THEN JULIAN_DAY = '0'
+            GOSUB CONVERT_JULIAN_TO_DATE
+            FIELD_VALUE = FORMATTED_DATE
+            GOSUB CLEAN_FIELD
+            XML.RESPONSE = XML.RESPONSE : '<schedule_date>' : FIELD_VALUE : '</schedule_date>'
+            FIELD_VALUE = SCHED_QTY
+            GOSUB CLEAN_FIELD
+            XML.RESPONSE = XML.RESPONSE : '<schedule_qty>' : FIELD_VALUE : '</schedule_qty>'
+            XML.RESPONSE = XML.RESPONSE : '</schedule_entry>'
+        END
+    NEXT IDX
+    XML.RESPONSE = XML.RESPONSE : '</schedule_info>'
+END
+
+* Output header notes from field 25
+FIELD_VALUE = PO.RECORD<25>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<header_notes>' : FIELD_VALUE : '</header_notes>'
+
+* Output line notes (combined from field 40)
+FIELD_VALUE = PO.RECORD<40>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<line_notes>' : FIELD_VALUE : '</line_notes>'
+
+* Output noted stamp from field 30
+FIELD_VALUE = PO.RECORD<30>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<noted_stamp>' : FIELD_VALUE : '</noted_stamp>'
+
+* Output production notes from field 73
+FIELD_VALUE = PO.RECORD<73>
+GOSUB CLEAN_FIELD
+XML.RESPONSE = XML.RESPONSE : '<production_notes>' : FIELD_VALUE : '</production_notes>'
+
+XML.RESPONSE = XML.RESPONSE : '<status>found</status>'
+GOTO FINISH_OUTPUT
+
+* Subroutine to clean field data
+CLEAN_FIELD:
+    * Simple field cleaning
+    FIELD_VALUE = TRIM(FIELD_VALUE)
+    IF FIELD_VALUE = '' THEN RETURN
+    * Replace subvalue separators with readable text
+    CONVERT XSM TO ' | ' IN FIELD_VALUE
+    * Convert multivalue separator to CRLF for proper line breaks
+    CRLF = CHAR(13):CHAR(10)
+    CONVERT XVM TO CRLF IN FIELD_VALUE
+    * Basic XML escaping
+    CONVERT '&' TO '&amp;' IN FIELD_VALUE
+    CONVERT '<' TO '&lt;' IN FIELD_VALUE
+    CONVERT '>' TO '&gt;' IN FIELD_VALUE
+    RETURN
+
+FINISH_OUTPUT:
+* Finish and output
+
+XML.RESPONSE = XML.RESPONSE:'</po>':CRLF:'</purchaseorders>':CRLF
+
+WRITE XML.RESPONSE ON XMLDATAF,'GET_PO2.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/GET_PO2.XML','',ERR)
+RETURN
+</pre>

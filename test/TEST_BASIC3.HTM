@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Test BASIC</title>
+</head>
+<body>
+<div align="left">
+<pre>
+PicLan-IP/BASIC ^ ^
+*
+PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+    ERR = '' ; INITIALS=  ''
+    CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+    RETURN
+END
+*
+OPEN 'EBOO' TO BOO.FILE ELSE GOTO done
+OPEN 'EBOM' TO BOM.FILE ELSE GOTO done
+done:
+</pre>
+</div>
+</body>
+</html>

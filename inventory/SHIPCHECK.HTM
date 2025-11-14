@@ -1,0 +1,102 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+<title>Shipment Barcode Label</title>
+<SCRIPT LANGUAGE="JavaScript"><!--
+function setFocus() {
+    document.forms[0].elements[0].focus();
+}
+//--></SCRIPT>
+
+</head>
+
+<body bgcolor="#99FF99" topmargin="0" onLoad="setTimeout('setFocus()',1)">
+<SCRIPT>
+function getSelect(s) {
+  return s.options[s.selectedIndex].value
+}
+</SCRIPT>
+
+<div align="center">
+  <center>
+
+<table border="1" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="280" id="AutoNumber1" bgcolor="#FFFFFF">
+  <tr>
+    <form method="GET" action="/SHIPCHECK.HTM" name="PULLSHEET">
+      <td width="460">
+    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber2" height="123">
+      <tr>
+        <td width="100%" height="16">
+        <p align="center"><b>
+        <font face="Verdana" size="2">(1)<br>
+        </font><font color="#FF0000" size="4" face="Verdana">SCAN PACKING LIST<br>
+        FROM </font><font color="#0000FF" size="4" face="Verdana">SHIPPING LABEL</font><font color="#FF0000" size="4" face="Verdana"><br>
+&nbsp;</font></b></td>
+      </tr>
+      <tr>
+        <td width="160%" align="center" height="27">&nbsp;<input type="text" name="INVNUM" size="12" value="^INVNUM^" tabindex="1" style="font-family: Verdana; font-size: 18pt; background-color: #FFFFCC">&nbsp; <input type="submit" value="OK" name="OK" style="color: #FFFFFF; background-color: #FF0000"></td>
+      </tr>
+      <tr>
+        <td width="100%" height="19">
+        <p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <b><font color="#FF0000">&nbsp;&nbsp; ^MSG^</font></b><br>
+        <br>
+        <br>
+        <input type="submit" value="Goto Menu" name="MENU" tabindex="2" style="background-color: #99FF99; font-size:8pt"></td>
+      </tr>
+    </table>
+    </td>
+    </form>
+  </tr>
+</table>
+
+  </center>
+</div>
+<pre>PicLan-IP/BASIC ^ ^
+*
+ PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+    ERR = '' ; INITIALS=  ''
+    CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+    RETURN
+ END
+*
+OPEN 'SHIPMENTS' TO SHIPF ELSE RETURN
+PL_GETVAR INVNUM FROM 'INVNUM' ELSE INVNUM = ''
+PL_GETVAR SELECT FROM 'SELECT' ELSE SELECT = ''
+OPEN 'PARTS' TO PARTSF ELSE STOP 201,'PARTS'
+
+PL_GETVAR MENU FROM 'MENU' ELSE MENU = ''
+*
+SOUNDWAV = ''
+MSG = ''
+BEGIN CASE
+      CASE INVNUM NE ''  
+           SHIPNO = FIELD(INVNUM,'-',1)
+           IF SHIPNO[1,3] = '11K' THEN SHIPNO = SHIPNO[4,99]
+           READ SHIP FROM SHIPF,SHIPNO THEN
+              PL_PUTVAR SHIPNO IN 'SHIPNO' ELSE NULL
+              ERR = ''
+              CALL PLW.PAGE('SHIPCHECK2.HTM','',ERR)
+              RETURN
+           END ELSE
+              
+              
+              
+              INVNUM = ''
+              MSG = 'Packing List not in file.'
+           END
+      CASE MENU NE ''
+           ERR = ''
+           CALL PLW.PAGE('STOCKMENU.HTM','',ERR)
+           RETURN
+END CASE  
+</pre>
+
+</body>
+
+</html>

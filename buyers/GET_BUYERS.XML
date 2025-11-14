@@ -1,0 +1,70 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+*
+* GET_BUYERS.XML - Simple BUYERS database reader
+*
+* Initialize variables
+BUYER_KEY = ''
+BUYERS_LIST = ''
+XML.RESPONSE = ''
+ERR = ''
+OUTFILE = ''
+XAM = CHAR(254)
+
+* Open files
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+
+* Get INITIALS parameter if provided
+PL_GETVAR INITIALS FROM 'INITIALS' ELSE INITIALS = ''
+
+* Build XML header
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM : '<buyers>'
+
+* If INITIALS provided, return only that buyer from OPERS
+IF INITIALS NE '' THEN
+    * Read from OPERS - the key IS the initials, name is in field 1
+    READ OPER.RECORD FROM OPERSF, INITIALS THEN
+        BUYER_NAME = OPER.RECORD<1>
+        
+        * Return buyer with name from OPERS
+        XML.RESPONSE = XML.RESPONSE : XAM : '<buyer>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '<buyer_initials>' : INITIALS : '</buyer_initials>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '<buyer_name>' : BUYER_NAME : '</buyer_name>'
+        XML.RESPONSE = XML.RESPONSE : XAM : '</buyer>'
+    END ELSE
+        * Operator not found in OPERS, return empty
+    END
+    GOTO FINISH_XML
+END
+
+* Read all records from OPERS file
+SELECT OPERSF TO OPERS_LIST
+LOOP
+    READNEXT OPER_KEY FROM OPERS_LIST ELSE EXIT
+    * The key IS the initials
+    READ OPER.RECORD FROM OPERSF, OPER_KEY ELSE CONTINUE
+    
+    * Get name from field 1
+    BUYER_NAME = OPER.RECORD<1>
+    
+    * Add buyer to XML with name
+    XML.RESPONSE = XML.RESPONSE : XAM : '<buyer>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<buyer_initials>' : OPER_KEY : '</buyer_initials>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '<buyer_name>' : BUYER_NAME : '</buyer_name>'
+    XML.RESPONSE = XML.RESPONSE : XAM : '</buyer>'
+REPEAT
+
+FINISH_XML:
+
+* Close XML
+XML.RESPONSE = XML.RESPONSE : XAM : '</buyers>'
+
+* Write and serve
+OUTFILE = 'GET_BUYERS.XML'
+WRITE XML.RESPONSE ON XMLDATAF, OUTFILE
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/' : OUTFILE, '', ERR)
+RETURN
+</PRE>

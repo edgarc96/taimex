@@ -1,0 +1,2398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sales Order Menu - TAIMEX System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Orbitron:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --sidebar-bg: #1e293b;
+            --sidebar-hover: #334155;
+            --sidebar-active: #475569;
+            --border-color: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --accent-purple: #8b5cf6;
+            --accent-red: #ef4444;
+            --accent-orange: #f97316;
+            --card-radius: 16px;
+            --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+            --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.15);
+            --shadow-card: 0 2px 8px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
+            --shadow-hover: 0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 16px rgba(59, 130, 246, 0.08);
+            --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100vh;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            color: #334155;
+            width: 100%;
+        }
+
+        /* Sin decoración de fondo para estilo más limpio */
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button {
+            font-family: inherit;
+            border: none;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+            color: #fff;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(30, 41, 59, 0.25);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            height: 64px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hamburger-menu {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+        }
+
+        .hamburger-menu:hover {
+            background-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .hamburger-menu svg {
+            width: 20px;
+            height: 20px;
+            stroke: #fff;
+        }
+
+        .home-button {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .home-button:hover {
+            background-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .home-button i {
+            color: #fff;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-section img {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+            filter: brightness(1.05);
+        }
+
+        .title-section {
+            text-align: right;
+            position: relative;
+            z-index: 1;
+        }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        .welcome-user {
+            white-space: nowrap;
+        }
+
+        .welcome-user span {
+            color: #cbd5e1;
+            font-size: 0.8em;
+            font-weight: 400;
+        }
+
+        .welcome-user strong {
+            color: #3b82f6;
+            margin-left: 4px;
+            font-weight: 600;
+        }
+
+        .title-section h2 {
+            font-size: 0.95em;
+            margin: 0;
+            font-weight: 500;
+            color: #cbd5e1;
+            letter-spacing: 0.3px;
+        }
+
+        .title-section p {
+            font-size: 0.75em;
+            margin: 2px 0 0 0;
+            color: #a2a8ba;
+            font-weight: 400;
+        }
+
+        /* Sidebar Permanente */
+        .sidebar {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            width: 280px;
+            height: calc(100vh - 64px);
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            overflow-y: auto;
+            z-index: 50;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-280px);
+        }
+
+        .sidebar-overlay {
+            display: none;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .sidebar-content {
+            padding: 12px 0;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .menu-category {
+            margin-bottom: 8px;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .category-header:hover {
+            background: #f8fafc;
+            color: #0f172a;
+        }
+
+        .category-header .icon {
+            font-size: 1.1rem;
+            color: #2563eb;
+        }
+
+        .category-header .toggle {
+            margin-left: auto;
+            transition: transform 0.2s ease;
+            font-size: 0.7rem;
+        }
+
+        .category-header.collapsed .toggle {
+            transform: rotate(-90deg);
+        }
+
+        .category-items {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .category-items.collapsed {
+            max-height: 0;
+        }
+
+        .category-items li {
+            margin: 0;
+        }
+
+        .category-items a {
+            display: block;
+            padding: 10px 20px 10px 52px;
+            color: #64748b;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            border-left: 3px solid transparent;
+        }
+
+        .category-items a:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+            border-left-color: #2563eb;
+        }
+
+        .category-items a.active {
+            background: rgba(37, 99, 235, 0.1);
+            color: #2563eb;
+            border-left-color: #2563eb;
+            font-weight: 600;
+        }
+
+        /* Estilos para submenús anidados */
+        .category-items .menu-category {
+            margin-bottom: 0;
+        }
+
+        .category-items .category-header {
+            padding: 10px 20px 10px 52px;
+            font-size: 0.85rem;
+            background: rgba(248, 250, 252, 0.5);
+        }
+
+        .category-items .category-header:hover {
+            background: rgba(241, 245, 249, 0.8);
+        }
+
+        .category-items .category-items {
+            background: rgba(248, 250, 252, 0.3);
+        }
+
+        .category-items .category-items a {
+            padding: 8px 20px 8px 72px;
+            font-size: 0.8rem;
+        }
+
+        /* Main content layout */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-left: 280px;
+            margin-top: 64px;
+            overflow: hidden;
+            transition: margin-left 0.3s ease;
+        }
+
+        .sidebar.collapsed ~ .main-content {
+            margin-left: 0;
+        }
+
+        .dashboard-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+        }
+
+        .dashboard-content {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        /* Info Bar - Fecha y Clima */
+        .info-bar {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+
+        .info-card {
+            padding: 20px 32px;
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.25s ease;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+        }
+
+        .info-card:hover {
+            border-color: rgba(37, 99, 235, 0.5);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+        }
+
+        .info-icon {
+            font-size: 2rem;
+            color: #2563eb;
+        }
+
+        .info-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 600;
+        }
+
+        .info-value {
+            font-size: 1.2rem;
+            color: #0f172a;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        /* Operations Section */
+        .operations-section {
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 0.8rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 700;
+            margin-bottom: 32px;
+        }
+
+        /* Operations Grid */
+        .operations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        /* Welcome Widget */
+        .welcome-widget {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-widget::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .welcome-info {
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .user-name {
+            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-width: 600px;
+        }
+
+        .welcome-visual {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 130px;
+            height: 130px;
+            background: linear-gradient(135deg, 
+                rgba(59, 130, 246, 0.12) 0%, 
+                rgba(16, 185, 129, 0.12) 100%);
+            border-radius: 50%;
+            margin-left: 24px;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+        }
+
+        .welcome-visual::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            padding: 3px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.4), rgba(16, 185, 129, 0.4));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+        }
+
+        .welcome-visual i {
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.3));
+        }
+
+        /* Time Widget */
+        .time-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+        }
+
+        .time-digits {
+            font-family: "Inter", sans-serif;
+            font-size: 3rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #0f172a 0%, #475569 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.04em;
+            text-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+        }
+
+        .time-marker {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            margin-left: 10px;
+            padding: 4px 10px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 6px;
+        }
+
+        .time-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .time-date {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .time-zone {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            padding: 6px 12px;
+            background: rgba(248, 250, 252, 0.8);
+            border-radius: 8px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .format-toggle {
+            display: inline-flex;
+            border-radius: 10px;
+            padding: 3px;
+            background: rgba(248, 250, 252, 0.9);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            margin-top: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+
+        .format-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all var(--transition-smooth);
+            cursor: pointer;
+        }
+
+        .format-btn:hover {
+            background: rgba(59, 130, 246, 0.08);
+            color: var(--accent-blue);
+        }
+
+        .format-btn.active {
+            color: #fff;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Stats Widget */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 20px 12px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, 
+                rgba(248, 250, 252, 0.9) 0%, 
+                rgba(241, 245, 249, 0.9) 100%);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 100%);
+            transform: scaleX(0);
+            transition: transform var(--transition-smooth);
+        }
+
+        .stat-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.4);
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.95) 0%, 
+                rgba(248, 250, 252, 0.95) 100%);
+        }
+
+        .stat-item:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        /* Glass Card Base Styles */
+        .glass-card {
+            position: relative;
+            border-radius: var(--card-radius);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: var(--shadow-card), 
+                        0 0 0 1px rgba(15, 23, 42, 0.04);
+            transition: all var(--transition-smooth);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(59, 130, 246, 0.15) 50%, 
+                transparent 100%);
+            opacity: 0;
+            transition: opacity var(--transition-smooth);
+        }
+
+        .glass-card:hover::before {
+            opacity: 1;
+        }
+
+        /* Welcome Card */
+        .welcome-card {
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .welcome-card .welcome-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-card .welcome-subtitle {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-stats .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 20px 12px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, 
+                rgba(248, 250, 252, 0.9) 0%, 
+                rgba(241, 245, 249, 0.9) 100%);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all var(--transition-smooth);
+        }
+
+        .welcome-stats .stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.12);
+        }
+
+        .welcome-stats .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+
+        .welcome-stats .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        /* Widgets Grid */
+        .widgets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        /* Card Header */
+        .card-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+            background: linear-gradient(135deg, 
+                rgba(59, 130, 246, 0.06) 0%, 
+                rgba(16, 185, 129, 0.06) 100%);
+            position: relative;
+        }
+
+        .card-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(59, 130, 246, 0.15) 50%, 
+                transparent 100%);
+        }
+
+        .card-header h2 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Activity Widget */
+        .activity-widget .activity-list {
+            padding: 24px;
+        }
+
+        .activity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, 
+                rgba(248, 250, 252, 0.6) 0%, 
+                rgba(241, 245, 249, 0.6) 100%);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            margin-bottom: 12px;
+            transition: all var(--transition-smooth);
+        }
+
+        .activity-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .activity-item:hover {
+            transform: translateX(4px);
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.9) 0%, 
+                rgba(248, 250, 252, 0.9) 100%);
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
+        }
+
+        .activity-text {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            white-space: nowrap;
+            margin-left: 16px;
+        }
+
+        /* SO Stats Widget Specific */
+        .so-stats-grid {
+            padding: 24px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .so-stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 20px 12px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, 
+                rgba(248, 250, 252, 0.9) 0%, 
+                rgba(241, 245, 249, 0.9) 100%);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .so-stat-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 100%);
+            transform: scaleX(0);
+            transition: transform var(--transition-smooth);
+        }
+
+        .so-stat-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.4);
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.95) 0%, 
+                rgba(248, 250, 252, 0.95) 100%);
+        }
+
+        .so-stat-item:hover::before {
+            transform: scaleX(1);
+        }
+
+        .so-stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .so-stat-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        /* Menu Section */
+        .menu-section {
+            margin-bottom: 24px;
+        }
+
+        .menu-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+            background: linear-gradient(135deg, 
+                rgba(16, 185, 129, 0.06) 0%, 
+                rgba(59, 130, 246, 0.06) 100%);
+            position: relative;
+        }
+
+        .menu-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(16, 185, 129, 0.2) 50%, 
+                transparent 100%);
+        }
+
+        .menu-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            letter-spacing: -0.01em;
+        }
+
+        .menu-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .menu-content {
+            padding: 28px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .operation-btn {
+            position: relative;
+            padding: 32px 24px;
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 16px;
+            color: #0f172a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            min-height: 180px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+        }
+
+        .operation-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(37, 99, 235, 0.04);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 16px;
+        }
+
+        .operation-btn:hover::before {
+            opacity: 1;
+        }
+
+        .operation-btn:hover {
+            transform: translateY(-2px);
+            border-color: rgba(37, 99, 235, 0.5);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.1);
+        }
+
+        .operation-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .operation-icon {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(241, 245, 249, 0.5);
+            border: 2px solid rgba(226, 232, 240, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .operation-icon i {
+            font-size: 2.5rem;
+            color: #2563eb;
+            transition: all 0.3s ease;
+        }
+
+        .operation-btn:hover .operation-icon {
+            background: rgba(37, 99, 235, 0.1);
+            border-color: rgba(37, 99, 235, 0.5);
+        }
+
+        .operation-btn:hover .operation-icon i {
+            color: #2563eb;
+        }
+
+        .operation-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: #475569;
+            text-align: center;
+            line-height: 1.4;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .operation-btn:hover .operation-text {
+            color: #0f172a;
+            letter-spacing: 0.08em;
+        }
+
+        /* Todos los botones ahora tienen el mismo estilo azul profesional */
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+        }
+
+        /* Ripple Animation */
+        @keyframes ripple {
+            to {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-280px);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .operations-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .logo-section img {
+                height: 36px;
+            }
+
+            .sidebar {
+                transform: translateX(-280px);
+                box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay {
+                display: block;
+                position: fixed;
+                top: 64px;
+                left: 0;
+                width: 100vw;
+                height: calc(100vh - 64px);
+                background: rgba(0, 0, 0, 0.5);
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s ease;
+                z-index: 40;
+            }
+
+            .sidebar.active ~ .sidebar-overlay {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .dashboard-wrapper {
+                padding: 24px 16px;
+            }
+
+            .info-bar {
+                flex-direction: column;
+                gap: 16px;
+                margin-bottom: 32px;
+            }
+
+            .info-card {
+                width: 100%;
+                padding: 16px 24px;
+            }
+
+            .operations-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .operation-btn {
+                padding: 24px 20px;
+                min-height: 160px;
+            }
+
+            .operation-icon {
+                width: 70px;
+                height: 70px;
+            }
+
+            .operation-icon i {
+                font-size: 2rem;
+            }
+
+            .section-title {
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .header {
+                padding: 12px 16px;
+            }
+
+            .logo-section img {
+                height: 32px;
+            }
+
+            .title-section h2 {
+                font-size: 0.85em;
+            }
+
+            .title-section p {
+                display: none;
+            }
+
+            .dashboard-wrapper {
+                padding: 20px 12px;
+            }
+
+            .info-card {
+                padding: 14px 20px;
+            }
+
+            .info-icon {
+                font-size: 1.5rem;
+            }
+
+        .info-value {
+            font-size: 1rem;
+        }
+
+            .operation-btn {
+                padding: 20px 16px;
+                min-height: 140px;
+            }
+
+            .operation-icon {
+                width: 60px;
+                height: 60px;
+            }
+
+            .operation-icon i {
+                font-size: 1.75rem;
+            }
+
+            .operation-text {
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header with Logo -->
+        <header class="header">
+            <div class="header-left">
+                <button class="hamburger-menu" onclick="toggleSidebar()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12h18M3 6h18M3 18h18"></path>
+                    </svg>
+                </button>
+                <button class="home-button" onclick="navigateToDashboard()" title="Back to Dashboard">
+                    <i class="fas fa-home"></i>
+                </button>
+                <div class="logo-section">
+                    <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX Industrial" onerror="this.onerror=null;this.src='http://54.189.226.145/uploads/assets/images/taimex_logo.png';">
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="title-section">
+                    <div class="title-row">
+                        <div class="welcome-user">
+                            <span>Welcome,</span>
+                            <strong id="currentUserDisplay">^USER^</strong>
+                        </div>
+                        <div>
+                            <h2>TAIMEX - SALES ORDER MENU</h2>
+                            <p>TAIMEX - MANAGEMENT SYSTEM</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar Permanente con Catálogos -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>Modules</h3>
+            </div>
+            <div class="sidebar-content">
+                <ul class="sidebar-menu">
+                    <!-- Sales Module -->
+                    <li class="menu-category">
+                        <div class="category-header" onclick="toggleCategory(this)">
+                            <i class="fas fa-file-invoice icon"></i>
+                            <span>Sales</span>
+                            <i class="fas fa-chevron-down toggle"></i>
+                        </div>
+                        <ul class="category-items">
+                            <li><a href="#" onclick="submitSalesAction('MENU1','SO ENTRY',event)" class="active">SO Entry</a></li>
+                            <li><a href="#" onclick="submitSalesAction('MENU2','SO CHANGES/INQUIRY',event)">SO Changes</a></li>
+                            <li><a href="#" onclick="navigateToSOOrder('SO_ORDER','SALES ORDER',event)">Sales Order</a></li>
+                            
+                            <!-- Quote Menu Submenu -->
+                            <li class="menu-category">
+                                <div class="category-header" onclick="toggleCategory(this)">
+                                    <i class="fas fa-file-alt icon"></i>
+                                    <span>Quote Menu</span>
+                                    <i class="fas fa-chevron-down toggle"></i>
+                                </div>
+                                <ul class="category-items collapsed">
+                                    <li><a href="#" onclick="submitQuoteAction('MENUDASH','QUOTE DASHBOARD',event)">Quote Dashboard</a></li>
+                                    <li><a href="#" onclick="submitQuoteAction('MENU5','QUOTE REPORTS',event)">Quote Reports</a></li>
+                                </ul>
+                            </li>
+                            
+                            <!-- RMA Menu Submenu -->
+                            <li class="menu-category">
+                                <div class="category-header" onclick="toggleCategory(this)">
+                                    <i class="fas fa-undo-alt icon"></i>
+                                    <span>RMA Menu</span>
+                                    <i class="fas fa-chevron-down toggle"></i>
+                                </div>
+                                <ul class="category-items collapsed">
+                                    <li><a href="#" onclick="navigateToRMA('/newrma.htm',event)">New RMA</a></li>
+                                    <li><a href="#" onclick="navigateToRMA('/rmastatus.htm',event)">RMA Status</a></li>
+                                    <li><a href="#" onclick="navigateToRMA('/waldomcrlist.htm',event)">RMA to Excel</a></li>
+                                    <li><a href="#" onclick="navigateToRMA('/newfar.htm',event)">New FAR</a></li>
+                                    <li><a href="#" onclick="navigateToRMA('/far-dashboard.htm',event)">FAR Dashboard</a></li>
+                                    <li><a href="#" onclick="navigateToRMA('/debitimport.htm',event)">Credit-Debit</a></li>
+                                    <li><a href="#" onclick="navigateToRMA('/debitload.htm',event)">Load Credit-Debit</a></li>
+                                </ul>
+                            </li>
+                            
+                            <!-- Part Inquiry Menu Submenu -->
+                            <li class="menu-category">
+                                <div class="category-header" onclick="toggleCategory(this)">
+                                    <i class="fas fa-search icon"></i>
+                                    <span>Part Inquiry Menu</span>
+                                    <i class="fas fa-chevron-down toggle"></i>
+                                </div>
+                                <ul class="category-items collapsed">
+                                    <li><a href="#" onclick="submitPartAction('MENU6','PART INQUIRY',event)">Part Inquiry</a></li>
+                                </ul>
+                            </li>
+                            
+                            <!-- WHSE Inquiry Menu Submenu -->
+                            <li class="menu-category">
+                                <div class="category-header" onclick="toggleCategory(this)">
+                                    <i class="fas fa-warehouse icon"></i>
+                                    <span>WHSE Inquiry Menu</span>
+                                    <i class="fas fa-chevron-down toggle"></i>
+                                </div>
+                                <ul class="category-items collapsed">
+                                    <li><a href="#" onclick="submitWarehouseAction('VWHSE.MENU','WAREHOUSE INQUIRY',event)">Warehouse Inquiry</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- Purchase Menu Module -->
+                    <li class="menu-category">
+                        <div class="category-header" onclick="toggleCategory(this)">
+                            <i class="fas fa-shopping-cart icon"></i>
+                            <span>Purchase Menu</span>
+                            <i class="fas fa-chevron-down toggle"></i>
+                        </div>
+                        <ul class="category-items collapsed">
+                            <li><a href="#" onclick="submitPurchaseAction('POMENU1','PO ENTRY STOCKED',event)">PO Entry Stocked Items</a></li>
+                            <li><a href="#" onclick="submitPurchaseAction('POMENU2','PO ENTRY NON-STOCKED',event)">PO Entry Non-Stocked Items</a></li>
+                            <li><a href="#" onclick="submitPurchaseAction('POMENU6','PO ENTRY GENERIC',event)">PO Entry (Generic)</a></li>
+                            <li><a href="#" onclick="navigateToPOChanges('POMENU4','PO CHANGES',event)">PO Changes</a></li>
+                            <li><a href="#" onclick="submitPurchaseAction('POMENU5','VENDOR ALERT DASHBOARD',event)">Vendor Alert Dashboard</a></li>
+                            <li><a href="#" onclick="submitPurchaseAction('POMENU3','PO ENTRY EXPENSE',event)">PO Entry Expense Items</a></li>
+                            <li><a href="#" onclick="submitPurchaseAction('POMENU_VWHSE','VWHSE INVENTORY',event)">VWHSE Inventory</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Buyers Menu Module -->
+                    <li class="menu-category">
+                        <div class="category-header" onclick="toggleCategory(this)">
+                            <i class="fas fa-users icon"></i>
+                            <span>Buyers Menu</span>
+                            <i class="fas fa-chevron-down toggle"></i>
+                        </div>
+                        <ul class="category-items collapsed">
+                            <li><a href="#" onclick="navigateToBuyers('/BUYERS_EDIT.HTM',event)">Buyers Management</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- QC Menu Module -->
+                    <li class="menu-category">
+                        <div class="category-header" onclick="toggleCategory(this)">
+                            <i class="fas fa-clipboard-check icon"></i>
+                            <span>QC Menu</span>
+                            <i class="fas fa-chevron-down toggle"></i>
+                        </div>
+                        <ul class="category-items collapsed">
+                            <li><a href="#" onclick="navigateToQC('/YRLYTAGINV.HTM',event)">Physical Inventory</a></li>
+                            <li><a href="#" onclick="navigateToQC('/QCINIT.HTM',event)">QC Inspection</a></li>
+                            <li><a href="#" onclick="navigateToQC('/QCMENU2.HTM',event)">2D QC Menu</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Stock Menu Module -->
+                    <li class="menu-category">
+                        <div class="category-header" onclick="toggleCategory(this)">
+                            <i class="fas fa-boxes icon"></i>
+                            <span>Stock Menu</span>
+                            <i class="fas fa-chevron-down toggle"></i>
+                        </div>
+                        <ul class="category-items collapsed">
+                            <li><a href="#" onclick="navigateToStock('/STOCKCHECKEDIT.HTM',event)">Verify Part (Pull-Sheet vs Shelf)</a></li>
+                            <li><a href="#" onclick="navigateToStock('/SHIPCHECK.HTM',event)">Verify Shipment (Packing Label vs Boxes)</a></li>
+                            <li><a href="#" onclick="navigateToStock('/IAP1.HTM',event)">Stock Shelf</a></li>
+                            <li><a href="#" onclick="navigateToStock('/IAPEDIT1.HTM',event)">Location Inquiry</a></li>
+                            <li><a href="#" onclick="navigateToStock('/INVIRMEDIT.HTM',event)">Inventory Part Inquiry</a></li>
+                            <li><a href="#" onclick="navigateToStock('/SHIPOUTP1.HTM',event)">Pull Active Parts</a></li>
+                            <li><a href="#" onclick="navigateToStock('/SHIPILABELP1.HTM',event)">Print Inner Box Label</a></li>
+                            <li><a href="#" onclick="navigateToStock('/SHIPLCLABELP1.HTM',event)">Print Box Label & Create Lotcode</a></li>
+                            <li><a href="#" onclick="navigateToStock('/IAP1S.HTM',event)">Stock Supply Shelf</a></li>
+                            <li><a href="#" onclick="navigateToStock('/SOUTP1.HTM',event)">Pull Supplies</a></li>
+                            <li><a href="#" onclick="navigateToStock('/STOCKMENU2.HTM',event)">2D Stock Menu</a></li>
+                            <li><a href="#" onclick="navigateToStock('/STOCKUPD.HTM',event)">MFG Stock Entries (IN/OUT)</a></li>
+                            <li><a href="#" onclick="navigateToStock('/INVPULL2.HTM',event)">Pull Raw Materials</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Schedule Menu Module -->
+                    <li class="menu-category">
+                        <div class="category-header" onclick="toggleCategory(this)">
+                            <i class="fas fa-calendar-alt icon"></i>
+                            <span>Schedule Menu</span>
+                            <i class="fas fa-chevron-down toggle"></i>
+                        </div>
+                        <ul class="category-items collapsed">
+                            <li><a href="#" onclick="submitScheduleAction('MENU1','MPS',event)">MPS</a></li>
+                            <li><a href="#" onclick="submitScheduleAction('MENU2','MRP',event)">MRP</a></li>
+                            <li><a href="#" onclick="submitScheduleAction('MENU3','SCHEDULER',event)">Scheduler</a></li>
+                            <li><a href="#" onclick="submitScheduleAction('MENU8','WO ACKNOWLEDGE',event)">WO Acknowledge</a></li>
+                            <li><a href="#" onclick="submitScheduleAction('MENU4','WEEKLY PULLORDER',event)">Weekly Pullorder</a></li>
+                            <li><a href="#" onclick="submitScheduleAction('MENU10','MANUAL PULLORDER',event)">Manual Pullorder</a></li>
+                            <li><a href="#" onclick="submitScheduleAction('MENU11','WO SPLIT',event)">WO Split</a></li>
+                            <li><a href="#" onclick="submitScheduleAction('MENU9','EBOM EDITOR',event)">EBOM Editor</a></li>
+                            <li><a href="#" onclick="submitScheduleAction('MENU12','LOAD EBOM/EBOO',event)">Load EBOM/EBOO</a></li>
+                            <li><a href="#" onclick="submitScheduleAction('MENU7','EBOM INQUIRY',event)">EBOM Inquiry</a></li>
+                            <li><a href="#" onclick="submitScheduleAction('MENU6','CAPACITY LOAD',event)">Capacity Load</a></li>
+                            <li><a href="#" onclick="submitScheduleAction('MENU13','LOAD RESCHEDULES',event)">Load Reschedules</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- WIP Menu Module -->
+                    <li class="menu-category">
+                        <div class="category-header" onclick="toggleCategory(this)">
+                            <i class="fas fa-cogs icon"></i>
+                            <span>WIP Menu</span>
+                            <i class="fas fa-chevron-down toggle"></i>
+                        </div>
+                        <ul class="category-items collapsed">
+                            <li><a href="#" onclick="submitWIPAction('MENU1','WIP WO LOAD',event)">WIP WO Load</a></li>
+                            <li><a href="#" onclick="submitWIPAction('MENU6','WIP SUBASSY LOAD',event)">WIP Subassy Load</a></li>
+                            <li><a href="#" onclick="submitWIPAction('MENU2','WIP TRACK',event)">WIP Track</a></li>
+                            <li><a href="/WIPTRACK_EDIT.HTM" onclick="event.preventDefault(); window.location.href='/WIPTRACK_EDIT.HTM';">WIP Tracking (New)</a></li>
+                            <li><a href="#" onclick="submitWIPAction('MENU4','STOCK BF',event)">Stock BF</a></li>
+                            <li><a href="#" onclick="submitWIPAction('MENU5','PRINT WO',event)">Print WO</a></li>
+                            <li><a href="#" onclick="submitWIPAction('MENU7','WIP MENU',event)">WIP Menu</a></li>
+                        </ul>
+                    </li>
+
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Sidebar overlay para móvil -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <main class="main-content">
+            <div class="dashboard-wrapper">
+                <div class="dashboard-content">
+                    <!-- Info Bar: Fecha y Clima -->
+                    <div class="info-bar">
+                        <div class="info-card">
+                            <i class="fas fa-calendar-alt info-icon"></i>
+                            <div class="info-content">
+                                <div class="info-label">Today</div>
+                                <div class="info-value" id="currentDate">Loading...</div>
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <i class="fas fa-cloud-sun info-icon"></i>
+                            <div class="info-content">
+                                <div class="info-label">Weather</div>
+                                <div class="info-value" id="weatherInfo">Sunny 72°F</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sales Order Operations -->
+                    <div class="operations-section">
+                        <h2 class="section-title">Sales Order Operations</h2>
+                        <form method="post" action="/NBMM.HTM" name="SOMENU">
+                            <div class="operations-grid">
+                                <button type="submit" name="MENU1" value="SO ENTRY" class="operation-btn op-entry">
+                                    <div class="operation-icon">
+                                        <i class="fas fa-file-invoice"></i>
+                                    </div>
+                                    <div class="operation-text">SO Entry</div>
+                                </button>
+                                
+                                <button type="submit" name="MENU2" value="SO CHANGES/INQUIRY" class="operation-btn op-inquiry">
+                                    <div class="operation-icon">
+                                        <i class="fas fa-search"></i>
+                                    </div>
+                                    <div class="operation-text">SO Changes/Inquiry</div>
+                                </button>
+                                
+                                <button type="submit" name="MENU4" value="SO COPY" class="operation-btn op-copy">
+                                    <div class="operation-icon">
+                                        <i class="fas fa-copy"></i>
+                                    </div>
+                                    <div class="operation-text">SO Copy</div>
+                                </button>
+                                
+                                <button type="submit" name="MENU3" value="MAIN MENU" class="operation-btn op-main">
+                                    <div class="operation-icon">
+                                        <i class="fas fa-home"></i>
+                                    </div>
+                                    <div class="operation-text">Main Menu</div>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div><!-- /dashboard-content -->
+            </div><!-- /dashboard-wrapper -->
+        </main>
+    </div><!-- /container -->
+
+    <script>
+        // Toggle sidebar para móvil
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Configurar todos los submenús anidados
+            document.querySelectorAll('.category-items').forEach(items => {
+                const header = items.previousElementSibling;
+                
+                // Inicializar estado collapsed
+                if (items.classList.contains('collapsed')) {
+                    items.style.maxHeight = '0px';
+                    items.style.display = 'block';
+                    if (header) {
+                        header.classList.add('collapsed');
+                    }
+                } else {
+                    items.style.maxHeight = 'none';
+                    items.style.display = 'block';
+                    if (header) {
+                        header.classList.remove('collapsed');
+                    }
+                }
+            });
+
+            // Asegurar que los submenús anidados estén correctamente configurados
+            document.querySelectorAll('.category-items .category-items').forEach(nestedItems => {
+                nestedItems.style.display = 'block';
+                if (nestedItems.classList.contains('collapsed')) {
+                    nestedItems.style.maxHeight = '0px';
+                } else {
+                    nestedItems.style.maxHeight = 'none';
+                }
+            });
+        });
+
+        // Toggle categorías del sidebar
+        function toggleCategory(header) {
+            const items = header.nextElementSibling;
+            if (!items || !items.classList) {
+                return;
+            }
+
+            const isCollapsed = items.classList.contains('collapsed');
+
+            // Cerrar otros submenús al mismo nivel (solo para el primer nivel)
+            const parentItems = header.closest('.category-items');
+            if (parentItems && !header.closest('.category-items .category-items')) {
+                const siblingCategories = parentItems.querySelectorAll(':scope > .menu-category');
+                siblingCategories.forEach(sibling => {
+                    if (sibling !== header.parentElement) {
+                        const siblingHeader = sibling.querySelector('.category-header');
+                        const siblingItems = sibling.querySelector('.category-items');
+                        if (siblingHeader && siblingItems && !siblingItems.classList.contains('collapsed')) {
+                            siblingHeader.classList.add('collapsed');
+                            siblingItems.classList.add('collapsed');
+                            siblingItems.style.maxHeight = '0px';
+                        }
+                    }
+                });
+            }
+
+            if (isCollapsed) {
+                items.classList.remove('collapsed');
+                header.classList.remove('collapsed');
+
+                // Forzar recalculo de altura para submenús anidados
+                items.style.display = 'block';
+                items.style.maxHeight = '0px';
+                
+                const targetHeight = items.scrollHeight;
+                items.style.maxHeight = `${targetHeight}px`;
+
+                const handleExpandTransitionEnd = (event) => {
+                    if (event.propertyName === 'max-height') {
+                        if (!items.classList.contains('collapsed')) {
+                            items.style.maxHeight = 'none';
+                        }
+                        items.removeEventListener('transitionend', handleExpandTransitionEnd);
+                    }
+                };
+
+                items.addEventListener('transitionend', handleExpandTransitionEnd);
+            } else {
+                const currentHeight = items.scrollHeight;
+                items.style.maxHeight = `${currentHeight}px`;
+
+                requestAnimationFrame(() => {
+                    header.classList.add('collapsed');
+                    items.classList.add('collapsed');
+                    items.style.maxHeight = '0px';
+                });
+            }
+        }
+
+        // Submit helpers to reuse the legacy backend flows
+        function submitSalesAction(fieldName, fieldValue, evt) {
+            if (evt) {
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+
+            const form = document.forms['SOMENU'];
+            if (!form) {
+                console.warn('SOMENU form not found');
+                return;
+            }
+
+            const dynamicInput = document.createElement('input');
+            dynamicInput.type = 'hidden';
+            dynamicInput.name = fieldName;
+            dynamicInput.value = fieldValue;
+            dynamicInput.dataset.temp = 'true';
+            form.appendChild(dynamicInput);
+
+            form.submit();
+            form.removeChild(dynamicInput);
+        }
+
+        function navigateToModule(url, evt) {
+            if (evt) {
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+            window.location.href = url;
+        }
+
+        function submitQuoteAction(fieldName, fieldValue, evt) {
+            if (evt) {
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+
+            const form = document.forms['SOMENU'];
+            if (!form) {
+                console.warn('SOMENU form not found');
+                return;
+            }
+
+            const dynamicInput = document.createElement('input');
+            dynamicInput.type = 'hidden';
+            dynamicInput.name = fieldName;
+            dynamicInput.value = fieldValue;
+            dynamicInput.dataset.temp = 'true';
+            form.appendChild(dynamicInput);
+
+            form.submit();
+            form.removeChild(dynamicInput);
+        }
+
+        function navigateToRMA(url, evt) {
+            if (evt) {
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+            window.location.href = url;
+        }
+
+        function submitPartAction(fieldName, fieldValue, evt) {
+            if (evt) {
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+
+            const form = document.forms['SOMENU'];
+            if (!form) {
+                console.warn('SOMENU form not found');
+                return;
+            }
+
+            const dynamicInput = document.createElement('input');
+            dynamicInput.type = 'hidden';
+            dynamicInput.name = fieldName;
+            dynamicInput.value = fieldValue;
+            dynamicInput.dataset.temp = 'true';
+            form.appendChild(dynamicInput);
+
+            form.submit();
+            form.removeChild(dynamicInput);
+        }
+
+        function submitWarehouseAction(fieldName, fieldValue, evt) {
+            if (evt) {
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+
+            const form = document.forms['SOMENU'];
+            if (!form) {
+                console.warn('SOMENU form not found');
+                return;
+            }
+
+            const dynamicInput = document.createElement('input');
+            dynamicInput.type = 'hidden';
+            dynamicInput.name = fieldName;
+            dynamicInput.value = fieldValue;
+            dynamicInput.dataset.temp = 'true';
+            form.appendChild(dynamicInput);
+
+            form.submit();
+            form.removeChild(dynamicInput);
+        }
+
+        function submitPurchaseAction(fieldName, fieldValue, evt) {
+            if (evt) {
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+
+            const form = document.forms['SOMENU'];
+            if (!form) {
+                console.warn('SOMENU form not found');
+                return;
+            }
+
+            const dynamicInput = document.createElement('input');
+            dynamicInput.type = 'hidden';
+            dynamicInput.name = fieldName;
+            dynamicInput.value = fieldValue;
+            dynamicInput.dataset.temp = 'true';
+            form.appendChild(dynamicInput);
+
+            form.submit();
+            form.removeChild(dynamicInput);
+        }
+
+        function navigateToQC(url, evt) {
+            if (evt) {
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+            window.location.href = url;
+        }
+
+        function navigateToStock(url, evt) {
+            if (evt) {
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+            window.location.href = url;
+        }
+
+        function navigateToBuyers(url, evt) {
+            if (evt) {
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+            window.location.href = url;
+        }
+
+        function navigateToDashboard() {
+            window.location.href = 'NBMMEDIT.HTM';
+        }
+
+        function submitScheduleAction(fieldName, fieldValue, evt) {
+            if (evt) {
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+
+            const form = document.forms['SOMENU'];
+            if (!form) {
+                console.warn('SOMENU form not found');
+                return;
+            }
+
+            const dynamicInput = document.createElement('input');
+            dynamicInput.type = 'hidden';
+            dynamicInput.name = fieldName;
+            dynamicInput.value = fieldValue;
+            dynamicInput.dataset.temp = 'true';
+            form.appendChild(dynamicInput);
+
+            form.submit();
+            form.removeChild(dynamicInput);
+        }
+
+        function submitWIPAction(fieldName, fieldValue, evt) {
+            if (evt) {
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+
+            const form = document.forms['SOMENU'];
+            if (!form) {
+                console.warn('SOMENU form not found');
+                return;
+            }
+
+            const dynamicInput = document.createElement('input');
+            dynamicInput.type = 'hidden';
+            dynamicInput.name = fieldName;
+            dynamicInput.value = fieldValue;
+            dynamicInput.dataset.temp = 'true';
+            form.appendChild(dynamicInput);
+
+            form.submit();
+            form.removeChild(dynamicInput);
+        }
+
+        function navigateToSOOrder(fieldName, fieldValue, evt) {
+            if (evt) {
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+            window.location.href = 'SO_EDIT.HTM';
+        }
+
+        function navigateToPOChanges(fieldName, fieldValue, evt) {
+            if (evt) {
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+            window.location.href = 'PO_EDIT.HTM';
+        }
+
+        function loadPage(page) {
+            console.log('Loading page:', page);
+            document.querySelectorAll('.category-items a').forEach(link => {
+                link.classList.remove('active');
+            });
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+            if (window.innerWidth <= 768) {
+                toggleSidebar();
+            }
+        }
+    </script>
+
+    <script>
+        (() => {
+            // Actualizar fecha
+            function updateDate() {
+                const dateElement = document.getElementById('currentDate');
+                if (dateElement) {
+                    const now = new Date();
+                    const options = { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    };
+                    dateElement.textContent = now.toLocaleDateString('en-US', options);
+                }
+            }
+
+            updateDate();
+        })();
+    </script>
+
+    <!-- Server-side processing code (preserved from original) -->
+    <pre style="display:none;">PicLan-IP/BASIC ^ ^
+*
+    PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+        ERR = '' ; INITIALS=  ''
+         CALL PLW.PAGE('LOGINEDIT.HTM','',ERR)
+        RETURN
+    END
+    PL_SET_COOKIE 'SONO' TO '' 
+    OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+    OPEN 'SOCHG' TO SOCHGF ELSE STOP 201,'SOCHG'
+    OPEN 'SOCART' TO SOCARTF ELSE STOP 201,'SOCART'
+    OPEN 'WSOACK' TO WSOACKF ELSE STOP 201,'WSOACK'
+*
+   READ OPER FROM OPERSF,INITIALS ELSE 
+        ERR = ''
+        CALL PLW.PAGE('LOGINEDIT.HTM','',ERR)
+        RETURN
+   END
+*
+   USER = OPER<1>
+   PL_GETVAR OPTION FROM 'OPTION' ELSE OPTION = ''
+   PL_GETVAR CONTINUE FROM 'CONTINUE' ELSE CONTINUE = ''
+   PL_GETVAR MENU1 FROM 'MENU1' ELSE MENU1 = ''
+   PL_GETVAR MENU2 FROM 'MENU2' ELSE MENU2 = ''
+   PL_GETVAR MENU3 FROM 'MENU3' ELSE MENU3 = ''
+   PL_GETVAR MENU4 FROM 'MENU4' ELSE MENU4 = ''
+   PL_GETVAR MENU5 FROM 'MENU5' ELSE MENU5 = ''
+   PL_GETVAR MENU6 FROM 'MENU6' ELSE MENU6 = ''
+   PL_GETVAR MENUDASH FROM 'MENUDASH' ELSE MENUDASH = ''
+   PL_GETVAR VWHSE.MENU FROM 'VWHSE.MENU' ELSE VWHSE.MENU = ''
+   PL_GETVAR POMENU1 FROM 'POMENU1' ELSE POMENU1 = ''
+   PL_GETVAR POMENU2 FROM 'POMENU2' ELSE POMENU2 = ''
+   PL_GETVAR POMENU3 FROM 'POMENU3' ELSE POMENU3 = ''
+   PL_GETVAR POMENU4 FROM 'POMENU4' ELSE POMENU4 = ''
+   PL_GETVAR POMENU5 FROM 'POMENU5' ELSE POMENU5 = ''
+   PL_GETVAR POMENU6 FROM 'POMENU6' ELSE POMENU6 = ''
+   PL_GETVAR POMENU_VWHSE FROM 'POMENU_VWHSE' ELSE POMENU_VWHSE = ''
+   PL_GETVAR QCMENU FROM 'QCMENU' ELSE QCMENU = ''
+   PL_GETVAR STOCKMENU FROM 'STOCKMENU' ELSE STOCKMENU = ''
+   PL_GETVAR MENU1 FROM 'MENU1' ELSE MENU1 = ''
+   PL_GETVAR MENU2 FROM 'MENU2' ELSE MENU2 = ''
+   PL_GETVAR MENU3 FROM 'MENU3' ELSE MENU3 = ''
+   PL_GETVAR MENU4 FROM 'MENU4' ELSE MENU4 = ''
+   PL_GETVAR MENU5 FROM 'MENU5' ELSE MENU5 = ''
+   PL_GETVAR MENU6 FROM 'MENU6' ELSE MENU6 = ''
+   PL_GETVAR MENU7 FROM 'MENU7' ELSE MENU7 = ''
+   PL_GETVAR MENU8 FROM 'MENU8' ELSE MENU8 = ''
+   PL_GETVAR MENU9 FROM 'MENU9' ELSE MENU9 = ''
+   PL_GETVAR MENU10 FROM 'MENU10' ELSE MENU10 = ''
+   PL_GETVAR MENU11 FROM 'MENU11' ELSE MENU11 = ''
+   PL_GETVAR MENU12 FROM 'MENU12' ELSE MENU12 = ''
+   PL_GETVAR MENU13 FROM 'MENU13' ELSE MENU13 = ''
+   PL_GETVAR WIPMENU1 FROM 'WIPMENU1' ELSE WIPMENU1 = ''
+   PL_GETVAR WIPMENU2 FROM 'WIPMENU2' ELSE WIPMENU2 = ''
+   PL_GETVAR WIPMENU3 FROM 'WIPMENU3' ELSE WIPMENU3 = ''
+   PL_GETVAR WIPMENU4 FROM 'WIPMENU4' ELSE WIPMENU4 = ''
+   PL_GETVAR WIPMENU5 FROM 'WIPMENU5' ELSE WIPMENU5 = ''
+   PL_GETVAR WIPMENU6 FROM 'WIPMENU6' ELSE WIPMENU6 = ''
+   PL_GETVAR WIPMENU7 FROM 'WIPMENU7' ELSE WIPMENU7 = ''
+   PL_GETVAR SO_ORDER FROM 'SO_ORDER' ELSE SO_ORDER = ''
+   PL_SET_COOKIE 'SESSIONID' TO ''
+   PL_SET_COOKIE 'VKEY' TO ''
+*
+*
+  IF MENUDASH NE '' THEN
+    ERROR =''
+    R.ERR = '302 MOVED TEMPORARILY'
+    PL_ADD_HDR 'Location: /rfqdash.htm'
+    RETURN   
+  END
+  IF MENU1 NE '' OR MENU2 NE '' OR MENU3 NE '' OR MENU4 NE '' OR MENU5 NE '' OR MENU6 NE '' OR VWHSE.MENU NE '' OR POMENU1 NE '' OR POMENU2 NE '' OR POMENU3 NE '' OR POMENU4 NE '' OR POMENU5 NE '' OR POMENU6 NE '' OR POMENU_VWHSE NE '' OR QCMENU NE '' OR STOCKMENU NE '' OR MENU7 NE '' OR MENU8 NE '' OR MENU9 NE '' OR MENU10 NE '' OR MENU11 NE '' OR MENU12 NE '' OR MENU13 NE '' OR WIPMENU1 NE '' OR WIPMENU2 NE '' OR WIPMENU3 NE '' OR WIPMENU4 NE '' OR WIPMENU5 NE '' OR WIPMENU6 NE '' OR WIPMENU7 NE '' OR SO_ORDER NE '' THEN
+    BEGIN CASE
+          CASE OPTION = '1' OR MENU1 NE ''
+                SONO = 'NEW':INITIALS<1>
+                DELETE SOCHGF,SONO
+                DELETE WSOACKF,SONO
+                 PL_SET_COOKIE 'SONO' TO SONO
+                PL_PUTVAR SONO IN 'SONO' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('CUSTSEARCHSO_EDIT.HTM','',ERR)
+               RETURN
+          CASE OPTION = '2' OR MENU2 NE '' 
+                SONO = 'NEW':INITIALS<1>
+                DELETE SOCHGF,SONO
+                DELETE WSOACKF,SONO
+                SONO = ''
+                PL_SET_COOKIE 'SONO' TO SONO
+                ERR = ''
+                CALL PLW.PAGE('NBSOCHGID.HTM','',ERR)
+                RETURN
+           CASE MENU4 NE ''
+                SONO = 'NEW':INITIALS<1>
+                DELETE SOCHGF,SONO
+                DELETE WSOACKF,SONO
+                SONO = ''
+                PL_SET_COOKIE 'SONO' TO SONO
+                ERR = ''
+                CALL PLW.PAGE('NBSOCHGIDCOPY.HTM','',ERR)
+                RETURN
+           CASE OPTION = '5'
+                ERR = ''
+                CALL PLW.PAGE('NBSOCHGMAINDASH.HTM','',ERR)
+                RETURN
+           CASE MENU6 NE ''
+                ERR = ''
+                CALL PLW.PAGE('NBPART.HTM','',ERR)
+                RETURN
+           CASE MENU5 NE ''
+                OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+                READ OPER FROM OPERSF,INITIALS ELSE OPER = ''
+                PMGRS = 'JG':VM:'SF':VM:'TCM':VM:'BH':VM:'AMR':VM:'CLR':VM:'LWP':VM:'EC':VM:'CLRS':VM:'MAR':VM:'JAV':VM:'GRW'
+                IX = INITIALS<1>
+                LOCATE(IX,PMGRS<1>,1;HIT) THEN
+                   PL_PUTVAR 'ALL' IN 'INIT' ELSE NULL
+                   PL_PUTVAR 'R' IN 'MENU' ELSE NULL
+                END ELSE
+                   PL_PUTVAR IX IN 'INIT' ELSE NULL
+                   PL_PUTVAR 'NBSALES' IN 'MENU' ELSE NULL
+                END
+                ERR = ''
+                CALL PLW.PAGE('GETQODMGR.HTM','',ERR)
+                RETURN
+          CASE VWHSE.MENU NE ''
+                ERR = ''
+                CALL PLW.PAGE('VWHSE.HTM','',ERR)
+                RETURN
+          CASE POMENU1 NE ''
+                OPEN 'POCHG' TO POCHGF ELSE STOP 201,'POCHG'
+                ERR = ''
+                ID = 'STOCKED'
+                PL_SET_COOKIE 'POTYPE' TO ID
+                PL_PUTVAR ID IN 'POTYPE' ELSE NULL
+                CALL PLW.PAGE('GETINVREQ.HTM','',ERR)
+                RETURN
+          CASE POMENU2 NE ''
+                OPEN 'POCHG' TO POCHGF ELSE STOP 201,'POCHG'
+                ID = 'NONSTOCKED'
+                PL_SET_COOKIE 'POTYPE' TO ID
+                PL_PUTVAR ID IN 'POTYPE' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('GETINVREQ.HTM','',ERR)
+                RETURN
+          CASE POMENU3 NE ''
+                OPEN 'POCHG' TO POCHGF ELSE STOP 201,'POCHG'
+                PONO = 'EXPENSE':INITIALS<1>
+                POREC = ''
+                POREC<1> = DATE()
+                POREC<15> = 'N'
+                POREC<4> = '015550'
+                POREC<8> = INITIALS
+                WRITE POREC ON POCHGF,PONO
+                PL_SET_COOKIE 'PONO' TO PONO
+                PL_PUTVAR PONO IN 'PONO' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('NBPOCHGHDR.HTM','',ERR)
+                RETURN
+          CASE POMENU4 NE ''
+                ERR = ''
+                CALL PLW.PAGE('PO_EDIT.HTM','',ERR)
+                RETURN
+          CASE POMENU5 NE ''
+                ERR = ''
+                CALL PLW.PAGE('NBPOCHGMAINDASH.HTM','',ERR)
+                RETURN
+          CASE POMENU6 NE ''
+                OPEN 'POCHG' TO POCHGF ELSE STOP 201,'POCHG'
+                OPEN 'POCART' TO POCARTF ELSE STOP 201,'POCART'
+                PONO = 'NEW':INITIALS<1>
+                POREC = ''
+                POREC<1> = DATE()
+                POREC<15> = 'N'
+                POREC<4> = '262770'
+                POREC<8> = INITIALS
+                WRITE POREC ON POCHGF,PONO
+                WRITE '' ON POCARTF,PONO
+                ID = 'NONSTOCKED'
+                PL_SET_COOKIE 'POTYPE' TO ID
+                PL_PUTVAR ID IN 'POTYPE' ELSE NULL
+                PL_SET_COOKIE 'PONO' TO PONO
+                PL_PUTVAR PONO IN 'PONO' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('NBPOCHGHDR.HTM','',ERR)
+                RETURN
+          CASE POMENU_VWHSE NE ''
+                ERR = ''
+                CALL PLW.PAGE('VWHSE.HTM','',ERR)
+                RETURN
+          CASE QCMENU NE ''
+                ERR = ''
+                CALL PLW.PAGE('QCMENU.HTM','',ERR)
+                RETURN
+          CASE STOCKMENU NE ''
+                ERR = ''
+                CALL PLW.PAGE('STOCKMENU.HTM','',ERR)
+                RETURN
+          CASE MENU1 NE ''
+                ERR = ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+                PL_PUTVAR '' IN 'MENU9' ELSE NULL
+                PL_PUTVAR '' IN 'MENU10' ELSE NULL
+                PL_PUTVAR '' IN 'MENU11' ELSE NULL
+                PL_PUTVAR '' IN 'MENU12' ELSE NULL
+                PL_PUTVAR '' IN 'MENU13' ELSE NULL
+                PL_PUTVAR '' IN 'OPTION' ELSE NULL
+                CALL PLW.PAGE('MPSLISTMAINWO.HTM','',ERR)
+                RETURN
+          CASE MENU2 NE ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+                PL_PUTVAR '' IN 'MENU9' ELSE NULL
+                PL_PUTVAR '' IN 'MENU10' ELSE NULL
+                PL_PUTVAR '' IN 'MENU11' ELSE NULL
+                PL_PUTVAR '' IN 'MENU12' ELSE NULL
+                PL_PUTVAR '' IN 'MENU13' ELSE NULL
+                PL_PUTVAR '' IN 'OPTION' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('MRPLISTMAINPO.HTM','',ERR)
+                RETURN
+          CASE MENU3 NE ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+                PL_PUTVAR '' IN 'MENU9' ELSE NULL
+                PL_PUTVAR '' IN 'MENU10' ELSE NULL
+                PL_PUTVAR '' IN 'MENU11' ELSE NULL
+                PL_PUTVAR '' IN 'MENU12' ELSE NULL
+                PL_PUTVAR '' IN 'MENU13' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('SCHEDULER.HTM','',ERR)
+                RETURN
+          CASE MENU4 NE ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+                PL_PUTVAR '' IN 'MENU9' ELSE NULL
+                PL_PUTVAR '' IN 'MENU10' ELSE NULL
+                PL_PUTVAR '' IN 'MENU11' ELSE NULL
+                PL_PUTVAR '' IN 'MENU12' ELSE NULL
+                PL_PUTVAR '' IN 'MENU13' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('ACWOSCHED.HTM','',ERR)
+                RETURN
+          CASE MENU5 NE ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+                PL_PUTVAR '' IN 'MENU9' ELSE NULL
+                PL_PUTVAR '' IN 'MENU10' ELSE NULL
+                PL_PUTVAR '' IN 'MENU11' ELSE NULL
+                PL_PUTVAR '' IN 'MENU12' ELSE NULL
+                PL_PUTVAR '' IN 'MENU13' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('WOUPD.HTM','',ERR)
+                RETURN
+          CASE MENU6 NE ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+                PL_PUTVAR '' IN 'MENU9' ELSE NULL
+                PL_PUTVAR '' IN 'MENU10' ELSE NULL
+                PL_PUTVAR '' IN 'MENU11' ELSE NULL
+                PL_PUTVAR '' IN 'MENU12' ELSE NULL
+                PL_PUTVAR '' IN 'MENU13' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('CAPVSALLOC.HTM','',ERR)
+                RETURN
+          CASE MENU7 NE ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+                PL_PUTVAR '' IN 'MENU9' ELSE NULL
+                PL_PUTVAR '' IN 'MENU10' ELSE NULL
+                PL_PUTVAR '' IN 'MENU11' ELSE NULL
+                PL_PUTVAR '' IN 'MENU12' ELSE NULL
+                PL_PUTVAR '' IN 'MENU13' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('YORKBOM2.HTM','',ERR)
+                RETURN
+          CASE MENU8 NE ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+                PL_PUTVAR '' IN 'MENU9' ELSE NULL
+                PL_PUTVAR '' IN 'MENU10' ELSE NULL
+                PL_PUTVAR '' IN 'MENU11' ELSE NULL
+                PL_PUTVAR '' IN 'MENU12' ELSE NULL
+                PL_PUTVAR '' IN 'MENU13' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('AUTOWOREPORT.HTM','',ERR)
+                RETURN
+          CASE MENU9 NE ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+                PL_PUTVAR '' IN 'MENU9' ELSE NULL
+                PL_PUTVAR '' IN 'MENU10' ELSE NULL
+                PL_PUTVAR '' IN 'MENU11' ELSE NULL
+                PL_PUTVAR '' IN 'MENU12' ELSE NULL
+                PL_PUTVAR '' IN 'MENU13' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('CDABOMEDIT.HTM','',ERR)
+                RETURN
+          CASE MENU10 NE ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+                PL_PUTVAR '' IN 'MENU9' ELSE NULL
+                PL_PUTVAR '' IN 'MENU10' ELSE NULL
+                PL_PUTVAR '' IN 'MENU11' ELSE NULL
+                PL_PUTVAR '' IN 'MENU12' ELSE NULL
+                PL_PUTVAR '' IN 'MENU13' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('INVIRMEDIT.HTM','',ERR)
+                RETURN
+          CASE MENU11 NE ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+                PL_PUTVAR '' IN 'MENU9' ELSE NULL
+                PL_PUTVAR '' IN 'MENU10' ELSE NULL
+                PL_PUTVAR '' IN 'MENU11' ELSE NULL
+                PL_PUTVAR '' IN 'MENU12' ELSE NULL
+                PL_PUTVAR '' IN 'MENU13' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('ACWOSCHED.HTM','',ERR)
+                RETURN
+          CASE MENU12 NE ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+                PL_PUTVAR '' IN 'MENU9' ELSE NULL
+                PL_PUTVAR '' IN 'MENU10' ELSE NULL
+                PL_PUTVAR '' IN 'MENU11' ELSE NULL
+                PL_PUTVAR '' IN 'MENU12' ELSE NULL
+                PL_PUTVAR '' IN 'MENU13' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('LOADEBOM.HTM','',ERR)
+                RETURN
+          CASE MENU13 NE ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+                PL_PUTVAR '' IN 'MENU9' ELSE NULL
+                PL_PUTVAR '' IN 'MENU10' ELSE NULL
+                PL_PUTVAR '' IN 'MENU11' ELSE NULL
+                PL_PUTVAR '' IN 'MENU12' ELSE NULL
+                PL_PUTVAR '' IN 'MENU13' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('SCHPENTRYBATCH.HTM','',ERR)
+                RETURN
+          CASE WIPMENU1 NE ''
+                ERR = ''
+                CALL PLW.PAGE('WIPWOLIST.HTM','',ERR)
+                RETURN
+          CASE WIPMENU2 NE ''
+                ERR = ''
+                CALL PLW.PAGE('WIPTRACK.HTM','',ERR)
+                RETURN
+          CASE WIPMENU3 NE ''
+                ERR = ''
+                CALL PLW.PAGE('WIPTRACK.HTM','',ERR)
+                RETURN
+          CASE WIPMENU4 NE ''
+                ERR = ''
+                CALL PLW.PAGE('STOCKBF.HTM','',ERR)
+                RETURN
+          CASE WIPMENU5 NE ''
+                ERR = ''
+                CALL PLW.PAGE('PRINTWO.HTM','',ERR)
+                RETURN
+          CASE WIPMENU6 NE ''
+                ERR = ''
+                CALL PLW.PAGE('WIPSUBASSY.HTM','',ERR)
+                RETURN
+          CASE WIPMENU7 NE ''
+                ERR = ''
+                CALL PLW.PAGE('WIPMENU.HTM','',ERR)
+                RETURN
+          CASE SO_ORDER NE ''
+                ERR = ''
+                CALL PLW.PAGE('SO_EDIT.HTM','',ERR)
+                RETURN
+          CASE OPTION = '99' OR MENU3 NE ''
+              ERR = ''
+              PL_GET_COOKIE INX FROM 'INIT' ELSE NULL
+              PL_PUTVAR INITIALS IN 'INIT' ELSE NULL
+              PL_PUTVAR '' IN 'OPTION' ELSE NULL
+              PL_PUTVAR '' IN 'MENU3' ELSE NULL
+              PRINT 'INX = ':INX
+              CALL PLW.PAGE('NBSALES.HTM','',ERR)
+              RETURN
+    END CASE
+  END
+*
+*
+</pre>
+</body>
+</html>
+               
+     

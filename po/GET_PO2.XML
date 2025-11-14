@@ -1,0 +1,565 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO2' TO PO2F ELSE STOP 201,'PO2'
+OPEN 'VENDOR' TO VENDORF ELSE STOP 201,'VENDOR'
+OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+OPEN 'CUSTOMER' TO CUSTOMERF ELSE STOP 201,'CUSTOMER'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+* Get parameters from URL
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = ''
+
+PO_NUMBER = TRIM(PO_NUMBER)
+
+*
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+*REM Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM:'<purchaseorders>' 
+
+*REM Read PO records
+PRINT "PO_NUMBER=": PO_NUMBER
+
+* If specific PO_NUMBER is provided, read directly
+IF PO_NUMBER <> "" THEN
+    READ PO.RECORD FROM PO2F, PO_NUMBER ELSE
+        XML.RESPONSE = XML.RESPONSE :XAM: '</purchaseorders>'
+        WRITE XML.RESPONSE ON XMLDATAF,'GET_PO2.XML'
+        ERR = ''
+        CALL PLW.PAGE('/XMLDATA/GET_PO2.XML','',ERR)
+        RETURN
+    END
+    PO_ID = PO_NUMBER
+    GOTO PROCESS_PO
+END
+
+* Otherwise, scan all records
+SL = \SSELECT PO2\
+EXECUTE SL
+PRINT
+
+10 READNEXT PO_ID THEN
+    READ PO.RECORD FROM PO2F, PO_ID ELSE
+        GOTO 10
+    END
+
+PROCESS_PO:
+
+    XML.RESPONSE = XML.RESPONSE :XAM: '<po>' ; * Emit record header
+
+    * PO NUMBER - Use the PO_ID we're processing
+    XML.RESPONSE = XML.RESPONSE :XAM: '<po_number>' : PO_ID : '</po_number>'
+
+    * PO DATE <1>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<po_date>' : PO.RECORD<1> : '</po_date>'
+    
+    * BUYER - Try multiple possible fields
+    BUYER_CODE = PO.RECORD<8>
+    IF BUYER_CODE = '' THEN BUYER_CODE = PO.RECORD<7>
+    IF BUYER_CODE = '' THEN BUYER_CODE = PO.RECORD<9>
+    IF BUYER_CODE = '' THEN BUYER_CODE = PO.RECORD<10>
+    IF BUYER_CODE = '' THEN BUYER_CODE = PO.RECORD<11>
+    IF BUYER_CODE = '' THEN BUYER_CODE = PO.RECORD<12>
+    IF BUYER_CODE = '' THEN BUYER_CODE = PO.RECORD<13>
+    IF BUYER_CODE = '' THEN BUYER_CODE = PO.RECORD<14>
+    IF BUYER_CODE = '' THEN BUYER_CODE = PO.RECORD<5>
+    IF BUYER_CODE = '' THEN BUYER_CODE = PO.RECORD<6>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer>' : BUYER_CODE : '</buyer>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_debug_field5>' : PO.RECORD<5> : '</buyer_debug_field5>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_debug_field6>' : PO.RECORD<6> : '</buyer_debug_field6>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_debug_field7>' : PO.RECORD<7> : '</buyer_debug_field7>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_debug_field8>' : PO.RECORD<8> : '</buyer_debug_field8>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_debug_field9>' : PO.RECORD<9> : '</buyer_debug_field9>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_debug_field10>' : PO.RECORD<10> : '</buyer_debug_field10>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_debug_field11>' : PO.RECORD<11> : '</buyer_debug_field11>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_debug_field12>' : PO.RECORD<12> : '</buyer_debug_field12>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_debug_field13>' : PO.RECORD<13> : '</buyer_debug_field13>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_debug_field14>' : PO.RECORD<14> : '</buyer_debug_field14>'
+    
+    * BUYER INFORMATION - Read from OPERS database
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_info>'
+    READ OPERS.RECORD FROM OPERSF, BUYER_CODE ELSE
+        XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_name></buyer_name>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_email></buyer_email>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_initials></buyer_initials>'
+        GOTO BUYER_END
+    END
+    
+    * BUYER NAME <2> (based on OPERS structure)
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_name>' : OPERS.RECORD<2> : '</buyer_name>'
+    
+    * BUYER EMAIL <3>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_email>' : OPERS.RECORD<3> : '</buyer_email>'
+    
+    * BUYER INITIALS <1>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<buyer_initials>' : OPERS.RECORD<1> : '</buyer_initials>'
+    
+    BUYER_END:
+    XML.RESPONSE = XML.RESPONSE :XAM: '</buyer_info>'
+    
+    * VENDOR NUMBER <2>
+    VENDOR_NUMBER = PO.RECORD<2>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_number>' : VENDOR_NUMBER : '</vendor_number>'
+    
+    * VENDOR INFORMATION - Read from VENDOR database
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_info>'
+    READ VENDOR.RECORD FROM VENDORF, VENDOR_NUMBER ELSE
+        XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_name></vendor_name>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_address1></vendor_address1>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_address2></vendor_address2>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_city></vendor_city>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_state></vendor_state>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_zip></vendor_zip>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_country></vendor_country>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_contact></vendor_contact>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_email></vendor_email>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_phone></vendor_phone>'
+        GOTO VENDOR_END
+    END
+    
+    * VENDOR NAME <1>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_name>' : VENDOR.RECORD<1> : '</vendor_name>'
+    
+    * VENDOR ADDRESS <2> - Contains full address
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_address1>' : VENDOR.RECORD<2> : '</vendor_address1>'
+    
+    * VENDOR CITY/STATE <3> - Contains "MEXICALI, BC"
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_city>' : VENDOR.RECORD<3> : '</vendor_city>'
+    
+    * VENDOR COUNTRY <13> - Contains "MX"
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_country>' : VENDOR.RECORD<13> : '</vendor_country>'
+    
+    * Clear unused fields
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_address2></vendor_address2>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_state></vendor_state>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_zip></vendor_zip>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_contact></vendor_contact>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_email></vendor_email>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendor_phone></vendor_phone>'
+    
+    VENDOR_END:
+    XML.RESPONSE = XML.RESPONSE :XAM: '</vendor_info>'
+    
+    * SHIP TO <4>
+    SHIPTO_CODE = PO.RECORD<4>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<ship_to>' : SHIPTO_CODE : '</ship_to>'
+    
+    * SHIP TO INFORMATION - Read from CUSTOMER database
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_info>'
+    READ CUSTOMER.RECORD FROM CUSTOMERF, SHIPTO_CODE ELSE
+        XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_name></shipto_name>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_address1></shipto_address1>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_address2></shipto_address2>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_city></shipto_city>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_state></shipto_state>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_zip></shipto_zip>'
+        GOTO SHIPTO_END
+    END
+    
+    * CUSTOMER NAME <1>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_name>' : CUSTOMER.RECORD<1> : '</shipto_name>'
+    
+    * CUSTOMER ADDRESS <2>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_address1>' : CUSTOMER.RECORD<2> : '</shipto_address1>'
+    
+    * CUSTOMER ADDRESS 2 <3>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_address2>' : CUSTOMER.RECORD<3> : '</shipto_address2>'
+    
+    * CUSTOMER CITY <4>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_city>' : CUSTOMER.RECORD<4> : '</shipto_city>'
+    
+    * CUSTOMER STATE <5>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_state>' : CUSTOMER.RECORD<5> : '</shipto_state>'
+    
+    * CUSTOMER ZIP <6>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<shipto_zip>' : CUSTOMER.RECORD<6> : '</shipto_zip>'
+    
+    SHIPTO_END:
+    XML.RESPONSE = XML.RESPONSE :XAM: '</shipto_info>'
+
+    * LINE ITEM <31>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<line_item>' : PO.RECORD<31> : '</line_item>'
+    
+    * LINE ITEMS WITH PART NUMBERS AND ASSOCIATED DATA
+    XML.RESPONSE = XML.RESPONSE :XAM: '<line_items>'
+    PART_NUMBERS_DATA = PO.RECORD<32>
+    SCHED_DATA_FULL = PO.RECORD<34>
+    UNIT_PRICES_DATA = PO.RECORD<35>
+    NEEDS_DATA_FULL = PO.RECORD<38>
+    LINE_NOTES_DATA = PO.RECORD<44>
+    
+    IF PART_NUMBERS_DATA <> '' THEN
+        PART_LINES = DCOUNT(PART_NUMBERS_DATA, XVM)
+        FOR I = 1 TO PART_LINES
+            PART_NUMBERS_MV = PART_NUMBERS_DATA<1,I>
+            IF PART_NUMBERS_MV <> '' THEN
+                PARTS_COUNT = DCOUNT(PART_NUMBERS_MV, XSM)
+                FOR J = 1 TO PARTS_COUNT
+                    PART_NUMBER = PART_NUMBERS_MV<1,1,J>
+                    IF PART_NUMBER <> '' THEN
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<line_item>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<line_number>' : ((I-1)*PARTS_COUNT + J) : '</line_number>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<part_number>' : PART_NUMBER : '</part_number>'
+                        
+                        * Unit price for this part - extract from field 36 (primary source)
+                        UNIT_PRICE_ITEM = ''
+                        UNIT_PRICE_RAW = ''
+                        
+                        * Try multiple fields systematically for unit price data
+                        * Check field 36 first
+                        UNIT_PRICE_36_DATA = PO.RECORD<36>
+                        IF UNIT_PRICE_36_DATA <> '' THEN
+                            UNIT_PRICE_36_LINE = UNIT_PRICE_36_DATA<1,I>
+                            IF UNIT_PRICE_36_LINE <> '' THEN
+                                UNIT_PRICE_RAW = UNIT_PRICE_36_LINE<1,J>
+                                IF UNIT_PRICE_RAW <> '' AND NUM(UNIT_PRICE_RAW) THEN
+                                    UNIT_PRICE_NUMERIC = UNIT_PRICE_RAW / 10000
+                                    UNIT_PRICE_ITEM = UNIT_PRICE_NUMERIC
+                                END
+                            END
+                        END
+                        
+                        * If field 36 empty, try field 26 with different conversion
+                        IF UNIT_PRICE_ITEM = '' THEN
+                            UNIT_PRICE_26_DATA = PO.RECORD<26>
+                            IF UNIT_PRICE_26_DATA <> '' THEN
+                                UNIT_PRICE_26_LINE = UNIT_PRICE_26_DATA<1,I>
+                                IF UNIT_PRICE_26_LINE <> '' THEN
+                                    UNIT_PRICE_RAW = UNIT_PRICE_26_LINE<1,J>
+                                    IF UNIT_PRICE_RAW <> '' AND NUM(UNIT_PRICE_RAW) THEN
+                                        UNIT_PRICE_NUMERIC = UNIT_PRICE_RAW / 10000
+                                        UNIT_PRICE_ITEM = UNIT_PRICE_NUMERIC
+                                    END
+                                END
+                            END
+                        END
+                        
+                        * If still empty, try field 37 raw value
+                        IF UNIT_PRICE_ITEM = '' THEN
+                            UNIT_PRICE_37_DATA = PO.RECORD<37>
+                            IF UNIT_PRICE_37_DATA <> '' THEN
+                                UNIT_PRICE_37_LINE = UNIT_PRICE_37_DATA<1,I>
+                                IF UNIT_PRICE_37_LINE <> '' THEN
+                                    UNIT_PRICE_RAW = UNIT_PRICE_37_LINE<1,J>
+                                    IF UNIT_PRICE_RAW <> '' AND NUM(UNIT_PRICE_RAW) THEN
+                                        UNIT_PRICE_ITEM = UNIT_PRICE_RAW
+                                    END
+                                END
+                            END
+                        END
+                        
+                        * Fallback to field 35 if field 36 is empty
+                        IF UNIT_PRICE_ITEM = '' THEN
+                            UNIT_PRICE_LINE_DATA = UNIT_PRICES_DATA<1,I>
+                            IF UNIT_PRICE_LINE_DATA <> '' THEN
+                                UNIT_PRICE_ITEM = UNIT_PRICE_LINE_DATA<1,J>
+                            END
+                        END
+                        
+                        * Fallback to field 37 if still empty
+                        IF UNIT_PRICE_ITEM = '' THEN
+                            UNIT_PRICE_ALT_DATA = PO.RECORD<37>
+                            IF UNIT_PRICE_ALT_DATA <> '' THEN
+                                UNIT_PRICE_ALT_LINE = UNIT_PRICE_ALT_DATA<1,I>  
+                                IF UNIT_PRICE_ALT_LINE <> '' THEN
+                                    UNIT_PRICE_ITEM = UNIT_PRICE_ALT_LINE<1,J>
+                                END
+                            END
+                        END
+                        
+                        * Final fallback to field 39
+                        IF UNIT_PRICE_ITEM = '' THEN
+                            UNIT_PRICE_ALT2_DATA = PO.RECORD<39>
+                            IF UNIT_PRICE_ALT2_DATA <> '' THEN
+                                UNIT_PRICE_ALT2_LINE = UNIT_PRICE_ALT2_DATA<1,I>
+                                IF UNIT_PRICE_ALT2_LINE <> '' THEN
+                                    UNIT_PRICE_ITEM = UNIT_PRICE_ALT2_LINE<1,J>
+                                END
+                            END
+                        END
+                        
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<unit_price>' : UNIT_PRICE_ITEM : '</unit_price>'
+                        
+                        * Debug extensive field search for unit prices with multivalue extraction
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<debug_field26>' : PO.RECORD<26> : '</debug_field26>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<debug_field26_line>' : PO.RECORD<26,I> : '</debug_field26_line>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<debug_field26_subval>' : PO.RECORD<26,I,J> : '</debug_field26_subval>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<debug_field35>' : PO.RECORD<35> : '</debug_field35>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<debug_field35_line>' : PO.RECORD<35,I> : '</debug_field35_line>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<debug_field35_subval>' : PO.RECORD<35,I,J> : '</debug_field35_subval>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<debug_field36>' : PO.RECORD<36> : '</debug_field36>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<debug_field36_line>' : PO.RECORD<36,I> : '</debug_field36_line>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<debug_field36_subval>' : PO.RECORD<36,I,J> : '</debug_field36_subval>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<debug_field37>' : PO.RECORD<37> : '</debug_field37>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<debug_field37_line>' : PO.RECORD<37,I> : '</debug_field37_line>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<debug_field37_subval>' : PO.RECORD<37,I,J> : '</debug_field37_subval>'
+                        
+                        * Schedule date/qty for this part (field 34) - handle subvalues
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<debug_sched_full>' : SCHED_DATA_FULL : '</debug_sched_full>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<debug_sched_full_raw>' 
+                        FOR DBI = 1 TO LEN(SCHED_DATA_FULL)
+                            DEBUG_CHAR = SCHED_DATA_FULL[DBI,1]
+                            XML.RESPONSE = XML.RESPONSE : '[' : ASCII(DEBUG_CHAR) : ']'
+                        NEXT DBI
+                        XML.RESPONSE = XML.RESPONSE : '</debug_sched_full_raw>'
+                        SCHED_LINE_DATA = SCHED_DATA_FULL<1,I>
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<debug_sched_line>' : SCHED_LINE_DATA : '</debug_sched_line>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<debug_sched_line_raw>'
+                        FOR DBI = 1 TO LEN(SCHED_LINE_DATA)
+                            DEBUG_CHAR = SCHED_LINE_DATA[DBI,1]
+                            XML.RESPONSE = XML.RESPONSE : '[' : ASCII(DEBUG_CHAR) : ']'
+                        NEXT DBI
+                        XML.RESPONSE = XML.RESPONSE : '</debug_sched_line_raw>'
+                        IF SCHED_LINE_DATA <> '' THEN
+                            * Get the subvalue for this part (J)
+                            SCHED_SUBVALUE = SCHED_LINE_DATA<1,J>
+                            XML.RESPONSE = XML.RESPONSE :XAM: '<debug_sched_subval>' : SCHED_SUBVALUE : '</debug_sched_subval>'
+                            XML.RESPONSE = XML.RESPONSE :XAM: '<debug_sched_subval_raw>'
+                            FOR DBI = 1 TO LEN(SCHED_SUBVALUE)
+                                DEBUG_CHAR = SCHED_SUBVALUE[DBI,1]
+                                XML.RESPONSE = XML.RESPONSE : '[' : ASCII(DEBUG_CHAR) : ']'
+                            NEXT DBI
+                            XML.RESPONSE = XML.RESPONSE : '</debug_sched_subval_raw>'
+                            XML.RESPONSE = XML.RESPONSE :XAM: '<debug_sched_subval_len>' : LEN(SCHED_SUBVALUE) : '</debug_sched_subval_len>'
+                            IF SCHED_SUBVALUE <> '' THEN
+                                * Process schedule entries - field 34 uses char(252) as subvalue separator
+                                * Parse subvalue which contains schedule data separated by char(252)
+                                SCHED_PARTS = DCOUNT(SCHED_SUBVALUE, CHAR(252))
+                                XML.RESPONSE = XML.RESPONSE :XAM: '<debug_sched_parts>' : SCHED_PARTS : '</debug_sched_parts>'
+                                FOR K = 1 TO SCHED_PARTS
+                                    SCHED_ENTRY = FIELD(SCHED_SUBVALUE, CHAR(252), K)
+                                    XML.RESPONSE = XML.RESPONSE :XAM: '<debug_sched_k>' : K : '</debug_sched_k>'
+                                    XML.RESPONSE = XML.RESPONSE :XAM: '<debug_sched_entry_raw>' : SCHED_ENTRY : '</debug_sched_entry_raw>'
+                                    IF SCHED_ENTRY <> '' THEN
+                                        * Each entry might be date*qty format or separate
+                                        IF INDEX(SCHED_ENTRY, '*', 1) THEN
+                                            * Date*Qty format
+                                            SCHED_DATE = FIELD(SCHED_ENTRY, '*', 1)
+                                            SCHED_QTY = FIELD(SCHED_ENTRY, '*', 2)
+                                            XML.RESPONSE = XML.RESPONSE :XAM: '<debug_sched_date_raw>' : SCHED_DATE : '</debug_sched_date_raw>'
+                                            XML.RESPONSE = XML.RESPONSE :XAM: '<debug_sched_qty_raw>' : SCHED_QTY : '</debug_sched_qty_raw>'
+                                            IF SCHED_DATE <> '' OR SCHED_QTY <> '' THEN
+                                                XML.RESPONSE = XML.RESPONSE :XAM: '<schedule_entry>'
+                                                XML.RESPONSE = XML.RESPONSE :XAM: '<schedule_date>' : SCHED_DATE : '</schedule_date>'
+                                                XML.RESPONSE = XML.RESPONSE :XAM: '<schedule_qty>' : SCHED_QTY : '</schedule_qty>'
+                                                XML.RESPONSE = XML.RESPONSE :XAM: '</schedule_entry>'
+                                            END
+                                        END ELSE
+                                            * Treat as date or qty based on position
+                                            IF MOD(K, 2) = 1 THEN
+                                                SCHED_DATE = SCHED_ENTRY
+                                                SCHED_QTY = ''
+                                                IF K < SCHED_PARTS THEN
+                                                    SCHED_QTY = FIELD(SCHED_SUBVALUE, CHAR(252), K+1)
+                                                END
+                                                XML.RESPONSE = XML.RESPONSE :XAM: '<debug_sched_date_raw>' : SCHED_DATE : '</debug_sched_date_raw>'
+                                                XML.RESPONSE = XML.RESPONSE :XAM: '<debug_sched_qty_raw>' : SCHED_QTY : '</debug_sched_qty_raw>'
+                                                IF SCHED_DATE <> '' OR SCHED_QTY <> '' THEN
+                                                    XML.RESPONSE = XML.RESPONSE :XAM: '<schedule_entry>'
+                                                    XML.RESPONSE = XML.RESPONSE :XAM: '<schedule_date>' : SCHED_DATE : '</schedule_date>'
+                                                    XML.RESPONSE = XML.RESPONSE :XAM: '<schedule_qty>' : SCHED_QTY : '</schedule_qty>'
+                                                    XML.RESPONSE = XML.RESPONSE :XAM: '</schedule_entry>'
+                                                END
+                                            END
+                                        END
+                                    END
+                                NEXT K
+                            ELSE
+                                * Fallback to original format
+                                SCHED_ITEM = SCHED_LINE_DATA<1,J>
+                                XML.RESPONSE = XML.RESPONSE :XAM: '<schedule_item>' : SCHED_ITEM : '</schedule_item>'
+                            END
+                        END
+                        
+                        * Need date/qty for this part (field 38) - handle subvalues
+                        NEEDS_LINE_DATA = NEEDS_DATA_FULL<1,I>
+                        IF NEEDS_LINE_DATA <> '' THEN
+                            * Get the subvalue for this part (J)
+                            NEEDS_SUBVALUE = NEEDS_LINE_DATA<1,J>
+                            IF NEEDS_SUBVALUE <> '' THEN
+                                * Process need entries - field 38 uses char(252) as subvalue separator
+                                * Parse subvalue which contains need data separated by char(252)
+                                NEEDS_PARTS = DCOUNT(NEEDS_SUBVALUE, CHAR(252))
+                                FOR K = 1 TO NEEDS_PARTS
+                                    NEED_ENTRY = FIELD(NEEDS_SUBVALUE, CHAR(252), K)
+                                    IF NEED_ENTRY <> '' THEN
+                                        * Each entry might be date*qty format or separate
+                                        IF INDEX(NEED_ENTRY, '*', 1) THEN
+                                            * Date*Qty format
+                                            NEED_DATE = FIELD(NEED_ENTRY, '*', 1)
+                                            NEED_QTY = FIELD(NEED_ENTRY, '*', 2)
+                                            IF NEED_DATE <> '' OR NEED_QTY <> '' THEN
+                                                XML.RESPONSE = XML.RESPONSE :XAM: '<need_entry>'
+                                                XML.RESPONSE = XML.RESPONSE :XAM: '<need_date>' : NEED_DATE : '</need_date>'
+                                                XML.RESPONSE = XML.RESPONSE :XAM: '<need_qty>' : NEED_QTY : '</need_qty>'
+                                                XML.RESPONSE = XML.RESPONSE :XAM: '</need_entry>'
+                                            END
+                                        END ELSE
+                                            * Treat as date or qty based on position
+                                            IF MOD(K, 2) = 1 THEN
+                                                NEED_DATE = NEED_ENTRY
+                                                NEED_QTY = ''
+                                                IF K < NEEDS_PARTS THEN
+                                                    NEED_QTY = FIELD(NEEDS_SUBVALUE, CHAR(252), K+1)
+                                                END
+                                                IF NEED_DATE <> '' OR NEED_QTY <> '' THEN
+                                                    XML.RESPONSE = XML.RESPONSE :XAM: '<need_entry>'
+                                                    XML.RESPONSE = XML.RESPONSE :XAM: '<need_date>' : NEED_DATE : '</need_date>'
+                                                    XML.RESPONSE = XML.RESPONSE :XAM: '<need_qty>' : NEED_QTY : '</need_qty>'
+                                                    XML.RESPONSE = XML.RESPONSE :XAM: '</need_entry>'
+                                                END
+                                            END
+                                        END
+                                    END
+                                NEXT K
+                            ELSE
+                                * Fallback to original format
+                                NEEDS_ITEM = NEEDS_LINE_DATA<1,J>
+                                XML.RESPONSE = XML.RESPONSE :XAM: '<needs_item>' : NEEDS_ITEM : '</needs_item>'
+                            END
+                        END
+                        
+                        * Line notes for this part (field 44)
+                        NOTES_LINE_DATA = LINE_NOTES_DATA<1,I>
+                        IF NOTES_LINE_DATA <> '' THEN
+                            NOTES_ITEM = NOTES_LINE_DATA<1,J>
+                            XML.RESPONSE = XML.RESPONSE :XAM: '<line_notes>' : NOTES_ITEM : '</line_notes>'
+                        END
+                        
+                        XML.RESPONSE = XML.RESPONSE :XAM: '</line_item>'
+                    END
+                NEXT J
+            END
+        NEXT I
+    END
+    XML.RESPONSE = XML.RESPONSE :XAM: '</line_items>'
+
+    * PO DESCRIPTION <33> - MULTIVALUE
+    XML.RESPONSE = XML.RESPONSE :XAM: '<po_descriptions>'
+    DESC_LINES = DCOUNT(PO.RECORD<33>,XVM)
+    FOR I = 1 TO DESC_LINES
+        XML.RESPONSE = XML.RESPONSE :XAM: '<description>' : PO.RECORD<33,I> : '</description>'
+    NEXT I
+    XML.RESPONSE = XML.RESPONSE :XAM: '</po_descriptions>'
+
+    * PO STATUS <15>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<po_status>' : PO.RECORD<15> : '</po_status>'
+
+    * SCHEDULE DATE - SCHEDULE QTY <34> CHAR 252 SUBVALUE
+    XML.RESPONSE = XML.RESPONSE :XAM: '<schedule_info>'
+    SCHED_LINES = DCOUNT(PO.RECORD<34>,XVM)
+    FOR I = 1 TO SCHED_LINES
+        SCHED_DATA = PO.RECORD<34,I>
+        SCHED_PARTS = DCOUNT(SCHED_DATA,XSM)
+        XML.RESPONSE = XML.RESPONSE :XAM: '<schedule_entry>'
+        FOR J = 1 TO SCHED_PARTS
+            XML.RESPONSE = XML.RESPONSE :XAM: '<schedule_item>' : SCHED_DATA<1,J> : '</schedule_item>'
+        NEXT J
+        XML.RESPONSE = XML.RESPONSE :XAM: '</schedule_entry>'
+    NEXT I
+    XML.RESPONSE = XML.RESPONSE :XAM: '</schedule_info>'
+    
+    * NEED DATE - NEED QTY <38> CHAR 252 SUBVALUE
+    XML.RESPONSE = XML.RESPONSE :XAM: '<needs_info>'
+    NEEDS_LINES = DCOUNT(PO.RECORD<38>,XVM)
+    FOR I = 1 TO NEEDS_LINES
+        NEEDS_DATA = PO.RECORD<38,I>
+        NEEDS_PARTS = DCOUNT(NEEDS_DATA,XSM)
+        XML.RESPONSE = XML.RESPONSE :XAM: '<needs_entry>'
+        FOR J = 1 TO NEEDS_PARTS
+            XML.RESPONSE = XML.RESPONSE :XAM: '<needs_item>' : NEEDS_DATA<1,1,J> : '</needs_item>'
+        NEXT J
+        XML.RESPONSE = XML.RESPONSE :XAM: '</needs_entry>'
+    NEXT I
+    XML.RESPONSE = XML.RESPONSE :XAM: '</needs_info>'
+    
+    * PO PRICE <36>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<po_price>' : PO.RECORD<36> : '</po_price>'
+
+    * HEADER NOTES <25> - MULTIVALUE
+    XML.RESPONSE = XML.RESPONSE :XAM: '<header_notes>'
+    NOTES_LINES = DCOUNT(PO.RECORD<25>,XVM)
+    FOR I = 1 TO NOTES_LINES
+        XML.RESPONSE = XML.RESPONSE :XAM: '<note>' : PO.RECORD<25,I> : '</note>'
+    NEXT I
+    XML.RESPONSE = XML.RESPONSE :XAM: '</header_notes>'
+
+    * NOTED STAMP <30>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<noted_stamp>' : PO.RECORD<30> : '</noted_stamp>'
+    
+    * PO NOTES <40>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<notes>' : PO.RECORD<40> : '</notes>'
+    
+    * LINE NOTES <44> - MULTIVALUE WITH SUBVALUES (corresponds to part numbers in field <32>)
+    XML.RESPONSE = XML.RESPONSE :XAM: '<line_notes>'
+    LINE_NOTES_DATA = PO.RECORD<44>
+    IF LINE_NOTES_DATA <> '' THEN
+        NOTES_LINES = DCOUNT(LINE_NOTES_DATA, XVM)
+        FOR I = 1 TO NOTES_LINES
+            LINE_NOTES_MV = LINE_NOTES_DATA<1,I>
+            IF LINE_NOTES_MV <> '' THEN
+                NOTES_PARTS = DCOUNT(LINE_NOTES_MV, XSM)
+                FOR J = 1 TO NOTES_PARTS
+                    LINE_NOTE = LINE_NOTES_MV<1,1,J>
+                    IF LINE_NOTE <> '' THEN
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<note>' : LINE_NOTE : '</note>'
+                    END
+                NEXT J
+            END
+        NEXT I
+    END
+    XML.RESPONSE = XML.RESPONSE :XAM: '</line_notes>'
+    
+    * ACKNOWLEDGMENTS <49> - MULTIVALUE (corresponds to part numbers in field <32>)
+    XML.RESPONSE = XML.RESPONSE :XAM: '<acknowledgments>'
+    ACK_DATA = PO.RECORD<49>
+    IF ACK_DATA <> '' THEN
+        ACK_LINES = DCOUNT(ACK_DATA, XVM)
+        FOR I = 1 TO ACK_LINES
+            ACK_LINE_DATA = ACK_DATA<1,I>
+            XML.RESPONSE = XML.RESPONSE :XAM: '<ack_line>'
+            IF ACK_LINE_DATA <> '' THEN
+                ACK_ENTRIES = DCOUNT(ACK_LINE_DATA, XSM)
+                FOR J = 1 TO ACK_ENTRIES
+                    ACK_ENTRY = ACK_LINE_DATA<1,1,J>
+                    IF ACK_ENTRY <> '' THEN
+                        ACK_DATE = FIELD(ACK_ENTRY, '*', 1)
+                        ACK_QTY = FIELD(ACK_ENTRY, '*', 2)
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<ack_entry>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<date>' : OCONV(ACK_DATE, 'D-') : '</date>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '<quantity>' : ACK_QTY : '</quantity>'
+                        XML.RESPONSE = XML.RESPONSE :XAM: '</ack_entry>'
+                    END
+                NEXT J
+            END
+            XML.RESPONSE = XML.RESPONSE :XAM: '</ack_line>'
+        NEXT I
+    END
+    XML.RESPONSE = XML.RESPONSE :XAM: '</acknowledgments>'
+    
+    XML.RESPONSE = XML.RESPONSE :XAM: '</po>'
+    
+    * If searching for specific PO, exit after processing it
+    IF PO_NUMBER <> "" THEN GOTO DONE
+    
+    * Continue with next record in scan mode
+    GOTO 10
+END
+DONE:
+*REM Complete XML response
+XML.RESPONSE = XML.RESPONSE :XAM: '</purchaseorders>'
+ 
+*REM Output the XML
+    WRITE XML.RESPONSE ON XMLDATAF,'GET_PO2.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/GET_PO2.XML','',ERR)
+    RETURN
+</pre>

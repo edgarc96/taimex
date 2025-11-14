@@ -1,0 +1,191 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'VENDPRC' TO VENDPRCF ELSE STOP 201,'VENDPRC'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+* Get parameters from URL
+PL_GETVAR VENDOR_NUMBER FROM 'VENDOR_NUMBER' ELSE VENDOR_NUMBER = ''
+PL_GETVAR PART_NUMBER FROM 'PART_NUMBER' ELSE PART_NUMBER = ''
+PL_GETVAR ID FROM 'ID' ELSE ID = ''
+
+VENDOR_NUMBER = TRIM(VENDOR_NUMBER)
+PART_NUMBER = TRIM(PART_NUMBER)
+ID = TRIM(ID)
+
+* If ID is provided, use it as VENDOR_NUMBER
+IF ID <> "" THEN VENDOR_NUMBER = ID
+
+* Generate unique filename
+TIMESTAMP = OCONV(DATE():'*':TIME(), 'MD0')
+TIMESTAMP = TIMESTAMP : OCONV(RND(99999), 'MD0')
+OUTPUT_FILE = 'VENDPRC_' : TIMESTAMP : '.XML'
+
+* Set headers
+PL_ADD_HDR '"Content-Type: application/xml"'
+PL_ADD_HDR '"Cache-Control: no-cache, no-store, must-revalidate"'
+PL_ADD_HDR '"Pragma: no-cache"'
+PL_ADD_HDR '"Expires: 0"'
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM:'<records>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<!-- VENDOR_NUMBER: ' : VENDOR_NUMBER : ' -->'
+XML.RESPONSE = XML.RESPONSE :XAM: '<!-- PART_NUMBER: ' : PART_NUMBER : ' -->'
+
+PRINT "===== GET_VENDPRC.XML DEBUG ====="
+PRINT "VENDOR_NUMBER=": VENDOR_NUMBER
+PRINT "PART_NUMBER=": PART_NUMBER
+PRINT "================================="
+
+* Validate inputs
+IF VENDOR_NUMBER = "" AND PART_NUMBER = "" THEN
+    XML.RESPONSE = XML.RESPONSE :XAM: '<error>Missing required parameters: VENDOR_NUMBER or PART_NUMBER</error>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '</records>'
+    WRITE XML.RESPONSE ON XMLDATAF,OUTPUT_FILE
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/':OUTPUT_FILE,'',ERR)
+    RETURN
+END
+
+* Build record key: PART_NUMBER*VENDOR_NUMBER
+RECORD_KEY = PART_NUMBER : '*' : VENDOR_NUMBER
+
+* If both provided, try exact match
+IF VENDOR_NUMBER <> "" AND PART_NUMBER <> "" THEN
+    READ VENDPRC.RECORD FROM VENDPRCF, RECORD_KEY THEN
+        GOTO PROCESS_RECORD
+    END ELSE
+        * Not found - return empty but valid XML
+        XML.RESPONSE = XML.RESPONSE :XAM: '<!-- No record found for key: ' : RECORD_KEY : ' -->'
+        XML.RESPONSE = XML.RESPONSE :XAM: '</records>'
+        WRITE XML.RESPONSE ON XMLDATAF,OUTPUT_FILE
+        ERR = ''
+        CALL PLW.PAGE('/XMLDATA/':OUTPUT_FILE,'',ERR)
+        RETURN
+    END
+END
+
+* If only one parameter, scan for matches
+SL = \SSELECT VENDPRC\
+EXECUTE SL
+RECORD_COUNT = 0
+MAX_RECORDS = 100
+
+10 READNEXT RECORD_KEY THEN
+    READ VENDPRC.RECORD FROM VENDPRCF, RECORD_KEY ELSE
+        GOTO 10
+    END
+    
+    * Parse key: PART_NUMBER*VENDOR_NUMBER
+    KEY_PART = FIELD(RECORD_KEY, '*', 1)
+    KEY_VENDOR = FIELD(RECORD_KEY, '*', 2)
+    
+    * Filter by VENDOR_NUMBER if provided
+    IF VENDOR_NUMBER <> "" THEN
+        IF KEY_VENDOR <> VENDOR_NUMBER THEN GOTO 10
+    END
+    
+    * Filter by PART_NUMBER if provided
+    IF PART_NUMBER <> "" THEN
+        IF INDEX(OCONV(KEY_PART,'MCU'), OCONV(PART_NUMBER,'MCU'), 1) = 0 THEN GOTO 10
+    END
+    
+    * Limit results
+    RECORD_COUNT = RECORD_COUNT + 1
+    IF RECORD_COUNT > MAX_RECORDS THEN GOTO DONE
+    
+PROCESS_RECORD:
+    
+    XML.RESPONSE = XML.RESPONSE :XAM: '<record>'
+    
+    * Extract key components - Key format: PART_NUMBER*VENDOR_NUMBER
+    KEY_PART = FIELD(RECORD_KEY, '*', 1)
+    KEY_VENDOR = FIELD(RECORD_KEY, '*', 2)
+    
+    * VENDOR NUMBER - From key (field 2)
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendorNumber>' : KEY_VENDOR : '</vendorNumber>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<VENDOR_NUMBER>' : KEY_VENDOR : '</VENDOR_NUMBER>'
+    
+    * PART NUMBER - From key (field 1)
+    XML.RESPONSE = XML.RESPONSE :XAM: '<partNumber>' : KEY_PART : '</partNumber>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<PART_NUMBER>' : KEY_PART : '</PART_NUMBER>'
+    
+    * VENDOR NAME <1>
+    VENDOR_NAME = VENDPRC.RECORD<1>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<vendorName><![CDATA[' : VENDOR_NAME : ']]></vendorName>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<VENDOR_NAME><![CDATA[' : VENDOR_NAME : ']]></VENDOR_NAME>'
+    
+    * PART DESCRIPTION <2>
+    PART_DESC = VENDPRC.RECORD<2>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<partDescription><![CDATA[' : PART_DESC : ']]></partDescription>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<DESCRIPTION><![CDATA[' : PART_DESC : ']]></DESCRIPTION>'
+    
+    * PRICE RANGES from separate multivalue fields (6, 7, 8)
+    * Field 6: MIN_QTY (multivalue)
+    * Field 7: MAX_QTY (multivalue)
+    * Field 8: PRICE (multivalue, internal format - use MR3 to display)
+    MIN_QTYS = VENDPRC.RECORD<6>
+    MAX_QTYS = VENDPRC.RECORD<7>
+    PRICES = VENDPRC.RECORD<8>
+    
+    RANGE_COUNT = DCOUNT(MIN_QTYS, XVM)
+    
+    FOR I = 1 TO RANGE_COUNT
+        MIN_QTY = MIN_QTYS<1,I>
+        MAX_QTY = MAX_QTYS<1,I>
+        PRICE_INTERNAL = PRICES<1,I>
+        
+        * Convert price from internal format (54230) to display format (54.230) using MR3
+        IF PRICE_INTERNAL <> "" AND NUM(PRICE_INTERNAL) THEN
+            PRICE_DISPLAY = OCONV(PRICE_INTERNAL, 'MR3')
+        END ELSE
+            PRICE_DISPLAY = '0.000'
+        END
+        
+        IF MIN_QTY <> "" THEN
+            XML.RESPONSE = XML.RESPONSE :XAM: '<range>'
+            XML.RESPONSE = XML.RESPONSE :XAM: '<fromQty>' : MIN_QTY : '</fromQty>'
+            XML.RESPONSE = XML.RESPONSE :XAM: '<MIN_QTY>' : MIN_QTY : '</MIN_QTY>'
+            XML.RESPONSE = XML.RESPONSE :XAM: '<toQty>' : MAX_QTY : '</toQty>'
+            XML.RESPONSE = XML.RESPONSE :XAM: '<MAX_QTY>' : MAX_QTY : '</MAX_QTY>'
+            XML.RESPONSE = XML.RESPONSE :XAM: '<price>' : PRICE_DISPLAY : '</price>'
+            XML.RESPONSE = XML.RESPONSE :XAM: '<PRICE>' : PRICE_DISPLAY : '</PRICE>'
+            XML.RESPONSE = XML.RESPONSE :XAM: '</range>'
+        END
+    NEXT I
+    
+    * NOTES <4>
+    NOTES = VENDPRC.RECORD<4>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<notes><![CDATA[' : NOTES : ']]></notes>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<NOTES><![CDATA[' : NOTES : ']]></NOTES>'
+    
+    * DATE <5>
+    DATE_VALUE = VENDPRC.RECORD<5>
+    XML.RESPONSE = XML.RESPONSE :XAM: '<date>' : DATE_VALUE : '</date>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<DATE>' : DATE_VALUE : '</DATE>'
+    
+    XML.RESPONSE = XML.RESPONSE :XAM: '</record>'
+    
+    * If exact match, stop here
+    IF VENDOR_NUMBER <> "" AND PART_NUMBER <> "" THEN GOTO DONE
+    
+    GOTO 10
+END
+
+DONE:
+* Complete XML response
+XML.RESPONSE = XML.RESPONSE :XAM: '</records>'
+
+* Output the XML
+WRITE XML.RESPONSE ON XMLDATAF,OUTPUT_FILE
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/':OUTPUT_FILE,'',ERR)
+RETURN
+</pre>

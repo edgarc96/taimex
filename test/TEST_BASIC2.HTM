@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test 2</title></head>
+<body>
+<pre>PicLan-IP/BASIC ^ ^
+*
+PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+  ERR = '' ; INITIALS=  ''
+  CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+  RETURN
+END
+*
+PL_GETVAR TEST FROM 'TEST' ELSE TEST = ''
+TS = DATE():TIME()
+RESULT = ''
+EMSG = ''
+*
+TMP = ''
+LINE = ''
+I = 0
+*
+OPEN 'EBOM' TO BOM.FILE ELSE GOTO done
+IF TEST NE '' THEN
+  IF TEST = 'hello' THEN
+    RESULT = 'HELLO WORLD'
+  END
+END
+done:
+RESULT = 'TEST SUCCESSFUL 2'
+</pre>
+</body>
+</html>

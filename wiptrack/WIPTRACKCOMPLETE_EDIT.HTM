@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TAIMEX - WIP TRACKING</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+    }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: #334155;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(30, 41, 59, 0.25);
+      position: relative;
+      z-index: 100;
+      width: 100%;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo-section img {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+
+    .title-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 16px;
+    }
+
+    .welcome-user {
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .welcome-user span {
+      color: #cbd5e1;
+      font-size: 0.8em;
+      font-weight: 400;
+    }
+
+    .welcome-user strong {
+      color: #3b82f6;
+      margin-left: 4px;
+      font-weight: 600;
+      font-size: 0.9em;
+    }
+
+    .title-section h2 {
+      font-size: 1em;
+      margin: 0;
+      font-weight: 600;
+      color: #f1f5f9;
+      letter-spacing: 0.3px;
+    }
+
+    .title-section p {
+      font-size: 0.8em;
+      margin: 0;
+      color: #a2a8ba;
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.2em;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .hamburger-menu svg {
+      width: 24px;
+      height: 24px;
+      fill: #fff;
+    }
+
+    .hamburger-menu svg path {
+      fill: #fff;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      width: 100%;
+      background: #f8fafc;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 300px;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(1px);
+      -webkit-backdrop-filter: blur(1px);
+      color: #fff;
+      transition: left 0.2s ease;
+      z-index: 2000;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar-header h3 {
+      font-size: 1.1em;
+      color: #fff;
+      margin: 0;
+    }
+
+    .sidebar-content {
+      padding: 24px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-menu li {
+      margin-bottom: 10px;
+    }
+
+    .sidebar-menu label {
+      display: block;
+      padding: 12px 16px;
+      color: #f3f4f6;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .sidebar-menu label:hover {
+      background-color: rgba(30, 64, 175, 0.12);
+      color: #fff;
+    }
+
+    .sidebar-menu label.active {
+      background-color: rgba(30, 64, 175, 0.25);
+      color: #93c5fd;
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.55);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+      z-index: 1500;
+      pointer-events: none;
+    }
+
+    #sb-toggle:checked ~ .sidebar {
+      left: 0;
+    }
+
+    #sb-toggle:checked ~ .sidebar-overlay {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    #sb-toggle {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .wip-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .wip-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .section-title h3 {
+      font-size: 1.2em;
+      color: #0f172a;
+      font-weight: 600;
+    }
+
+    .section-title p {
+      font-size: 0.9em;
+      color: #64748b;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.95em;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(29, 78, 216, 0.28);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 30px rgba(29, 78, 216, 0.35);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(71, 85, 105, 0.25);
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 26px rgba(71, 85, 105, 0.32);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(185, 28, 28, 0.25);
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 26px rgba(185, 28, 28, 0.32);
+    }
+
+    .authorization-box {
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      border: 1px solid #fecaca;
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .authorization-icon {
+      font-size: 48px;
+      color: #ef4444;
+      margin-bottom: 16px;
+    }
+
+    .authorization-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #b91c1c;
+      margin-bottom: 12px;
+    }
+
+    .authorization-message {
+      font-size: 16px;
+      color: #64748b;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .form-group label {
+      font-size: 0.9em;
+      font-weight: 600;
+      color: #1f2937;
+      text-align: left;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="password"] {
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 0.95em;
+      transition: all 0.2s ease;
+      background: #fff;
+      color: #0f172a;
+      width: 100%;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .error-message {
+      color: #ef4444;
+      font-size: 0.9em;
+      font-weight: 600;
+      margin-top: 8px;
+      text-align: left;
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%);
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .info-box-icon {
+      font-size: 24px;
+      color: #1e3a8a;
+      flex-shrink: 0;
+    }
+
+    .info-box-content strong {
+      display: block;
+      color: #1e293b;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 16px;
+    }
+
+    .info-box-content p {
+      color: #475569;
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .title-section {
+        text-align: left;
+        align-items: flex-start;
+      }
+
+      .title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .wip-wrapper {
+        padding: 16px;
+      }
+
+      .authorization-box {
+        padding: 24px 16px;
+      }
+
+      .authorization-title {
+        font-size: 24px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Form Button Hover Effects */
+    button[type="submit"]:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35) !important;
+    }
+
+    button[type="button"]:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35) !important;
+    }
+  </style>
+</head>
+<body>
+  <input type="checkbox" id="sb-toggle">
+  <label for="sb-toggle" class="sidebar-overlay" aria-hidden="true"></label>
+
+  <aside class="sidebar" aria-label="Main menu">
+    <div class="sidebar-header">
+      <h3>Menu</h3>
+    </div>
+    <div class="sidebar-content">
+      <ul class="sidebar-menu">
+        <li><label for="sb-toggle">Main Menu</label></li>
+        <li><label for="sb-toggle">Parts Management</label></li>
+        <li><label for="sb-toggle">Work Orders</label></li>
+        <li><label for="sb-toggle">Sales Orders</label></li>
+        <li><label for="sb-toggle">Stock Transactions</label></li>
+        <li><label for="sb-toggle" class="active">WIP Tracking</label></li>
+      </ul>
+    </div>
+  </aside>
+
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">
+          <svg viewBox="0 0 448 512" role="img" aria-hidden="true" focusable="false" width="20" height="20">
+            <path d="M0 96C0 78.3 14.3 64 32 64H416C433.7 64 448 78.3 448 96C448 113.7 433.7 128 416 128H32C14.3 128 0 113.7 0 96zM0 256C0 238.3 14.3 224 32 224H416C433.7 224 448 238.3 448 256C448 273.7 433.7 288 416 288H32C14.3 288 0 273.7 0 256zM448 416C448 433.7 433.7 448 416 448H32C14.3 448 0 433.7 0 416C0 398.3 14.3 384 32 384H416C433.7 384 448 398.3 448 416z"></path>
+          </svg>
+        </label>
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL" onerror="this.onerror=null;this.src='http://54.189.226.145/uploads/assets/images/taimex_logo.png';">
+        </div>
+      </div>
+      <div class="title-section">
+        <div class="title-row">
+          <div class="welcome-user">
+            <span>Welcome,</span>
+            <strong id="currentUserDisplay">Operator</strong>
+          </div>
+          <div>
+            <h2>TAIMEX - WIP TRACKING</h2>
+            <p>TAIMEX - MANAGEMENT</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="wip-wrapper">
+        <div style="max-width: 800px; margin: 60px auto; width: 100%;">
+          <!-- Authorization Card -->
+          <div class="authorization-box">
+            <div class="authorization-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <h1 class="authorization-title">Authorization Needed</h1>
+            <p class="authorization-message">
+              The scrap codes entered or to SPLIT a work order and/or Destructive tests are in need of authorization code and comments.
+            </p>
+            
+            <!-- Authorization Form -->
+            <form method="post" name="getpage" action="/CDA_WIPTRACKCOMPLETE.HTM" style="text-align: left;">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="AUTHUSER">
+                    <i class="fas fa-user" style="color: #2a5298; margin-right: 8px;"></i>
+                    AUTHORIZED USER ID:
+                  </label>
+                  <input name="AUTHUSER" type="text" id="AUTHUSER" placeholder="Enter authorized user ID">
+                </div>
+                
+                <div class="form-group">
+                  <label for="AUTHPWD">
+                    <i class="fas fa-lock" style="color: #2a5298; margin-right: 8px;"></i>
+                    AUTHORIZED USER PWD:
+                  </label>
+                  <input name="AUTHPWD" type="password" id="AUTHPWD" placeholder="Enter password">
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="COMMENTS">
+                  <i class="fas fa-comment" style="color: #2a5298; margin-right: 8px;"></i>
+                  Comment:
+                </label>
+                <input name="COMMENTS" type="text" id="COMMENTS" placeholder="Enter authorization comments">
+              </div>
+              
+              <!-- Error Message Display -->
+              <div id="messageArea" class="error-message" style="display: none;">
+                <i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i>
+                <span id="messageText">^MSG^</span>
+              </div>
+              
+              <!-- Action Buttons -->
+              <div class="action-buttons" style="justify-content: center; margin-top: 24px;">
+                <button 
+                  type="submit" 
+                  name="COMPLETEY"
+                  class="btn btn-primary">
+                  <i class="fas fa-check-circle"></i>
+                  Yes - Proceed
+                </button>
+                <button 
+                  type="submit"
+                  name="CANCELY"
+                  class="btn btn-danger">
+                  <i class="fas fa-times-circle"></i>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Info Box -->
+          <div class="info-box">
+            <div class="info-box-icon">
+              <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="info-box-content">
+              <strong>Authorization Required</strong>
+              <p>This operation requires authorized personnel approval. Please enter your authorized user credentials and provide a detailed comment explaining the reason for this action. All authorizations are logged for audit purposes.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Form with Hidden Fields -->
+  <form method="post" name="getpage" action="/WIPTRACKCOMPLETE_EDIT.HTM">
+    <input name="BADGEID" type="hidden" value="^BADGEID^">
+    <input name="WOID" type="hidden" value="^WOID^">
+    <input name="ASSY" type="hidden" value="^ASSY^">
+    <input name="CANCEL" type="hidden" value="^CANCEL^">
+    <input name="NOTES" type="hidden" value="^NOTES^">
+    <input name="PASSQTY" type="hidden" value="^PASSQTY^">
+    <input name="PEOPLE" type="hidden" value="^PEOPLE^">
+    <input name="SCRAP1" type="hidden" value="^SCRAP1^">
+    <input name="SCRAP2" type="hidden" value="^SCRAP2^">
+    <input name="SCRAP3" type="hidden" value="^SCRAP3^">
+    <input name="SCRAP4" type="hidden" value="^SCRAP4^">
+    <input name="SCRAPQ1" type="hidden" value="^SCRAPQ1^">
+    <input name="SCRAPQ2" type="hidden" value="^SCRAPQ2^">
+    <input name="SCRAPQ3" type="hidden" value="^SCRAPQ3^">
+    <input name="SCRAPQ4" type="hidden" value="^SCRAPQ4^">
+    <input name="TSCRAP" type="hidden" value="^TSCRAP^">
+    <input name="WLOC" type="hidden" value="^WLOC^">
+    <input name="WLOCD" type="hidden" value="^WLOCD^">
+    <input name="DESTRUCTIVE" type="hidden" value="^DESTRUCTIVE^">
+    <input name="AUTH" type="hidden" value="^AUTH^">
+    <input name="PWD" type="hidden" value="^PWD^">
+    <input name="SPLIT" type="hidden" value="^SPLIT^">
+  </form>
+
+  <PRE>
+PicLan-IP/BASIC ^ ^
+*
+      PL_GETVAR BADGEID FROM 'BADGEID' ELSE BADGEID = ''
+      PL_GETVAR UPDATE FROM 'UPDATE' ELSE UPDATE = ''
+      PL_GETVAR WOID FROM 'WOID' ELSE WOID = ''
+      PL_GETVAR PEOPLE FROM 'PEOPLE' ELSE PEOPLE = ''
+      PL_GETVAR CANCEL FROM 'CANCEL' ELSE CANCEL = ''
+      PL_GETVAR SUSPEND FROM 'SUSPEND' ELSE SUSPEND = ''
+      PL_GETVAR COMPLETE FROM 'COMPLETE' ELSE COMPLETE = ''
+      PL_GETVAR SCRAP1 FROM 'SCRAP1' ELSE SCRAP1 = ''
+      PL_GETVAR SCRAP2 FROM 'SCRAP2' ELSE SCRAP2 = ''
+      PL_GETVAR SCRAP3 FROM 'SCRAP3' ELSE SCRAP3 = ''
+      PL_GETVAR SCRAP4 FROM 'SCRAP4' ELSE SCRAP4 = ''
+      PL_GETVAR SCRAPQ1 FROM 'SCRAPQ1' ELSE SCRAPQ1 = ''
+      PL_GETVAR SCRAPQ2 FROM 'SCRAPQ2' ELSE SCRAPQ2 = ''
+      PL_GETVAR SCRAPQ3 FROM 'SCRAPQ3' ELSE SCRAPQ3 = ''
+      PL_GETVAR SCRAPQ4 FROM 'SCRAPQ4' ELSE SCRAPQ4 = ''
+      PL_GETVAR TSCRAP FROM 'TSCRAP' ELSE TSCRAP = ''
+      PL_GETVAR NOTES FROM 'NOTES' ELSE NOTES = ''
+      PL_GETVAR PASSQTY FROM 'PASSQTY' ELSE PASSQTY = ''
+      PL_GETVAR WIPQTY FROM 'WIPQTY' ELSE WIPQTY = ''
+      PL_GETVAR AUTH FROM 'AUTH' ELSE AUTH = ''
+      PL_GETVAR PWD FROM 'PWD' ELSE PWD = ''
+        PL_GETVAR AUTHUSER FROM 'AUTHUSER' ELSE AUTHUSER = ''
+         PL_GETVAR AUTHPWD FROM 'AUTHPWD' ELSE AUTHPWD= ''
+         PL_GETVAR COMMENTS FROM 'COMMENTS' ELSE COMMENTS = ''
+     OPEN 'TABLE' TO TABLEF ELSE STOP 201,'TABLE'
+
+      PL_GETVAR COMPLETEY FROM 'COMPLETEY' ELSE COMPLETEY = ''
+      PL_GETVAR CANCELY FROM 'CANCELY' ELSE CANCELY = ''
+      PL_GETVAR DESTRUCTIVE FROM 'DESTRUCTIVE' ELSE DESTRUCTIVE = ''
+      PL_GETVAR SPLIT FROM 'SPLIT' ELSE SPLIT = ''
+  
+*
+      OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+      OPEN 'BADGES' TO BADGEF ELSE STOP 201,'BADGE'
+      OPEN 'WO' TO WOF ELSE STOP 201,'WO'
+      OPEN 'WIPLOC' TO WIPLOCF ELSE STOP 201,'WIPLOC'
+      OPEN 'WIPSTATUS' TO WIPSTATUSF ELSE STOP 201,'WIPSTATUS'
+      OPEN 'EOPS' TO EOPSF ELSE STOP 201,'EOPS'
+      OPEN 'EBOO' TO EBOOF ELSE STOP 201,'EBOO'
+      OPEN 'LIID' TO LIID.FILE ELSE STOP 201,'LIID'
+      OPEN 'LIID' TO LIIDF ELSE STOP 201,'LIID'
+      OPEN 'STOCK' TO STOCKF ELSE STOP 201,'STOCK'
+      OPEN 'STOCKW' TO STOCKWF ELSE STOP 201,'STOCKW'
+      OPEN 'STOCK' TO STOCKF ELSE STOP 201,'STOCK'
+      OPEN 'WO' TO WOF ELSE STOP 201,'WO'
+      OPEN 'SO' TO SOF ELSE STOP 201,'SO'
+      OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+      OPEN 'PARTS' TO PARTSF ELSE STOP 201,'PARTS'
+      OPEN 'DTAUDIT' TO DTAUDITF ELSE STOP 201,'DTAUDIT'
+
+      PL_GETVAR OPNO FROM 'OPNO' ELSE OPNO = ''
+      PL_GETVAR OPDESC FROM 'OPDESC' ELSE OPDESC = ''
+      PL_GETVAR LAST.STATUS FROM 'LAST.STATUS' ELSE LAST.STATUS = ''
+      PERSON.CNT = PEOPLE
+ *
+  PRINT 'ENTERING CDA_WIPTRACKFINAL'
+*     
+      READ WOREC FROM WOF,WOID ELSE WOREC = ''
+      ID = WOID ; WONO = WOID
+      ASSY = WOREC<32>
+      WLOC = WOREC<90,1>
+      WIPLOC = WLOC
+      READ WIPLOCREC FROM WIPLOCF,WLOC ELSE WIPLOCREC = ''
+      WLOCD = WIPLOCREC<1>
+      WIPQTY = WOREC<91,1> 
+      IF PASSQTY = '' THEN PASSQTY = WIPQTY   
+      PRINT 'PASSQTY = ':PASSQTY
+*
+      INIT = FIELD(BADGEID,'|',1)
+      READ OPREC FROM OPERSF,INIT ELSE
+         MSG = 'INVALID OPERS INITIALS :':INIT
+         GOTO 99
+      END
+      OPERNAME = OPREC<1>
+     READ WIPSTATUS FROM WIPSTATUSF,WONO ELSE WIPSTATUS = ''
+      OPNO = WIPSTATUS<16,DCOUNT(WIPSTATUS<16>,@VM)>
+      READV OPDESC FROM EOPSF,OPNO,1 ELSE OPDESC = ''
+      LAST.STATUS = 'New'
+      IF WIPSTATUS<1> = 'P' THEN LAST.STATUS = 'Paused'
+      IF WIPSTATUS<1> = 'O' THEN LAST.STATUS = 'In Progress'
+
+     BOOSEQ = ''
+      READ BOO FROM EBOOF,WOREC<32> ELSE BOO = ''
+      FOR I = 1 TO DCOUNT(BOO<14>,@VM)
+          WN = BOO<14,I>
+          NWN = BOO<14,I+1>
+          IF NWN EQ '' THEN
+             BOOSEQ<1,-1> = WN
+          END ELSE
+             IF WN NE NWN THEN
+               BOOSEQ<1,-1> = WN
+             END
+          END
+      NEXT I
+      BOO<14> = BOOSEQ
+    
+      PRINT 'AUTH = ':AUTH
+      PRINT 'COMPLETEY = ':COMPLETEY
+      PRINT 'DESTRUCTIVE = ':DESTRUCTIVE
+      PRINT 'PASSQTY = ':PASSQTY
+      IF AUTH = '' THEN COMPLETEY = 'Y'
+      IF DESTRUCTIVE NE '' THEN 
+          COMPLETEY = 'Y'
+          AUTH = ''
+       END
+        
+       PRINT 'COMMENTS = ':COMMENTS
+
+
+      READ WIPS.REC FROM WIPSTATUSF,WONO ELSE WIPS.REC = ''
+*
+      IF COMPLETEY NE ''  THEN
+
+          PL_GETVAR AUTHUSER FROM 'AUTHUSER' ELSE AUTHUSER = ''
+          PL_GETVAR AUTHPWD FROM 'AUTHPWD' ELSE AUTHPWD= ''
+          PL_GETVAR COMMENTS FROM 'COMMENTS' ELSE COMMENTS = ''
+
+
+         IF AUTH NE '' THEN
+            READ USERS FROM TABLEF,'WIPAUTH' ELSE USERS = ''
+            CONVERT @AM TO @VM IN USERS
+            LOCATE(AUTHUSER,USERS<1>,1;HIT) ELSE
+               ERR = 'USER ':AUTHUSER:' NOT AUTHORIZED FOR THIS TRANSACTION'
+               GOTO 99
+            END
+            READ OPER FROM OPERSF,AUTHUSER ELSE OPER = ''
+            IF AUTHPWD NE OPER<2> THEN
+               ERR = 'INVALID PWD'
+               GOTO 99
+            END
+            IF COMMENTS = '' THEN
+               ERR = 'COMMENT IS REQUIRED'
+               GOTO 99
+            END
+         END
+
+                BOOSEQ = ''
+      READ BOO FROM EBOOF,WOREC<32> ELSE BOO = ''
+      FOR I = 1 TO DCOUNT(BOO<14>,@VM)
+          WN = BOO<14,I>
+          NWN = BOO<14,I+1>
+          IF NWN EQ '' THEN
+             BOOSEQ<1,-1> = WN
+          END ELSE
+             IF WN NE NWN THEN
+               BOOSEQ<1,-1> = WN
+             END
+          END
+      NEXT I
+      BOO<14> = BOOSEQ
+
+           WOID = TRIM(WOID)
+           WOID = OCONV(WOID,'MCU')
+           READ WOREC FROM WOF,WOID ELSE WOREC = ''
+           PL_GETVAR PEOPLE FROM 'PEOPLE' ELSE PEOPLE = 1
+           PL_GETVAR SCRAP1 FROM 'SCRAP1' ELSE SCRAP1 = ''
+           PL_GETVAR SCRAP2 FROM 'SCRAP2' ELSE SCRAP2 = ''
+           PL_GETVAR SCRAP3 FROM 'SCRAP3' ELSE SCRAP3 = ''
+           PL_GETVAR SCRAP4 FROM 'SCRAP4' ELSE SCRAP4 = ''
+           PL_GETVAR SCRAPQ1 FROM 'SCRAPQ1' ELSE SCRAPQ1 = ''
+           PL_GETVAR SCRAPQ2 FROM 'SCRAPQ2' ELSE SCRAPQ2 = ''
+           PL_GETVAR SCRAPQ3 FROM 'SCRAPQ3' ELSE SCRAPQ3 = ''
+           PL_GETVAR SCRAPQ4 FROM 'SCRAPQ4' ELSE SCRAPQ4 = ''
+           PL_GETVAR SPLIT FROM 'SPLIT' ELSE SPLIT = ''
+           PL_GETVAR NOTES FROM 'NOTES' ELSE NOTES = ''
+           PL_GETVAR PASSQTY FROM 'PASSQTY' ELSE PASSQTY = ''
+           PL_GETVAR DESTRUCTIVE FROM 'DESTRUCTIVE' ELSE DESTRUCTIVE = ''
+           PRINT 'SCRAPQ1 = ':SCRAPQ1
+           PRINT 'SCRAPQ2 = ':SCRAPQ2
+           PRINT 'SCRAPQ3 = ':SCRAPQ3
+           PRINT 'SCRAPQ4 = ':SCRAPQ4
+           PRINT 'PASSQTY = ':PASSQTY
+           PERSON.CNT = PEOPLE
+           TSCRAP = SCRAPQ1 + SCRAPQ2 + SCRAPQ3 + SCRAPQ4
+           STAY = 'N'
+           NEWLOC = WLOC ; CLOSEWO = 'N'
+           NOTES1 = PL_CRLFTOAM(NOTES)
+           CONVERT @AM TO @VM IN NOTES1
+           IF PASSQTY > '0' THEN
+            
+                 READ BOO FROM EBOO,ASSY ELSE BOO = ''
+
+                 BOOSEQ = ''
+                 READ BOO FROM EBOO,WOREC<32> ELSE BOO = ''
+                 FOR I = 1 TO DCOUNT(BOO<14>,@VM)
+                   WN = BOO<14,I>
+                   NWN = BOO<14,I+1>
+                   IF NWN EQ '' THEN
+                     BOOSEQ<1,-1> = WN
+                   END ELSE
+                     IF WN NE NWN THEN
+                      BOOSEQ<1,-1> = WN
+                     END
+                   END
+                NEXT I
+                BOO<14> = BOOSEQ
+
+                 LOCATE(WLOC,BOO<14>,1;HIT) THEN
+                    WIPLOC = BOO<14,HIT>
+                 END
+                 PRINT 'OPNO ':OPNO
+                 PRINT 'WIPLOC = ':WIPLOC
+                 PRINT 'BOOSEQ = ':BOOSEQ
+                 NEWLOC = BOO<14,HIT+1>
+                 PRINT 'NEWLOC = ':NEWLOC
+                 IF NEWLOC = '' THEN  CLOSEWO = 'Y'
+                 IF NEWLOC = WLOC THEN STAY = 'Y'   
+                 PRINT 'STAY = ':STAY
+                 PRINT 'WLOC = ':WLOC
+                 PRINT 'NEWLOC = ':NEWLOC
+                 IF STAY = 'N' AND CLOSEWO = 'N' THEN
+
+                    IF SPLIT = '' THEN
+                     READVU LIID FROM LIID.FILE, 'STOCKW', 1
+                     LIID+=1 
+                     WRITEU LIID ON LIID.FILE, 'STOCKW'
+                     STOCKW.REC = ''
+                     STOCKW.REC<1> = DATE()
+                     STOCKW.REC<2> = WLOC:NEWLOC
+                     STOCKW.REC<3> = ID
+                     STOCKW.REC<4> = PASSQTY
+                     STOCKW.REC<5> = PASSQTY
+                     STOCKW.REC<6> = OCONV(WLOC, 'TWIPLOC;X;;2')
+                     STOCKW.REC<7> = OCONV(NEWLOC, 'TWIPLOC;X;;2')
+                     STOCKW.REC<9> = NEWLOC 
+                     STOCKW.REC<12> = WLOC
+                     STOCKW.REC<22> = NOTES1
+                     WRITEX STOCKW.REC ON STOCKWF, LIID 
+                     CALL STOCKERWIP(LIID)
+                   END ELSE
+
+                     READ LIID FROM LIIDF,'WO' ELSE LIID = 0
+                     LIID = LIID + 1
+                     WRITE LIID ON LIIDF,'WO'
+                     NWO = WOREC
+                     NWO<25,-1> = 'SPLIT FROM WO ':WOID
+                     NWO<34> = FIELD(WOREC<34>,'*',1):'*':PASSQTY
+                     NWO<35> = PASSQTY
+                     NWO<36> = PASSQTY
+                     NWO<86> =''
+                     NWO<87> = ''
+                     NWO<88> = ''
+                     NWO<90> = ''
+                     NWO<91> = ''
+                     NWO<92> = ''
+                     WRITE NWO ON WOF,LIID
+                     NWOID = LIID
+*
+                     READVU LIID FROM LIID.FILE, 'STOCKW', 1
+                     LIID+=1 
+                     WRITEU LIID ON LIID.FILE, 'STOCKW'
+                     STOCKW.REC = ''
+                     STOCKW.REC<1> = DATE()
+                     STOCKW.REC<2> = 'SPLIT':NWOID
+                     STOCKW.REC<3> = ID
+                     STOCKW.REC<4> = PASSQTY
+                     STOCKW.REC<5> = PASSQTY
+                     STOCKW.REC<6> = '10000000'
+                     STOCKW.REC<7> = '99000000'
+                     STOCKW.REC<9> = ''
+                     STOCKW.REC<12> = WLOC
+                     STOCKW.REC<22> = NOTES1
+                     WRITEX STOCKW.REC ON STOCKWF, LIID 
+                     CALL STOCKERWIP(LIID)
+
+                     READVU LIID FROM LIID.FILE, 'STOCKW', 1
+                     LIID+=1 
+                     WRITEU LIID ON LIID.FILE, 'STOCKW'
+                     STOCKW.REC = ''
+                     STOCKW.REC<1> = DATE()
+                     STOCKW.REC<2> = 'SPLITFROM':ID
+                     STOCKW.REC<3> = NWOID
+                     STOCKW.REC<4> = PASSQTY
+                     STOCKW.REC<5> = PASSQTY
+                     STOCKW.REC<6> = '99000000'	
+                     STOCKW.REC<7> = OCONV(NEWLOC,'TWIPLOC;X;;2')
+                     STOCKW.REC<7> = '10000000'
+                     STOCKW.REC<9> = NEWLOC
+                     STOCKW.REC<12> = ''
+                     STOCKW.REC<22> = NOTES1
+                     WRITEX STOCKW.REC ON STOCKWF, LIID 
+                     CALL STOCKERWIP(LIID)
+
+                      MAILSET = ''
+                      MAILSET<1> = 'cdenb':'@cde.com'
+                      MAILSET<2> = 'Scheduling Dept'
+           *      MAILSET<3> = OCONV(OPER<10>,'MCL')
+                      MAILSET<3> = 'Helen.Bulhoes':'@knowles.com'
+                      MAILSET<4> = 'New WO SPLIT ':NWOID
+                      
+                      
+                      MSG = ''
+                      MSG<1,-1> = 'Production SPLIT . '
+                      MSG<1,-1> = 'Original work order ':ID:' was split into ':NWOID:' with ':PASSQTY:' PCS. TO :':NEWLOC
+                      MSG<1,-1> = 'PARTNO ':WOREC<32>
+                      OQTY = OCONV(ID,'TWO;X;;91')
+                      OLOC = OCONV(ID,'TWO;X;;90')
+                      SOID = OCONV(ID,'TWO;X;;7')
+                      READV ODESC FROM WIPLOCF,OLOC,1 ELSE ODESC = ''
+                      MSG<1,-1> = 'PCS ':OQTY:' LEFT ON ':OLOC:' ':ODESC
+                      MSG<1,-1> = 'WONO:':ID:'   SALES ORDER :':SOID
+*
+                      
+                      MSG<1,-1> = ' '
+                      MSG<1,-1> = 'Thank you'
+         
+                      MAILSET<5> = MSG
+                     CALL SENDEMAILSUB(MAILSET)
+
+                   END
+
+                 END
+
+                IF WIPS.REC<1> = 'O' THEN 
+                  WIPS.REC<1> = '' 
+                  WIPS.REC<2> = DATE()
+                  WIPS.REC<3> = TIME()
+                  WIPS.REC<4> = BADGEID
+                  WIPS.REC<5> = PERSON.CNT
+                  WIPS.REC<6> = WLOC
+                  WIPS.REC<7> = ''
+                  LLI = DCOUNT(WIPS.REC<10>, @VM) 
+                  LLI+=1
+                  WIPS.REC<10,LLI> = LLI
+                  WIPS.REC<11,LLI> = DATE()
+                  WIPS.REC<12,LLI> = TIME()
+                  WIPS.REC<13,LLI> = BADGEID 
+                  WIPS.REC<14,LLI> = WLOC 
+                  WIPS.REC<15,LLI> = ''
+                  WIPS.REC<16,LLI> = OPNO
+                  WIPS.REC<17,LLI> = 'C'
+                  WIPS.REC<18,LLI> = PERSON.CNT
+                  WIPS.REC<19,LLI> = PASSQTY
+                  WIPS.REC<20,LLI> = '0'
+                  WIPS.REC<21,LLI>=''
+                  COMMENT = NOTES1
+                  CONVERT @VM TO @SVM IN COMMENT
+                  WIPS.REC<22,LLI> = COMMENT
+                  IF TSCRAP > 0 THEN
+                    IF SCRAPQ1 > 0 THEN
+                       WIPS.REC<23,LLI,-1> = SCRAP1:'*':SCRAPQ1
+                     END   
+                    IF SCRAPQ2 > 0 THEN
+                       WIPS.REC<23,LLI,-1> = SCRAP2:'*':SCRAPQ2
+                     END
+                    IF SCRAPQ3 > 0 THEN
+                       WIPS.REC<23,LLI,-1> = SCRAP3:'*':SCRAPQ3
+                     END
+                    IF SCRAPQ4 > 0 THEN
+                       WIPS.REC<23,LLI,-1> = SCRAP4:'*':SCRAPQ4
+                    END
+                  END
+                  WIPS.REC<25,LLI,-1> = AUTHUSER
+                  WIPS.REC<26,LLI,-1> = COMMENTS
+*
+                  WRITE WIPS.REC ON WIPSTATUSF,WONO
+              END
+          END
+* 
+          IF TSCRAP > 0 THEN 
+                   IF SCRAPQ1 > 0 THEN
+                     READVU LIID FROM LIID.FILE, 'STOCKW', 1
+                     LIID+=1 
+                     WRITEU LIID ON LIID.FILE, 'STOCKW' 
+                     STOCKW.REC = ''
+                     STOCKW.REC<1> = DATE()
+                     STOCKW.REC<2> = 'SC':WLOC
+                     STOCKW.REC<3> = WOID
+                     STOCKW.REC<4> = SCRAPQ1
+                     STOCKW.REC<5> = SCRAPQ1
+                     STOCKW.REC<6> = OCONV(WLOC, 'TWIPLOC;X;;2')
+                     STOCKW.REC<7> = OCONV(NEWLOC, 'TWIPLOC;X;;4')
+                     IF NEWLOC = '' THEN 
+                        STOCKW.REC<7> = '99000000'
+                     END
+                     STOCKW.REC<9> = NEWLOC
+                     STOCKW.REC<12> = WLOC
+                     STOCKW.REC<19> = SCRAP1  ; * scrapcodes multivalue                  
+                     WRITE STOCKW.REC ON STOCKWF, LIID
+                     CALL STOCKERWIP(LIID)
+                  END 
+                  IF SCRAPQ2 > 0 THEN
+                     READVU LIID FROM LIID.FILE, 'STOCKW', 1
+                     LIID+=1 
+                     WRITEU LIID ON LIID.FILE, 'STOCKW' 
+                     STOCKW.REC = ''
+                     STOCKW.REC<1> = DATE()
+                     STOCKW.REC<2> = 'SC':WLOC
+                     STOCKW.REC<3> = WOID
+                     STOCKW.REC<4> = SCRAPQ2
+                     STOCKW.REC<5> = SCRAPQ2
+                     STOCKW.REC<6> = OCONV(WLOC, 'TWIPLOC;X;;2')
+                     STOCKW.REC<7> = OCONV(NEWLOC, 'TWIPLOC;X;;4')
+                   IF NEWLOC = '' THEN 
+                        STOCKW.REC<7> = '99000000'
+                     END
+
+                     STOCKW.REC<9> = NEWLOC
+                     STOCKW.REC<12> = WLOC
+                     STOCKW.REC<19> = SCRAP2  ; * scrapcodes multivalue                  
+                     WRITE STOCKW.REC ON STOCKWF, LIID
+                     CALL STOCKERWIP(LIID)
+                  END 
+                  IF SCRAPQ3 > 0 THEN
+                     READVU LIID FROM LIID.FILE, 'STOCKW', 1
+                     LIID+=1 
+                     WRITEU LIID ON LIID.FILE, 'STOCKW' 
+                     STOCKW.REC = ''
+                     STOCKW.REC<1> = DATE()
+                     STOCKW.REC<2> = 'SC':WLOC
+                     STOCKW.REC<3> = WOID
+                     STOCKW.REC<4> = SCRAPQ3
+                     STOCKW.REC<5> = SCRAPQ3
+                     STOCKW.REC<6> = OCONV(WLOC, 'TWIPLOC;X;;2')
+                     STOCKW.REC<7> = OCONV(NEWLOC, 'TWIPLOC;X;;4')
+                   IF NEWLOC = '' THEN 
+                        STOCKW.REC<7> = '99000000'
+                     END
+
+                     STOCKW.REC<9> = NEWLOC
+                     STOCKW.REC<12> = WLOC
+                     STOCKW.REC<19> = SCRAP3  ; * scrapcodes multivalue                  
+                     WRITE STOCKW.REC ON STOCKWF, LIID
+                     CALL STOCKERWIP(LIID)
+                  END 
+                  IF SCRAPQ4 > 0 THEN
+                     READVU LIID FROM LIID.FILE, 'STOCKW', 1
+                     LIID+=1 
+                     WRITEU LIID ON LIID.FILE, 'STOCKW' 
+                     STOCKW.REC = ''
+                     STOCKW.REC<1> = DATE()
+                     STOCKW.REC<2> = 'SC':WLOC
+                     STOCKW.REC<3> = WOID
+                     STOCKW.REC<4> = SCRAPQ4
+                     STOCKW.REC<5> = SCRAPQ4
+                     STOCKW.REC<6> = OCONV(WLOC, 'TWIPLOC;X;;2')
+                     STOCKW.REC<7> = OCONV(NEWLOC, 'TWIPLOC;X;;4')
+                   IF NEWLOC = '' THEN 
+                        STOCKW.REC<7> = '99000000'
+                     END
+
+                     STOCKW.REC<9> = NEWLOC
+                     STOCKW.REC<12> = WLOC
+                     STOCKW.REC<19> = SCRAP4  ; * scrapcodes multivalue                  
+                     WRITE STOCKW.REC ON STOCKWF, LIID
+                     CALL STOCKERWIP(LIID)
+                  END 
+            END
+
+              IF CLOSEWO = 'Y' AND PASSQTY > 0 THEN
+                READ DTAUDIT FROM DTAUDITF,ID ELSE
+                 STK = ''
+                 STK<1> = DATE()
+                 STK<2> = 'WF':ID 
+                 STK<3> = ID 
+                 STK<4> = PASSQTY
+                 STK<5> = PASSQTY
+                 STK<6> = OCONV(WIPLOC, 'TWIPLOC;X;;2') 
+                 STK<7> = '01828002'
+                 STK<12> = WIPLOC
+                 STK<22> = NOTES1
+                 READVU LIID FROM LIID.FILE, 'STOCKW', 1
+                 LIID+=1 
+                 WRITEU LIID ON LIID.FILE, 'STOCKW'
+                 WRITE STK ON STOCKWF, LIID 
+                 CALL STOCKERWIP(LIID)
+ 
+* write stock transaction to STOCK file on STOCK LIID 
+                 STK = ''
+                 STK<1> = DATE()
+                 STK<2> = 'WF':ID
+                 STK<3> = ASSY
+                 STK<4> = PASSQTY
+                 STK<5> = PASSQTY
+                 STK<6> = '01731001' ;* changed to 01731001 per Tim. 06-17-24 LWP 
+                 STK<7> = '01800000'
+* note 
+                 STK<9> = 'WO':ID
+                 READVU LIID FROM LIID.FILE, 'STOCK', 1
+                 LIID+=1 
+                 WRITEU LIID ON LIID.FILE, 'STOCK'
+                 RELEASE LIID.FILE,'STOCK'
+                 WRITE STK ON STOCKF, LIID
+                 SL = \SELECT STOCK "\:LIID:\"\
+                 PRINT SL
+                 EXECUTE SL
+                 DATA "S"
+                 EXECUTE "STOCKER"
+* put in location 
+                 NEWLOCTN = 'PRODT0000'
+** Put all finished assemblies into BF instead of PRODT. 11-18-24 LWP
+                 PCODE = OCONV(ASSY,'TPARTS;X;;3')
+                 IF PCODE = "08-08-97" THEN NEWLOCTN = '99BFL0000'
+                 OPEN 'INV' TO INV.F ELSE INV.F = ''
+                 READ INV FROM INV.F, ASSY ELSE INV = ''
+
+                IF DESTRUCTIVE = '' THEN
+100 *
+                  LOCATE(NEWLOCTN,INV<31>,1;HIT) ELSE
+                   INV<31,-1> = NEWLOCTN
+                   GOTO 100
+                  END
+                  INV<32,HIT>+=PASSQTY
+                 END ELSE
+110
+                   LOCATE(NEWLOCTN,INV<31>,1;HIT) ELSE
+                    INV<31,-1> = NEWLOCTN
+                    GOTO 110
+                   END
+                   READ PREC FROM PARTSF,ASSY ELSE PREC = ''
+                   DTQT = PREC<104>
+                   IF DTQT = '' THEN DTQT = 1
+                   INV<32,HIT>+=PASSQTY-DTQT
+  
+115                LOCATE('LAB',INV<31>,1;HIT) ELSE
+                    INV<31,-1> = 'LAB'
+                    GOTO 115
+                   END
+                   INV<32,HIT>+=DTQT
+                 END      
+                 WRITE INV ON INV.F,ASSY
+                 WRITEV '1' ON INV.F,ASSY,8
+               
+                IF DESTRUCTIVE NE '' THEN
+
+* write stock transaction to STOCK file on STOCK LIID 
+                 STK = ''
+                 STK<1> = DATE()
+                 STK<2> = 'DT':ID  ;* DESTRUCTIVE TEST
+                 STK<3> = ASSY
+               
+                  READ PREC FROM PARTSF,ASSY ELSE PREC = ''
+                  DTQT = PREC<104>
+                  IF DTQT = '' THEN DTQT = 1
+
+
+                 STK<4> = DTQT
+                 STK<5> = DTQT
+                 STK<6> = '01800000'
+                 STK<7> = '01731001'
+* note 
+                 STK<9> = 'WO':ID:'*DESTRUCTIVE TEST'
+                 READVU LIID FROM LIID.FILE, 'STOCK', 1
+                 STK<26> = 'LAB'
+                 LIID+=1 
+                 WRITEU LIID ON LIID.FILE, 'STOCK'
+                 RELEASE LIID.FILE,'STOCK'
+                 WRITE STK ON STOCKF, LIID
+                 SL = \SELECT STOCK "\:LIID:\"\
+                 PRINT SL
+                 EXECUTE SL
+                 DATA "S"
+                 EXECUTE "STOCKER"
+               END
+             END
+
+                 WRITEV 'C' ON WOF,WONO,15
+                 WRITEV DATE() ON WOF,WONO,4
+                 WRITEV DATE() ON DTAUDITF,WONO,1
+                
+     
+                 READ WREC FROM WOF,WONO ELSE WREC = ''
+                 SOID = WREC<7,1>
+                 SOID = FIELD(SOID,'*',1)
+                 READ SOREC FROM SOF,SOID ELSE SOREC = ''
+                 ISINIT = FIELD(SOREC<10>,'*',2)
+                 READ OPER FROM OPERSF,ISINIT ELSE OPER = ''   
+                 MAILSET = ''
+                 MAILSET<1> = 'cdenb':'@cde.com'
+                 MAILSET<2> = 'Scheduling Dept'
+           *      MAILSET<3> = OCONV(OPER<10>,'MCL')
+                 MAILSET<3> = 'Diane.Ybarra':'@knowles.com'
+                 MAILSET<4> = 'New WO parts have been put into stock WONO:':WONO:' for SO ':SOID
+                 COMPLETEQTY = PASSQTY
+                 IF DESTRUCTIVE NE '' THEN COMPLETEQTY = COMPLETEQTY - 1
+                  MSG = ''
+                  MSG<1,-1> = 'Production dept completed '
+                  MSG<1,-1> = COMPLETEQTY:' PCS.':'  PARTNO :':WREC<32>
+                  MSG<1,-1> = 'WONO:':WONO:'   SALES ORDER :':SOID
+*
+                  MSG<1,-1> = 'Please review and create shipment pickslip if ready to ship.'
+                  MSG<1,-1> = ' '
+                  MSG<1,-1> = 'Thank you'
+         
+                 MAILSET<5> = MSG
+                 CALL SENDEMAILSUB(MAILSET)
+                 PRINT 'Done...'
+
+                 READ WIPS.REC FROM WIPSTATUSF,WONO ELSE WIPS.REC = ''
+                 WIPS.REC<1> = '' 
+                 WIPS.REC<2> = DATE()
+                 WIPS.REC<3> = TIME()
+                 WIPS.REC<4> = BADGEID
+                 WIPS.REC<5> = PERSON.CNT
+                 WIPS.REC<6> = WLOC
+                 WIPS.REC<7> = ''
+                 LLI = DCOUNT(WIPS.REC<10>, @VM) 
+                 LLI+=1
+                 WIPS.REC<10,LLI> = LLI
+                 WIPS.REC<11,LLI> = DATE()
+                 WIPS.REC<12,LLI> = TIME()
+                 WIPS.REC<13,LLI> = BADGEID 
+                 WIPS.REC<14,LLI> = WLOC 
+                 WIPS.REC<15,LLI> = ''
+                 WIPS.REC<16,LLI> = OPNO
+                 WIPS.REC<17,LLI> = 'C'
+                 WIPS.REC<18,LLI> = PERSON.CNT
+                 WIPS.REC<19,LLI> = PASSQTY
+                 WIPS.REC<20,LLI> = 'C'
+                 WIPS.REC<21,LLI>= DESTRUCTIVE
+                 COMMENT = NOTES1
+                 CONVERT @VM TO @SVM IN COMMENT
+                 WIPS.REC<22,LLI> = COMMENT
+                 WIPS.REC<25,LLI,-1> = AUTHUSER
+                 WIPS.REC<26,LLI,-1> = COMMENTS
+
+                 WRITE WIPS.REC ON WIPSTATUSF,WONO
+           END 
+*
+         PL_PUTVAR '' IN 'WOID' ELSE NULL
+         PL_PUTVAR '' IN 'BADGEID' ELSE NULL
+         PL_PUTVAR '' IN 'PEOPLE' ELSE NULL
+         PL_PUTVAR '' IN 'STARTOP' ELSE NULL
+         PL_PUTVAR '' IN 'BADGEID' ELSE NULL
+         PL_PUTVAR '' IN 'UPDATE' ELSE NULL
+         PL_PUTVAR '' IN 'ID' ELSE NULL
+         PL_PUTVAR '' IN 'UPDATE' ELSE NULL
+         ERR = ''
+         CALL PLW.PAGE('WIPTRACK_EDIT.HTM','',ERR)
+         RETURN
+ END
+*
+99 *
+  MSG = ERR
+  MSG = PL_AMTOCRLF(MSG)
+*
+
+
+      
+  </PRE>
+</body>
+</html>

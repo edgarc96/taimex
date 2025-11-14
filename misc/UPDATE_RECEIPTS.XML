@@ -1,0 +1,154 @@
+*DECLARE PLWSVR
+*INCLUDE PLWSVR
+*
+* UPDATE_RECEIPTS.XML - Save receipt entry to RECEIPTS database
+* Structure based on PL RECEIPTS*UPDATE:
+*   Field 001: PO Number
+*   Field 013: Part Number
+*   Field 014: Receipt Qty (total ACKs)
+*   Field 015: Price Total (MR3 format - internal)
+*
+
+PROGRAM UPDATE.RECEIPTS
+
+* Include PicLan-IP/BASIC subroutines
+INCLUDE PLWSVR.INC
+
+* XML Header
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>' :XAM
+XML.RESPONSE = XML.RESPONSE :XAM: '<response>' :XAM
+
+* Open RECEIPTS file
+OPEN 'RECEIPTS' TO RECEIPTSF ELSE
+    XML.RESPONSE = XML.RESPONSE :XAM: '<status>error</status>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<message>Cannot open RECEIPTS database</message>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '</response>'
+    GOTO OUTPUT
+END
+
+* Create XMLDATA directory for output
+OPEN 'XMLDATA' TO XMLDATAF ELSE
+    EXECUTE 'CREATE-FILE XMLDATA 1 1 1'
+    OPEN 'XMLDATA' TO XMLDATAF ELSE
+        XML.RESPONSE = XML.RESPONSE :XAM: '<status>error</status>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '<message>Cannot create XMLDATA directory</message>'
+        XML.RESPONSE = XML.RESPONSE :XAM: '</response>'
+        GOTO OUTPUT
+    END
+END
+
+* Get POST parameters
+PO_NUMBER = TRIM(PLW.GETVAL('PO_NUMBER'))
+PART_NUMBER = TRIM(PLW.GETVAL('PART_NUMBER'))
+RECEIPT_QTY = TRIM(PLW.GETVAL('RECEIPT_QTY'))
+PRICE_TOTAL = TRIM(PLW.GETVAL('PRICE_TOTAL'))
+RECEIPT_DATE = TRIM(PLW.GETVAL('RECEIPT_DATE'))
+
+* Debug input
+PRINT "===== UPDATE_RECEIPTS DEBUG ====="
+PRINT "PO_NUMBER=": PO_NUMBER
+PRINT "PART_NUMBER=": PART_NUMBER
+PRINT "RECEIPT_QTY=": RECEIPT_QTY
+PRINT "PRICE_TOTAL=": PRICE_TOTAL
+PRINT "RECEIPT_DATE=": RECEIPT_DATE
+PRINT "================================="
+
+* Validate required fields
+IF PO_NUMBER = "" OR PART_NUMBER = "" OR RECEIPT_QTY = "" THEN
+    XML.RESPONSE = XML.RESPONSE :XAM: '<status>error</status>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<message>Missing required fields: PO_NUMBER, PART_NUMBER, RECEIPT_QTY</message>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '</response>'
+    GOTO OUTPUT
+END
+
+* Build record key: PO_NUMBER
+RECORD_KEY = PO_NUMBER
+
+* Read existing record or create new
+READ RECEIPTS.RECORD FROM RECEIPTSF, RECORD_KEY THEN
+    OPERATION = 'UPDATE'
+    PRINT "Updating existing receipt: ": RECORD_KEY
+END ELSE
+    RECEIPTS.RECORD = ''
+    OPERATION = 'CREATE'
+    PRINT "Creating new receipt: ": RECORD_KEY
+END
+
+* Field 001: PO Number (already in key, but store for reference)
+RECEIPTS.RECORD<1> = PO_NUMBER
+
+* Field 013: Part Number
+RECEIPTS.RECORD<13> = PART_NUMBER
+
+* Field 014: Receipt Qty (total ACKs)
+IF NUM(RECEIPT_QTY) THEN
+    RECEIPTS.RECORD<14> = RECEIPT_QTY
+END ELSE
+    RECEIPTS.RECORD<14> = '0'
+END
+
+* Field 015: Price Total (MR3 format - already multiplied by 1000 from frontend)
+IF NUM(PRICE_TOTAL) THEN
+    RECEIPTS.RECORD<15> = PRICE_TOTAL
+END ELSE
+    RECEIPTS.RECORD<15> = '0'
+END
+
+* Field 016: Receipt Date (YYYYMMDD format)
+IF RECEIPT_DATE <> "" THEN
+    * Convert YYYY-MM-DD to YYYYMMDD
+    DATE_FORMATTED = RECEIPT_DATE[1,4] : RECEIPT_DATE[6,2] : RECEIPT_DATE[9,2]
+    RECEIPTS.RECORD<16> = DATE_FORMATTED
+END ELSE
+    * Use current date
+    CURR_DATE = OCONV(DATE(), 'D4')
+    DATE_FORMATTED = CURR_DATE[1,4] : CURR_DATE[5,2] : CURR_DATE[7,2]
+    RECEIPTS.RECORD<16> = DATE_FORMATTED
+END
+
+* Debug before write
+PRINT "===== BEFORE WRITE ====="
+PRINT "RECORD_KEY=": RECORD_KEY
+PRINT "Field 001 (PO_NUMBER)=": RECEIPTS.RECORD<1>
+PRINT "Field 013 (PART_NUMBER)=": RECEIPTS.RECORD<13>
+PRINT "Field 014 (RECEIPT_QTY)=": RECEIPTS.RECORD<14>
+PRINT "Field 015 (PRICE_TOTAL)=": RECEIPTS.RECORD<15>
+PRINT "Field 016 (RECEIPT_DATE)=": RECEIPTS.RECORD<16>
+PRINT "FULL RECORD=": RECEIPTS.RECORD
+PRINT "========================"
+
+* Write record to RECEIPTS database
+WRITE RECEIPTS.RECORD ON RECEIPTSF, RECORD_KEY ELSE
+    XML.RESPONSE = XML.RESPONSE :XAM: '<status>error</status>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<message>Failed to write to RECEIPTS database</message>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '</response>'
+    GOTO OUTPUT
+END
+
+PRINT "✅ Receipt saved successfully: ": RECORD_KEY
+
+* Success response
+XML.RESPONSE = XML.RESPONSE :XAM: '<status>success</status>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<message>Receipt saved successfully</message>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<operation>': OPERATION :'</operation>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<record_key>': RECORD_KEY :'</record_key>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<po_number>': PO_NUMBER :'</po_number>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<part_number>': PART_NUMBER :'</part_number>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<receipt_qty>': RECEIPT_QTY :'</receipt_qty>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<price_total>': PRICE_TOTAL :'</price_total>'
+
+OUTPUT:
+* Complete XML response
+XML.RESPONSE = XML.RESPONSE :XAM: '</response>' :XAM
+
+* Output XML with unique filename to avoid cache
+TIMESTAMP = OCONV(DATE():'*':TIME(),'MCL')
+OUTPUT_FILE = 'UPDATE_RECEIPTS_' : TIMESTAMP : '.XML'
+WRITE XML.RESPONSE ON XMLDATAF,OUTPUT_FILE
+
+* Serve the XML file
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/':OUTPUT_FILE,'',ERR)
+
+RETURN
+END

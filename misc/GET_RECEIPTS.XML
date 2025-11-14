@@ -1,0 +1,174 @@
+
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+* TAIMEX Receipts Data Extraction - GET_RECEIPTS.XML
+* Structure:
+*   Field 001: PO Number
+*   Field 013: Part Number
+*   Field 014: Receipt Qty
+*   Field 015: Price Total (MR3 format)
+*   Field 016: Receipt Date
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'RECEIPTS' TO RECEIPTSF ELSE STOP 201,'RECEIPTS'
+
+* Pick/BASIC separator constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+* Initialize working variables
+PO_NUMBER = ''
+PART_NUMBER = ''
+RECORD_KEY = ''
+FIELD_VALUE = ''
+RECORD_COUNT = 0
+MAX_RECORDS = 100
+RECEIPT_DATE_RAW = ''
+RECEIPT_DATE_FORMATTED = ''
+PRICE_TOTAL_INTERNAL = ''
+PRICE_TOTAL_DISPLAY = ''
+
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = ''
+PL_GETVAR PART_NUMBER FROM 'PART_NUMBER' ELSE PART_NUMBER = ''
+PO_NUMBER = TRIM(PO_NUMBER)
+PART_NUMBER = TRIM(PART_NUMBER)
+
+* GET_RECEIPTS optimized version started
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize XML response
+CRLF = CHAR(13):CHAR(10)
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>':CRLF
+XML.RESPONSE = XML.RESPONSE:'<receipts>':CRLF
+
+* If PO_NUMBER provided, read specific receipt
+IF PO_NUMBER <> "" THEN
+    READ RECEIPTS.RECORD FROM RECEIPTSF, PO_NUMBER ELSE
+        XML.RESPONSE = XML.RESPONSE : '<error>Receipt not found for PO: ' : PO_NUMBER : '</error>'
+        GOTO FINISH_OUTPUT
+    END
+    
+    * Pre-clean record to escape ampersands
+    CONVERT '&' TO '&amp;' IN RECEIPTS.RECORD
+    
+    * Output single receipt
+    XML.RESPONSE = XML.RESPONSE : '<receipt>':CRLF
+    GOSUB OUTPUT_RECEIPT_FIELDS
+    XML.RESPONSE = XML.RESPONSE : '</receipt>':CRLF
+    XML.RESPONSE = XML.RESPONSE : '<record_count>1</record_count>':CRLF
+    
+    GOTO FINISH_OUTPUT
+END
+
+* Otherwise, scan all records
+SL = \SSELECT RECEIPTS\
+EXECUTE SL
+RECORD_COUNT = 0
+MAX_RECORDS = 100
+
+10 READNEXT RECORD_KEY THEN
+    READ RECEIPTS.RECORD FROM RECEIPTSF, RECORD_KEY ELSE
+        GOTO 10
+    END
+    
+    * Pre-clean record
+    CONVERT '&' TO '&amp;' IN RECEIPTS.RECORD
+    
+    * Filter by PART_NUMBER if provided
+    IF PART_NUMBER <> "" THEN
+        PART_NUM = RECEIPTS.RECORD<13>
+        IF INDEX(OCONV(PART_NUM,'MCU'), OCONV(PART_NUMBER,'MCU'), 1) = 0 THEN GOTO 10
+    END
+    
+    * Limit results
+    RECORD_COUNT = RECORD_COUNT + 1
+    IF RECORD_COUNT > MAX_RECORDS THEN GOTO DONE
+    
+    * Output receipt
+    XML.RESPONSE = XML.RESPONSE : '<receipt>':CRLF
+    GOSUB OUTPUT_RECEIPT_FIELDS
+    XML.RESPONSE = XML.RESPONSE : '</receipt>':CRLF
+    
+    GOTO 10
+REPEAT
+
+DONE:
+XML.RESPONSE = XML.RESPONSE : '<record_count>' : RECORD_COUNT : '</record_count>':CRLF
+GOTO FINISH_OUTPUT
+
+* Subroutine to output receipt fields
+OUTPUT_RECEIPT_FIELDS:
+    * PO Number (Field 001)
+    FIELD_VALUE = RECEIPTS.RECORD<1>
+    IF FIELD_VALUE = "" THEN FIELD_VALUE = RECORD_KEY
+    GOSUB CLEAN_FIELD
+    XML.RESPONSE = XML.RESPONSE : '<po_number>' : FIELD_VALUE : '</po_number>':CRLF
+    XML.RESPONSE = XML.RESPONSE : '<PO_NUMBER>' : FIELD_VALUE : '</PO_NUMBER>':CRLF
+    
+    * Part Number (Field 013)
+    FIELD_VALUE = RECEIPTS.RECORD<13>
+    GOSUB CLEAN_FIELD
+    XML.RESPONSE = XML.RESPONSE : '<part_number>' : FIELD_VALUE : '</part_number>':CRLF
+    XML.RESPONSE = XML.RESPONSE : '<PART_NUMBER>' : FIELD_VALUE : '</PART_NUMBER>':CRLF
+    
+    * Receipt Qty (Field 014)
+    FIELD_VALUE = RECEIPTS.RECORD<14>
+    GOSUB CLEAN_FIELD
+    XML.RESPONSE = XML.RESPONSE : '<receipt_qty>' : FIELD_VALUE : '</receipt_qty>':CRLF
+    XML.RESPONSE = XML.RESPONSE : '<RECEIPT_QTY>' : FIELD_VALUE : '</RECEIPT_QTY>':CRLF
+    
+    * Price Total (Field 015) - Convert from MR3 format
+    PRICE_TOTAL_INTERNAL = RECEIPTS.RECORD<15>
+    IF PRICE_TOTAL_INTERNAL <> "" AND NUM(PRICE_TOTAL_INTERNAL) THEN
+        PRICE_TOTAL_DISPLAY = OCONV(PRICE_TOTAL_INTERNAL, 'MR3')
+    END ELSE
+        PRICE_TOTAL_DISPLAY = '0.000'
+    END
+    FIELD_VALUE = PRICE_TOTAL_DISPLAY
+    GOSUB CLEAN_FIELD
+    XML.RESPONSE = XML.RESPONSE : '<price_total>' : FIELD_VALUE : '</price_total>':CRLF
+    XML.RESPONSE = XML.RESPONSE : '<PRICE_TOTAL>' : FIELD_VALUE : '</PRICE_TOTAL>':CRLF
+    
+    * Receipt Date (Field 016) - Convert YYYYMMDD to YYYY-MM-DD
+    RECEIPT_DATE_RAW = RECEIPTS.RECORD<16>
+    IF RECEIPT_DATE_RAW <> "" AND LEN(RECEIPT_DATE_RAW) = 8 THEN
+        RECEIPT_DATE_FORMATTED = RECEIPT_DATE_RAW[1,4] : '-' : RECEIPT_DATE_RAW[5,2] : '-' : RECEIPT_DATE_RAW[7,2]
+    END ELSE
+        RECEIPT_DATE_FORMATTED = ''
+    END
+    FIELD_VALUE = RECEIPT_DATE_FORMATTED
+    GOSUB CLEAN_FIELD
+    XML.RESPONSE = XML.RESPONSE : '<receipt_date>' : FIELD_VALUE : '</receipt_date>':CRLF
+    XML.RESPONSE = XML.RESPONSE : '<RECEIPT_DATE>' : FIELD_VALUE : '</RECEIPT_DATE>':CRLF
+    
+    RETURN
+
+* Subroutine to clean field data
+CLEAN_FIELD:
+    * Simple field cleaning
+    FIELD_VALUE = TRIM(FIELD_VALUE)
+    IF FIELD_VALUE = '' THEN RETURN
+    * Replace subvalue separators with readable text
+    CONVERT XSM TO ' | ' IN FIELD_VALUE
+    * Convert multivalue separator to CRLF for proper line breaks
+    CRLF = CHAR(13):CHAR(10)
+    CONVERT XVM TO CRLF IN FIELD_VALUE
+    * Basic XML escaping
+    CONVERT '&' TO '&amp;' IN FIELD_VALUE
+    CONVERT '<' TO '&lt;' IN FIELD_VALUE
+    CONVERT '>' TO '&gt;' IN FIELD_VALUE
+    RETURN
+
+FINISH_OUTPUT:
+* Finish and output
+XML.RESPONSE = XML.RESPONSE:'</receipts>':CRLF
+
+WRITE XML.RESPONSE ON XMLDATAF,'GET_RECEIPTS.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/GET_RECEIPTS.XML','',ERR)
+RETURN
+</pre>

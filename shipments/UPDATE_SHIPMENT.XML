@@ -1,0 +1,141 @@
+
+<pre>       
+
+PicLan-IP/BASIC ^ ^
+
+INCLUDE PLBASIC BP.INCLUDES PLW.INCLUDES
+
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+
+* UPDATE_SHIPMENT.XML - Save shipment data and update SO pickslips
+* Position mapping:
+* 0  = Shipment Number (ID)
+* 1  = Ship Date
+* 2  = SO Number
+* 4  = Waybill
+* 5  = Ship Via
+* 7  = Notes (multivalue)
+* 12 = Line Item (multivalue)
+* 13 = Part Number (multivalue)
+* 14 = Ship Qty (multivalue)
+* 15 = Price (multivalue)
+* 17 = Boxes (multivalue)
+
+OPEN 'SHIPMENTS' TO SHIPMENTSF ELSE STOP 201, 'SHIPMENTS'
+OPEN 'SO' TO SO2F ELSE STOP 201, 'SO'
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Get parameters from frontend
+PL_GETVAR SHIPMENT_NUMBER FROM 'shipment_number' ELSE SHIPMENT_NUMBER = ''
+PL_GETVAR SHIP_DATE FROM 'ship_date' ELSE SHIP_DATE = ''
+PL_GETVAR SO_NUMBER FROM 'so_number' ELSE SO_NUMBER = ''
+PL_GETVAR WAYBILL FROM 'waybill' ELSE WAYBILL = ''
+PL_GETVAR SHIP_VIA FROM 'ship_via' ELSE SHIP_VIA = ''
+PL_GETVAR NOTES_DATA FROM 'notes' ELSE NOTES_DATA = ''
+PL_GETVAR LINE_ITEMS FROM 'line_items' ELSE LINE_ITEMS = ''
+PL_GETVAR PART_NUMBERS FROM 'part_numbers' ELSE PART_NUMBERS = ''
+PL_GETVAR SHIP_QTYS FROM 'ship_qtys' ELSE SHIP_QTYS = ''
+PL_GETVAR PRICES FROM 'prices' ELSE PRICES = ''
+PL_GETVAR BOXES FROM 'boxes' ELSE BOXES = ''
+PL_GETVAR SAVE_MODE FROM 'save_mode' ELSE SAVE_MODE = 'UPDATE'
+
+XML.RESPONSE = '<?xml version="1.0"?><update_response>'
+XML.RESPONSE = XML.RESPONSE : '<debug_start>UPDATE_SHIPMENT_EXECUTING</debug_start>'
+XML.RESPONSE = XML.RESPONSE : '<debug_save_mode>' : SAVE_MODE : '</debug_save_mode>'
+
+IF SHIPMENT_NUMBER = "" THEN
+    XML.RESPONSE = XML.RESPONSE : '<error>Shipment Number is required</error></update_response>'
+    WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_SHIPMENT.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/UPDATE_SHIPMENT.XML','',ERR)
+    RETURN
+END
+
+* Handle CREATE vs UPDATE mode
+IF SAVE_MODE = 'CREATE' THEN
+    XML.RESPONSE = XML.RESPONSE : '<debug_create_mode>Creating new shipment ' : SHIPMENT_NUMBER : '</debug_create_mode>'
+    SHIPMENT.RECORD = ''
+END ELSE
+    XML.RESPONSE = XML.RESPONSE : '<debug_update_mode>Updating existing shipment ' : SHIPMENT_NUMBER : '</debug_update_mode>'
+    READ SHIPMENT.RECORD FROM SHIPMENTSF, SHIPMENT_NUMBER ELSE SHIPMENT.RECORD = ''
+END
+
+* Update basic fields
+IF SHIP_DATE <> "" THEN SHIPMENT.RECORD<1> = SHIP_DATE
+IF SO_NUMBER <> "" THEN SHIPMENT.RECORD<2> = SO_NUMBER
+IF SHIP_VIA <> "" THEN SHIPMENT.RECORD<5> = SHIP_VIA
+IF WAYBILL <> "" THEN SHIPMENT.RECORD<4> = WAYBILL
+
+* Process notes (multivalue field 7)
+IF NOTES_DATA <> "" THEN
+    * Convert pipe separator to multivalue
+    CONVERT '|' TO CHAR(253) IN NOTES_DATA
+    SHIPMENT.RECORD<7> = NOTES_DATA
+END
+
+* Process line items (multivalue fields 12, 13, 14, 15, 17)
+IF LINE_ITEMS <> "" THEN
+    CONVERT '|' TO CHAR(253) IN LINE_ITEMS
+    SHIPMENT.RECORD<12> = LINE_ITEMS
+END
+
+IF PART_NUMBERS <> "" THEN
+    CONVERT '|' TO CHAR(253) IN PART_NUMBERS
+    SHIPMENT.RECORD<13> = PART_NUMBERS
+END
+
+IF SHIP_QTYS <> "" THEN
+    CONVERT '|' TO CHAR(253) IN SHIP_QTYS
+    SHIPMENT.RECORD<14> = SHIP_QTYS
+END
+
+IF PRICES <> "" THEN
+    CONVERT '|' TO CHAR(253) IN PRICES
+    SHIPMENT.RECORD<15> = PRICES
+END
+
+IF BOXES <> "" THEN
+    CONVERT '|' TO CHAR(253) IN BOXES
+    SHIPMENT.RECORD<17> = BOXES
+END
+
+* Write to SHIPMENTS database
+XML.RESPONSE = XML.RESPONSE : '<debug_before_write>About to write SHIPMENT.RECORD to SHIPMENTS</debug_before_write>'
+WRITE SHIPMENT.RECORD ON SHIPMENTSF, SHIPMENT_NUMBER
+XML.RESPONSE = XML.RESPONSE : '<debug_after_write>SHIPMENT.RECORD successfully written to SHIPMENTS</debug_after_write>'
+
+* Update SO position 41 (pickslips) with shipment number
+IF SO_NUMBER <> "" THEN
+    XML.RESPONSE = XML.RESPONSE : '<debug_so_update>Updating SO ' : SO_NUMBER : ' position 41 with shipment ' : SHIPMENT_NUMBER : '</debug_so_update>'
+    
+    READ SO2.RECORD FROM SO2F, SO_NUMBER THEN
+        * Get existing pickslips (multivalue)
+        EXISTING_PICKSLIPS = SO2.RECORD<41>
+        
+        * Append new shipment number
+        IF EXISTING_PICKSLIPS <> '' THEN
+            SO2.RECORD<41> = EXISTING_PICKSLIPS : CHAR(253) : SHIPMENT_NUMBER
+        END ELSE
+            SO2.RECORD<41> = SHIPMENT_NUMBER
+        END
+        
+        * Write back to SO
+        WRITE SO2.RECORD ON SO2F, SO_NUMBER
+        XML.RESPONSE = XML.RESPONSE : '<debug_so_updated>SO position 41 updated: ' : SO2.RECORD<41> : '</debug_so_updated>'
+    END ELSE
+        XML.RESPONSE = XML.RESPONSE : '<debug_so_not_found>SO record ' : SO_NUMBER : ' not found</debug_so_not_found>'
+    END
+END
+
+XML.RESPONSE = XML.RESPONSE : '<status>SUCCESS</status>'
+XML.RESPONSE = XML.RESPONSE : '<message>Shipment ' : SHIPMENT_NUMBER : ' saved successfully</message>'
+XML.RESPONSE = XML.RESPONSE : '<shipment_number>' : SHIPMENT_NUMBER : '</shipment_number>'
+XML.RESPONSE = XML.RESPONSE : '<so_number>' : SO_NUMBER : '</so_number>'
+XML.RESPONSE = XML.RESPONSE : '</update_response>'
+
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_SHIPMENT.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_SHIPMENT.XML','',ERR)
+RETURN
+</pre>

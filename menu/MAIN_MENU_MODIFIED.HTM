@@ -1,0 +1,219 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>Main Menu</title>
+<style type="text/css">P
+.auto-style1 {
+     font-size: x-small;
+}
+</style>
+</head>
+
+<body topmargin="0">
+
+<p>&nbsp;</p>
+
+<div align="center">
+  <center>
+
+<table border="1" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="760" id="AutoNumber1" bgcolor="#FFFFFF">
+  <tr>
+    <td>
+    &nbsp;<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse; font-family: Verdana; font-size: 8pt" bordercolor="#111111" width="100%" id="AutoNumber2" height="254">
+      <tr>
+        <td width="20%" height="13"></td>
+        <td width="20%" height="13">&nbsp;<p>&nbsp;</p>
+        <p>&nbsp;</p>
+        <p>&nbsp;</td>
+        <td width="20%" height="13"></td>
+        <td width="11%" height="13"></td>
+        <td width="29%" height="13">
+         </td>
+      </tr>
+      <tr>
+        <td width="20%" height="13"></td>
+        <td width="51%" height="13" colspan="3">
+        <form method="POST" action="/NBSALES.HTM" name="MAINMENU">
+          <table border="0" style="border-collapse: collapse; font-family: Verdana; font-size: 8pt" width="100%" id="AutoNumber3" cellspacing="1">
+            <tr>
+              <td width="100%" colspan="3">
+              <p align="center"><font size="2"><b>Welcome <font color="#FF0000">
+              ^USER^<br>
+&nbsp;</font></b></font></td>
+            </tr>
+            <tr>
+              <td width="7%">&nbsp;</td>
+              <td width="93%" colspan="2" bordercolor="#000080" bgcolor="#000080">
+              <table border="0" style="border-collapse: collapse; font-family: Verdana; font-size: 8pt" bordercolor="#111111" width="100%" id="AutoNumber4" cellpadding="4" bgcolor="#DFDFDF">
+                <tr>
+                  <td width="71%" align="center"><font color="#0000FF">
+                  <input type="submit" value="SALES MENU" name="MENU1" style="width:150px; border:1px solid #000000; font-family: Verdana; font-size: 10pt; background-color:#80FF80"></font></td>
+                  <td width="111%">&nbsp;</td>
+                </tr>
+                <tr>
+                  <td width="71%" align="center"><font color="#0000FF">
+                  <input type="submit" value="QUOTE MENU" name="MENU2" style="width:150px; border:1px solid #000000; font-family: VERDANA; font-size: 10pt; background-color:#82D7FF"></font></td>
+                  <td width="111%">&nbsp;</td>
+                </tr>
+                <tr>
+                  <td width="71%" align="center"><font color="#0000FF">
+                  <input type="submit" value="RMA MENU" name="RMA.MENU" style="width:150px; border:1px solid #000000; font-family: VERDANA; font-size: 10pt; background-color:#FF8080"></font></td>
+                  <td width="111%">&nbsp;</td>
+                </tr>
+                  <tr>
+                  <td width="71%" align="center"><font color="#0000FF">
+                  <input type="submit" value="NBPART INQUIRY" name="MENU5" style="width:150px; border:1px solid #000000; font-family: VERDANA; font-size: 10pt; background-color:#B8B8B8"></font></td>
+                  <td width="111%">&nbsp;</td>
+                  </tr>
+                <tr>
+                  <td width="71%" align="center"><font color="#0000FF">
+                  <input type="submit" value="VWHSE INQUIRY" name="VWHSE.MENU" style="width:150px; border:1px solid #000000; font-family: VERDANA; font-size: 10pt; background-color:#cc99ff"></font></td>
+                  <td width="111%">&nbsp;</td>
+                </tr>                  
+                <tr>
+                  <td width="71%" align="center"><font color="#0000FF">
+                  <input type="submit" value="LOGOUT" name="MENU3" style="width:150px; font-family: VERDANA; font-size: 10pt"></font></td>
+                  <td width="111%">&nbsp;</td>
+                </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td width="7%">&nbsp;</td>
+              <td width="42%">
+              &nbsp;</td>
+              <td width="51%">
+              &nbsp;</td>
+            </tr>
+            <tr>
+              <td width="7%">&nbsp;</td>
+              <td width="93%" colspan="2">
+                 <font size="4">&nbsp;<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                 </font>
+            </tr>
+          </table>
+             <input type="hidden" name="INITIALS" value="^INITIALS^">
+        </form>
+        </td>
+        <td width="29%" height="13"></td>
+      </tr>
+      <tr>
+        <td width="20%" height="1">&nbsp;<p>&nbsp;</p>
+        <p>&nbsp;</p>
+        <p>&nbsp;</p>
+        <p>&nbsp;</p>
+        <p>&nbsp;</td>
+        <td width="20%" height="1"></td>
+        <td width="20%" height="1"></td>
+        <td width="11%" height="1"></td>
+        <td width="29%" height="1"></td>
+      </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+  </center>
+</div>
+<pre>PicLan-IP/BASIC ^ ^
+*
+    PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+      PL_GETVAR INITIALS FROM 'INITIALS' ELSE
+  
+        ERR = '' ; INITIALS=  ''
+         CALL PLW.PAGE('LOGIN.HTM','',ERR)
+        RETURN
+      END
+    END
+      PRINT 'INITIALS ON MAINMENU 2':INITIALS
+    PL_SET_COOKIE 'SONO' TO '' 
+    PL_SET_COOKIE 'QTNO' TO ''
+*PL_SET_COOKIE 'INIT' TO INITIALS
+    OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+    OPEN 'SOCHG' TO SOCHGF ELSE STOP 201,'SOCHG'
+    OPEN 'SOCART' TO SOCARTF ELSE STOP 201,'SOCART'
+    OPEN 'WSOACK' TO WSOACKF ELSE STOP 201,'WSOACK'
+*
+   READ OPER FROM OPERSF,INITIALS<1> ELSE 
+        ERR = ''
+        CALL PLW.PAGE('LOGIN.HTM','',ERR)
+        RETURN
+   END
+*
+   IF OPER<18> NE '' THEN
+      LOCATE('NBSALES.HTM',OPER<18>,1;HIT) ELSE
+          ERRVAL = 'YOU ARE NOT ALLOWED TO ACCESS THIS MENU'
+          PL_PUTVAR ERRVAL IN 'ERRVAL' ELSE NULL
+          ERR = ''
+          CALL PLW.PAGE('ERRORMSG.HTM','',ERR)
+          RETURN
+       END
+   END  
+   IF OPER<11> = 'CDA' THEN 
+          ERR = ''
+          CALL PLW.PAGE('MENU.HTM','',ERR)L
+          RETURN   
+   END 
+   USER = OPER<1>
+   PL_GETVAR OPTION FROM 'OPTION' ELSE OPTION = ''
+   PL_GETVAR CONTINUE FROM 'CONTINUE' ELSE CONTINUE = ''
+   PL_GETVAR MENU1 FROM 'MENU1' ELSE MENU1 = ''
+   PL_GETVAR MENU2 FROM 'MENU2' ELSE MENU2 = ''
+   PL_GETVAR MENU3 FROM 'MENU3' ELSE MENU3 = ''
+   PL_GETVAR MENU4 FROM 'MENU4' ELSE MENU4 = ''
+   PL_GETVAR MENU5 FROM 'MENU5' ELSE MENU5 = ''
+   PL_GETVAR VWHSE.MENU FROM 'VWHSE.MENU' ELSE VWHSE.MENU = ''
+   PL_GETVAR RMA.MENU FROM 'RMA.MENU' ELSE RMA.MENU=''
+   PL_SET_COOKIE 'SESSIONID' TO ''
+   PL_SET_COOKIE 'VKEY' TO ''
+   
+*
+*
+  IF MENU1 NE '' OR MENU2 NE '' OR MENU3 NE '' OR MENU4 NE '' OR RMA.MENU NE '' OR MENU5 NE '' OR VWHSE.MENU NE '' THEN
+    BEGIN CASE
+          CASE OPTION = '1' OR MENU1 NE ''
+                ERR = ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'OPTION' ELSE NULL
+                CALL PLW.PAGE('NBSOMENU.HTM','',ERR)
+                RETURN
+          CASE OPTION = '2' OR MENU2 NE '' 
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'OPTION' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('NBQTMENU.HTM','',ERR)
+                RETURN
+           CASE RMA.MENU NE ''
+                ERR = ''
+                *CALL PLW.PAGE('RMAFILEA.HTM','',ERR)
+                CALL PLW.PAGE('RMAMENU.HTM','',ERR)
+                RETURN
+           CASE MENU5 NE ''
+                ERR = ''
+                CALL PLW.PAGE('NBPART.HTM','',ERR)
+                RETURN
+           CASE VWHSE.MENU NE ''
+                ERR = ''
+                CALL PLW.PAGE('VWHSE.HTM','',ERR)
+                RETURN           
+           CASE OPTION = '99' OR MENU3 NE '' 
+              ERR = ''
+              CALL PLW.PAGE('LOGIN.HTM','',ERR)
+              RETURN
+    END CASE
+  END
+*
+*
+</pre>
+
+</body>
+
+</html>

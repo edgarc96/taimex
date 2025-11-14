@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BOM Entry</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <!-- jQuery - Required by aflibs.pick_login2.js -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
+  <script src="aflibs.pick_login2.js?_=^TS^"></script>
+  <style>
+    :root {
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --sidebar-bg: #1e293b;
+      --sidebar-hover: #334155;
+      --sidebar-active: #475569;
+      --border-color: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-yellow: #f59e0b;
+      --accent-purple: #8b5cf6;
+      --card-radius: 12px;
+      --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.1);
+      --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --transition-fast: 0.2s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100vh;
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-body);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      min-height: 100vh;
+      background: var(--bg-card);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      max-width: 100vw;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      color: #fff;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3);
+      position: relative;
+      z-index: 100;
+      width: 100%;
+      max-width: 100vw;
+      flex-shrink: 0;
+      box-sizing: border-box;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo-section img {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+
+    .title-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 16px;
+    }
+
+    .welcome-user {
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .welcome-user span {
+      color: #e2e8f0;
+      font-size: 0.9em;
+      font-weight: 400;
+    }
+
+    .welcome-user strong {
+      color: #60a5fa;
+      margin-left: 4px;
+      font-weight: 600;
+      font-size: 1em;
+    }
+
+    .title-section h2 {
+      font-size: 1.1em;
+      margin: 0;
+      font-weight: 600;
+      color: #f1f5f9;
+      letter-spacing: 0.3px;
+    }
+
+    .title-section p {
+      font-size: 0.85em;
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.2em;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .hamburger-menu svg {
+      width: 24px;
+      height: 24px;
+      fill: #fff;
+    }
+
+    .hamburger-menu svg path {
+      fill: #fff;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      width: 100%;
+      background: var(--bg-body);
+      height: calc(100vh - 60px);
+      max-width: 100vw;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 300px;
+      max-width: 85vw;
+      height: 100vh;
+      background: rgba(30, 41, 59, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #fff;
+      transition: left 0.3s ease;
+      z-index: 2000;
+      box-shadow: 2px 0 20px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(30, 41, 59, 0.4);
+    }
+
+    .sidebar-header h3 {
+      font-size: 1.2em;
+      color: #fff;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .sidebar-content {
+      padding: 24px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-menu li {
+      margin-bottom: 10px;
+    }
+
+    .sidebar-menu label {
+      display: block;
+      padding: 14px 20px;
+      color: rgba(255, 255, 255, 0.9);
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-menu label:hover {
+      background-color: rgba(59, 130, 246, 0.2);
+      color: #fff;
+      border-left-color: rgba(59, 130, 246, 0.6);
+    }
+
+    .sidebar-menu label.active {
+      background-color: rgba(59, 130, 246, 0.3);
+      color: #fff;
+      border-left-color: #3b82f6;
+      font-weight: 600;
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.55);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+      z-index: 1500;
+      pointer-events: none;
+    }
+
+    #sb-toggle:checked ~ .sidebar {
+      left: 0;
+    }
+
+    #sb-toggle:checked ~ .sidebar-overlay {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    #sb-toggle {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .bom-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 20px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      justify-content: center;
+      align-items: center;
+      max-width: 100vw;
+    }
+
+    .bom-card {
+      background: var(--bg-card);
+      border-radius: var(--card-radius);
+      padding: 24px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+      max-width: 500px;
+      border: 1px solid var(--border-color);
+    }
+
+    .bom-header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .bom-header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .bom-header p {
+      font-size: 15px;
+      color: var(--text-secondary);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      font-size: 0.95em;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group input {
+      padding: 14px 16px;
+      border: 2px solid var(--border-color);
+      border-radius: var(--card-radius);
+      font-size: 0.95em;
+      transition: all var(--transition-fast);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      width: 100%;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 24px;
+      border-radius: var(--card-radius);
+      font-weight: 600;
+      font-size: 0.95em;
+      cursor: pointer;
+      border: none;
+      transition: all var(--transition-fast);
+      flex: 1;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+      color: #fff;
+      box-shadow: var(--shadow-hover);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(29, 78, 216, 0.4);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, var(--text-secondary) 0%, var(--sidebar-hover) 100%);
+      color: #fff;
+      box-shadow: var(--shadow-card);
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .error-message {
+      color: #ef4444;
+      font-size: 0.9em;
+      font-weight: 600;
+      margin-top: 8px;
+      text-align: center;
+      padding: 10px 16px;
+      background: rgba(239, 68, 68, 0.1);
+      border-radius: var(--card-radius);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .menu-link {
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    .menu-link a {
+      color: var(--accent-blue);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color var(--transition-fast);
+    }
+
+    .menu-link a:hover {
+      color: #1d4ed8;
+      text-decoration: underline;
+    }
+
+    @media (max-width: 1024px) {
+      .sidebar {
+        width: 280px;
+        max-width: 80vw;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 12px 20px;
+      }
+
+      .title-section {
+        text-align: left;
+        align-items: flex-start;
+      }
+
+      .title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .bom-wrapper {
+        padding: 16px;
+      }
+
+      .bom-card {
+        padding: 20px;
+        max-width: 100%;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .btn {
+        padding: 12px 20px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .header {
+        padding: 10px 14px;
+      }
+
+      .bom-wrapper {
+        padding: 12px;
+      }
+
+      .bom-card {
+        padding: 16px;
+        gap: 16px;
+      }
+
+      .bom-header h1 {
+        font-size: 20px;
+      }
+
+      .bom-header p {
+        font-size: 14px;
+      }
+
+      .form-group input {
+        padding: 12px 14px;
+      }
+
+      .btn {
+        padding: 12px 16px;
+        font-size: 0.9em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <input type="checkbox" id="sb-toggle">
+  <label for="sb-toggle" class="sidebar-overlay" aria-hidden="true"></label>
+
+  <aside class="sidebar" aria-label="Main menu">
+    <div class="sidebar-header">
+      <h3>Menu</h3>
+    </div>
+    <div class="sidebar-content">
+      <ul class="sidebar-menu">
+        <li><label for="sb-toggle">Main Menu</label></li>
+        <li><label for="sb-toggle">Parts Management</label></li>
+        <li><label for="sb-toggle">Work Orders</label></li>
+        <li><label for="sb-toggle">Sales Orders</label></li>
+        <li><label for="sb-toggle">Stock Transactions</label></li>
+        <li><label for="sb-toggle" class="active">BOM Management</label></li>
+      </ul>
+    </div>
+  </aside>
+
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">
+          <svg viewBox="0 0 448 512" role="img" aria-hidden="true" focusable="false" width="20" height="20">
+            <path d="M0 96C0 78.3 14.3 64 32 64H416C433.7 64 448 78.3 448 96C448 113.7 433.7 128 416 128H32C14.3 128 0 113.7 0 96zM0 256C0 238.3 14.3 224 32 224H416C433.7 224 448 238.3 448 256C448 273.7 433.7 288 416 288H32C14.3 288 0 273.7 0 256zM448 416C448 433.7 433.7 448 416 448H32C14.3 448 0 433.7 0 416C0 398.3 14.3 384 32 384H416C433.7 384 448 398.3 448 416z"></path>
+          </svg>
+        </label>
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL" onerror="this.onerror=null;this.src='http://54.189.226.145/uploads/assets/images/taimex_logo.png';">
+        </div>
+      </div>
+      <div class="title-section">
+        <div class="title-row">
+          <div class="welcome-user">
+            <span>Welcome,</span>
+            <strong id="currentUserDisplay">Operator</strong>
+          </div>
+          <div>
+            <h2>TAIMEX - BOM ENTRY</h2>
+            <p>TAIMEX - MANAGEMENT</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="bom-wrapper">
+        <div class="bom-card">
+          <div class="bom-header">
+            <h1>BOM Entry</h1>
+            <p>Enter an Existing BOM Number to edit</p>
+          </div>
+
+          <form id="frmBOM" name="frmBOM" method="POST" action="BOM_EDIT.HTM">
+            <div class="form-group">
+              <label for="NBOM">
+                <i class="fas fa-hashtag" style="color: #1e40af;"></i>
+                BOM Number:
+              </label>
+              <input type="text" maxlength="21" id="NBOM" name="NBOM" value="" placeholder="Enter BOM Number" required>
+            </div>
+
+            <div class="form-group">
+              <label for="ECN">
+                <i class="fas fa-file-alt" style="color: #1e40af;"></i>
+                ECN:
+              </label>
+              <input type="text" maxlength="21" id="ECN" name="ECN" value="" placeholder="Enter ECN">
+            </div>
+
+            <div class="error-message" id="errorMessage" style="display: none;">
+              ^EMSG^
+            </div>
+
+            <div class="action-buttons">
+              <button type="submit" id="BTNBOM" name="BTNBOM" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i>
+                Enter
+              </button>
+              <a href="CDABOMMENU.HTM" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Menu
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div align="left">
+  <pre>
+PicLan-IP/BASIC ^ ^
+*
+PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+  ERR = '' ; INITIALS=  ''
+  CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+  RETURN
+END
+*
+PL_GETVAR BTNBOM FROM 'BTNBOM' ELSE BTNBOM = ''
+PL_GETVAR NBOM FROM 'NBOM' ELSE NBOM = ''
+PL_GETVAR ECN FROM 'ECN' ELSE ECN = ''
+TS = DATE():TIME()
+RESULT = ''
+EMSG = ''
+*
+OPEN 'EBOM' TO BOM.FILE ELSE GOTO done
+*
+IF BTNBOM NE '' AND NBOM NE '' THEN
+  READ EBOM FROM BOM.FILE,NBOM ELSE
+    EMSG = 'BOM Record not found'
+    GOTO done
+  END
+*
+  PL_PUTVAR NBOM IN 'NBOM' ELSE NULL
+  PL_PUTVAR ECN IN 'ECN' ELSE NULL
+  ERR = ''
+  CALL PLW.PAGE('BOM_EDIT.HTM','',ERR)
+  RETURN
+END
+*
+done:
+  </pre>
+  </div>
+  
+  <script>
+    // Handle form submission to ensure proper encoding of special characters
+    document.getElementById('frmBOM').addEventListener('submit', function(e) {
+      // Get the NBOM input value
+      const nbomInput = document.getElementById('NBOM');
+      const ecnInput = document.getElementById('ECN');
+      
+      // Trim whitespace
+      if (nbomInput.value) {
+        nbomInput.value = nbomInput.value.trim();
+      }
+      if (ecnInput.value) {
+        ecnInput.value = ecnInput.value.trim();
+      }
+      
+      // Validate BOM number is not empty
+      if (!nbomInput.value) {
+        e.preventDefault();
+        const errorMsg = document.getElementById('errorMessage');
+        errorMsg.textContent = 'BOM Number is required';
+        errorMsg.style.display = 'block';
+        return false;
+      }
+      
+      // Form will be submitted with proper URL encoding by the browser
+      return true;
+    });
+    
+    // Display error message if present
+    window.addEventListener('DOMContentLoaded', function() {
+      const errorMsg = document.getElementById('errorMessage');
+      if (errorMsg.textContent.trim() !== '' && errorMsg.textContent.trim() !== '^EMSG^') {
+        errorMsg.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+
+<pre>       
+
+PicLan-IP/BASIC ^ ^
+
+INCLUDE PLBASIC BP.INCLUDES PLW.INCLUDES
+
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+* GET_SHIPMENT.XML - Read shipment data from SHIPMENTS database
+* Position mapping:
+* 0  = Shipment Number (ID)
+* 1  = Ship Date
+* 2  = SO Number
+* 4  = Waybill
+* 5  = Ship Via
+* 7  = Notes (multivalue)
+* 12 = Line Item (multivalue)
+* 13 = Part Number (multivalue)
+* 14 = Ship Qty (multivalue)
+* 15 = Price (multivalue)
+* 17 = Boxes (multivalue)
+
+OPEN 'SHIPMENTS' TO SHIPMENTSF ELSE STOP 201, 'SHIPMENTS'
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Get shipment number from query string
+PL_GETVAR SHIPMENT_NUMBER FROM 'shipment_number' ELSE SHIPMENT_NUMBER = ''
+
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?><shipments><shipment>'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_SHIPMENT_NUMBER_RECEIVED: [' : SHIPMENT_NUMBER : '] -->'
+
+IF SHIPMENT_NUMBER = '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<error>Shipment number is required</error></shipment></shipments>'
+    GOTO WRITE_RESPONSE
+END
+
+READ SHIPMENT.RECORD FROM SHIPMENTSF, SHIPMENT_NUMBER ELSE
+    XML.RESPONSE = XML.RESPONSE : '<error>Shipment not found</error></shipment></shipments>'
+    GOTO WRITE_RESPONSE
+END
+
+* Debug output for all fields
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_SHIPMENT_FIELD0: [' : SHIPMENT.RECORD<0> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_SHIPMENT_FIELD1: [' : SHIPMENT.RECORD<1> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_SHIPMENT_FIELD2: [' : SHIPMENT.RECORD<2> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_SHIPMENT_FIELD4: [' : SHIPMENT.RECORD<4> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_SHIPMENT_FIELD5: [' : SHIPMENT.RECORD<5> : '] -->'
+
+* Basic shipment info
+XML.RESPONSE = XML.RESPONSE : '<shipment_number>' : SHIPMENT_NUMBER : '</shipment_number>'
+XML.RESPONSE = XML.RESPONSE : '<ship_date>' : SHIPMENT.RECORD<1> : '</ship_date>'
+XML.RESPONSE = XML.RESPONSE : '<so_number>' : SHIPMENT.RECORD<2> : '</so_number>'
+XML.RESPONSE = XML.RESPONSE : '<waybill>' : SHIPMENT.RECORD<4> : '</waybill>'
+XML.RESPONSE = XML.RESPONSE : '<ship_via>' : SHIPMENT.RECORD<5> : '</ship_via>'
+
+* Notes (multivalue field 7)
+NOTES_DATA = SHIPMENT.RECORD<7>
+IF NOTES_DATA <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<notes>'
+    NOTES_COUNT = DCOUNT(NOTES_DATA, CHAR(253))
+    FOR N = 1 TO NOTES_COUNT
+        NOTE_ENTRY = FIELD(NOTES_DATA, CHAR(253), N)
+        IF NOTE_ENTRY <> '' THEN
+            XML.RESPONSE = XML.RESPONSE : '<note>' : NOTE_ENTRY : '</note>'
+        END
+    NEXT N
+    XML.RESPONSE = XML.RESPONSE : '</notes>'
+END ELSE
+    XML.RESPONSE = XML.RESPONSE : '<notes></notes>'
+END
+
+* Line items (multivalue fields 12, 13, 14, 15, 17)
+LINE_ITEMS = SHIPMENT.RECORD<12>
+PART_NUMBERS = SHIPMENT.RECORD<13>
+SHIP_QTYS = SHIPMENT.RECORD<14>
+PRICES = SHIPMENT.RECORD<15>
+BOXES = SHIPMENT.RECORD<17>
+
+XML.RESPONSE = XML.RESPONSE : '<line_items>'
+
+IF LINE_ITEMS <> '' THEN
+    LINE_COUNT = DCOUNT(LINE_ITEMS, CHAR(253))
+    FOR I = 1 TO LINE_COUNT
+        LINE_ITEM = FIELD(LINE_ITEMS, CHAR(253), I)
+        PART_NUM = FIELD(PART_NUMBERS, CHAR(253), I)
+        SHIP_QTY = FIELD(SHIP_QTYS, CHAR(253), I)
+        PRICE = FIELD(PRICES, CHAR(253), I)
+        BOX_COUNT = FIELD(BOXES, CHAR(253), I)
+        
+        IF LINE_ITEM <> '' OR PART_NUM <> '' THEN
+            XML.RESPONSE = XML.RESPONSE : '<line>'
+            XML.RESPONSE = XML.RESPONSE : '<line_number>' : I : '</line_number>'
+            XML.RESPONSE = XML.RESPONSE : '<line_item>' : LINE_ITEM : '</line_item>'
+            XML.RESPONSE = XML.RESPONSE : '<part_number>' : PART_NUM : '</part_number>'
+            XML.RESPONSE = XML.RESPONSE : '<ship_qty>' : SHIP_QTY : '</ship_qty>'
+            XML.RESPONSE = XML.RESPONSE : '<price>' : PRICE : '</price>'
+            XML.RESPONSE = XML.RESPONSE : '<boxes>' : BOX_COUNT : '</boxes>'
+            XML.RESPONSE = XML.RESPONSE : '</line>'
+        END
+    NEXT I
+END
+
+XML.RESPONSE = XML.RESPONSE : '</line_items>'
+XML.RESPONSE = XML.RESPONSE : '</shipment></shipments>'
+
+WRITE_RESPONSE:
+WRITE XML.RESPONSE ON XMLDATAF,'GET_SHIPMENT.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/GET_SHIPMENT.XML','',ERR)
+RETURN
+</PRE>

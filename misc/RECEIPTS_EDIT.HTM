@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAIMEX - Receipts Entry</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100vh; overflow: hidden; width: 100%; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            color: #334155;
+            width: 100%;
+        }
+        .container {
+            width: 100%;
+            height: 100vh;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+            color: white;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(30, 41, 59, 0.25);
+            position: relative;
+            z-index: 100;
+            width: 100%;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .logo-section img {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+            filter: brightness(1.05);
+        }
+        .title-section {
+            text-align: right;
+            position: relative;
+            z-index: 1;
+        }
+        .title-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        .welcome-user {
+            white-space: nowrap;
+        }
+        .welcome-user span {
+            color: #cbd5e1;
+            font-size: 0.8em;
+            font-weight: 400;
+        }
+        .welcome-user strong {
+            color: #3b82f6;
+            margin-left: 4px;
+            font-weight: 600;
+        }
+        .title-section h2 {
+            font-size: 0.95em;
+            margin: 0;
+            font-weight: 500;
+            color: #cbd5e1;
+            letter-spacing: 0.3px;
+        }
+        .title-section p {
+            font-size: 0.75em;
+            margin: 2px 0 0 0;
+            color: #a2a8ba;
+            font-weight: 400;
+        }
+        .hamburger-menu {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hamburger-menu:hover {
+            background-color: rgba(255, 255, 255, 0.12);
+        }
+        .hamburger-menu svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+        .sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            left: -300px !important;
+            width: 300px !important;
+            height: 100vh !important;
+            background: rgba(255, 255, 255, .08) !important;
+            backdrop-filter: blur(1px) !important;
+            -webkit-backdrop-filter: blur(1px) !important;
+            color: white !important;
+            transition: left 0.2s ease !important;
+            z-index: 2000 !important;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3) !important;
+            overflow: hidden !important;
+            border-radius: 0 !important;
+        }
+        .sidebar.active {
+            left: 0 !important;
+        }
+        .sidebar-overlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            transition: all 0.3s ease !important;
+            z-index: 999 !important;
+            pointer-events: none !important;
+            cursor: pointer !important;
+        }
+        .sidebar-overlay.active {
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+        }
+        .sidebar-header {
+            padding: 20px !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+        }
+        .sidebar-header h3 {
+            font-size: 1.2em !important;
+            color: white !important;
+            margin: 0 !important;
+        }
+        .sidebar-content {
+            padding: 24px !important;
+        }
+        .sidebar-menu {
+            list-style: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .sidebar-menu li {
+            margin-bottom: 8px !important;
+        }
+        .sidebar-menu a, .sidebar-menu label {
+            display: block !important;
+            padding: 12px 16px !important;
+            color: #f3f4f6 !important;
+            text-decoration: none !important;
+            border-radius: 8px !important;
+            transition: all 0.2s ease !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+        }
+        .sidebar-menu a:hover, .sidebar-menu label:hover {
+            background-color: rgba(30, 64, 175, 0.1) !important;
+            color: white !important;
+        }
+        .sidebar-menu a.active, .sidebar-menu label.active {
+            background-color: rgba(30, 64, 175, 0.2) !important;
+            color: #93c5fd !important;
+        }
+        .sidebar-menu a i, .sidebar-menu label i {
+            margin-right: 12px !important;
+            width: 20px !important;
+            text-align: center !important;
+        }
+        .sidebar-menu label {
+            cursor: pointer !important;
+        }
+        #sb-toggle {
+            position: absolute;
+            left: -9999px;
+        }
+        #sb-toggle:checked ~ .sidebar {
+            left: 0 !important;
+        }
+        #sb-toggle:checked ~ .sidebar-overlay {
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+        }
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+        }
+        .search-section {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 2px solid #0ea5e9;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: all 0.2s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        .po-info {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 2px solid #f59e0b;
+            display: none;
+        }
+        .po-info h3 {
+            color: #92400e;
+            margin-bottom: 15px;
+        }
+        .po-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .info-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+        }
+        .info-item label {
+            font-size: 0.85em;
+            color: #92400e;
+            font-weight: 600;
+            display: block;
+        }
+        .info-item value {
+            font-size: 1.1em;
+            color: #1e293b;
+            font-weight: 600;
+        }
+        .line-items-section { display: none; }
+        .line-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .line-items-table thead {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+        }
+        .line-items-table th {
+            padding: 14px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .line-items-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .line-items-table tbody tr {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .line-items-table tbody tr:hover {
+            background: #f0f9ff;
+        }
+        .line-items-table tbody tr.selected {
+            background: #dbeafe;
+            border-left: 4px solid #0ea5e9;
+        }
+        .receipt-form {
+            display: none;
+            margin-top: 25px;
+        }
+        .receipt-readonly-section {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #f59e0b;
+            margin-bottom: 20px;
+        }
+        .receipt-readonly-section h4 {
+            color: #92400e;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        .receipt-input-section {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            padding: 25px;
+            border-radius: 8px;
+            border: 2px solid #10b981;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .total-section {
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 20px;
+            border: 2px solid #10b981;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .total-row:last-child {
+            border-bottom: none;
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #065f46;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            display: none;
+        }
+        .notification.success { background: #10b981; }
+        .notification.error { background: #ef4444; }
+        .notification.warning { background: #f59e0b; }
+        .loading-spinner {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #0ea5e9;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="notification" id="notification"></div>
+    
+    <input type="checkbox" id="sb-toggle" />
+    <label for="sb-toggle" class="sidebar-overlay"></label>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>Menu</h3>
+        </div>
+        <div class="sidebar-content">
+            <ul class="sidebar-menu">
+                <li><a href="MAIN_MENU.HTM"><i class="fas fa-home"></i> Main Menu</a></li>
+                <li><a href="PARTSEDIT.HTM"><i class="fas fa-box"></i> Parts Management</a></li>
+                <li><a href="PO_EDIT.HTM"><i class="fas fa-file-invoice"></i> Purchase Orders</a></li>
+                <li><a href="SO_EDIT.HTM"><i class="fas fa-shopping-cart"></i> Sales Orders</a></li>
+                <li><label for="sb-toggle" class="active"><i class="fas fa-box-open"></i> Receipts</label></li>
+                <li><a href="STOCKTRANS_EDIT.HTM"><i class="fas fa-exchange-alt"></i> Stock Transactions</a></li>
+                <li><a href="VENDOR_PRICE_EDIT.HTM"><i class="fas fa-dollar-sign"></i> Vendor Pricing</a></li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">
+                    <svg viewBox="0 0 448 512" role="img" aria-hidden="true" focusable="false">
+                        <path d="M0 96C0 78.3 14.3 64 32 64H416C433.7 64 448 78.3 448 96C448 113.7 433.7 128 416 128H32C14.3 128 0 113.7 0 96zM0 256C0 238.3 14.3 224 32 224H416C433.7 224 448 238.3 448 256C448 273.7 433.7 288 416 288H32C14.3 288 0 273.7 0 256zM448 416C448 433.7 433.7 448 416 448H32C14.3 448 0 433.7 0 416C0 398.3 14.3 384 32 384H416C433.7 384 448 398.3 448 416z"></path>
+                    </svg>
+                </label>
+                <div class="logo-section">
+                    <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL" onerror="this.onerror=null;this.src='http://54.189.226.145/uploads/assets/images/taimex_logo.png';">
+                </div>
+            </div>
+            <div class="title-section">
+                <div class="title-row">
+                    <div class="welcome-user">
+                        <span>Welcome,</span>
+                        <strong id="currentUserDisplay">User</strong>
+                    </div>
+                    <div>
+                        <h2>TAIMEX - RECEIPTS ENTRY</h2>
+                        <p>TAIMEX - MANAGEMENT</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <!-- Search PO -->
+            <div class="search-section">
+                <h3 style="color: #0c4a6e; margin-bottom: 15px;">
+                    <i class="fas fa-search"></i> Search Purchase Order
+                </h3>
+                <div class="form-group">
+                    <label>PO Number <span style="color: #ef4444;">*</span></label>
+                    <input type="text" id="poNumberInput" placeholder="Enter PO Number" 
+                           onkeydown="if(event.key==='Enter'){searchPO();}" style="font-size: 1.2em;">
+                </div>
+                <button class="btn btn-primary" onclick="searchPO()">
+                    <i class="fas fa-search"></i> Search PO
+                </button>
+            </div>
+            
+            <!-- PO Info -->
+            <div class="po-info" id="poInfoSection">
+                <h3><i class="fas fa-file-invoice"></i> Purchase Order Information</h3>
+                <div class="po-info-grid">
+                    <div class="info-item">
+                        <label>PO Number</label>
+                        <value id="displayPONumber">-</value>
+                    </div>
+                    <div class="info-item">
+                        <label>Vendor</label>
+                        <value id="displayVendor">-</value>
+                    </div>
+                    <div class="info-item">
+                        <label>PO Date</label>
+                        <value id="displayPODate">-</value>
+                    </div>
+                    <div class="info-item">
+                        <label>Line Items</label>
+                        <value id="displayTotalLines">-</value>
+                    </div>
+                </div>
+                
+                <!-- Selected Line Item Info (shown when line item is selected) -->
+                <div id="selectedLineItemInfo" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 2px solid #f59e0b;">
+                    <h4 style="color: #92400e; margin-bottom: 15px;"><i class="fas fa-check-circle"></i> Selected Line Item</h4>
+                    <div class="po-info-grid">
+                        <div class="info-item">
+                            <label>Line Number</label>
+                            <value id="displayLineNumber">-</value>
+                        </div>
+                        <div class="info-item">
+                            <label>Part Number</label>
+                            <value id="displayPartNumber">-</value>
+                        </div>
+                        <div class="info-item">
+                            <label>Description</label>
+                            <value id="displayDescription">-</value>
+                        </div>
+                        <div class="info-item">
+                            <label>UM</label>
+                            <value id="displayUM">-</value>
+                        </div>
+                        <div class="info-item">
+                            <label>Receipt Qty (Total ACKs)</label>
+                            <value id="displayTotalACKs" style="font-weight: 700; color: #0ea5e9;">-</value>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Line Items -->
+            <div class="line-items-section" id="lineItemsSection">
+                <h3 style="color: #1e293b; margin-bottom: 15px;">
+                    <i class="fas fa-list"></i> Select Line Item for Receipt
+                </h3>
+                <table class="line-items-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align: center;">Line #</th>
+                            <th>Part Number</th>
+                            <th>Description</th>
+                            <th style="text-align: center;">UM</th>
+                            <th style="text-align: right;">Total ACK Qty</th>
+                            <th style="text-align: right;">Unit Price</th>
+                            <th style="text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lineItemsTableBody"></tbody>
+                </table>
+            </div>
+            
+            <!-- Receipt Form -->
+            <div class="receipt-form" id="receiptForm">
+                <h3 style="color: #1e293b; margin-bottom: 20px;"><i class="fas fa-clipboard-check"></i> Receipt Entry</h3>
+                
+                <!-- Input Fields (Green Section) -->
+                <div class="receipt-input-section">
+                    <h4 style="color: #065f46; margin-bottom: 15px;"><i class="fas fa-edit"></i> Receipt Details</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Receipt Qty <span style="color: #dc2626;">*</span></label>
+                            <input type="number" id="receiptQty" step="0.01" placeholder="Enter quantity received" oninput="calculateTotal()">
+                        </div>
+                        <div class="form-group">
+                            <label>Unit Price</label>
+                            <input type="number" id="receiptUnitPrice" step="0.001" oninput="calculateTotal()">
+                        </div>
+                        <div class="form-group">
+                            <label>Receipt Date <span style="color: #dc2626;">*</span></label>
+                            <input type="date" id="receiptDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Pedimento Number</label>
+                            <input type="text" id="pedimentoNumber" placeholder="Enter pedimento number">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Total -->
+                <div class="total-section" style="background: white; padding: 20px; border-radius: 8px; margin-top: 20px; border: 2px solid #e5e7eb;">
+                    <div class="total-row">
+                        <span>Receipt Qty:</span>
+                        <span id="displayReceiptQty" style="font-weight: 700;">0</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Unit Price:</span>
+                        <span id="displayUnitPrice" style="font-weight: 700;">$0.000</span>
+                    </div>
+                    <div class="total-row" style="border-top: 2px solid #10b981; padding-top: 12px; margin-top: 12px;">
+                        <span style="font-size: 1.2em; font-weight: 700;">TOTAL AMOUNT:</span>
+                        <span id="displayTotal" style="color: #059669; font-size: 1.5em; font-weight: 700;">$0.000</span>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px; justify-content: center; margin-top: 25px;">
+                    <button class="btn btn-success" onclick="saveReceipt()">
+                        <i class="fas fa-save"></i> Save Receipt
+                    </button>
+                    <button class="btn" onclick="cancelReceipt()" style="background: #64748b; color: white;">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentPOData = null;
+        let currentLineItem = null;
+        
+        // ========== DATE FORMATTING FUNCTION ==========
+        function formatDateForDisplay(dateStr) {
+            if (!dateStr || dateStr === '-') return dateStr;
+            
+            // Check if in YYYY-MM-DD format
+            if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                const [year, month, day] = dateStr.split('-');
+                return `${month}-${day}-${year}`;
+            }
+            
+            return dateStr; // Return as-is if not in expected format
+        }
+        
+        // ========== USER SESSION FUNCTIONS ==========
+        function getUserInitials() {
+            // Try sessionStorage first, then cookies
+            let initials = sessionStorage.getItem('userInitials');
+            
+            if (!initials) {
+                // Try to get from cookie
+                initials = getCookie('userInitials');
+                
+                if (initials) {
+                    console.log('📝 Found initials in cookie, restoring to sessionStorage:', initials);
+                    sessionStorage.setItem('userInitials', initials);
+                } else {
+                    console.error('❌ No user initials found in sessionStorage or cookies');
+                    return '';
+                }
+            }
+            
+            return initials;
+        }
+        
+        function getUserName() {
+            // Try sessionStorage first, then cookies
+            let userName = sessionStorage.getItem('userName');
+            
+            if (!userName) {
+                // Try to get from cookie
+                userName = getCookie('userName');
+                
+                if (userName) {
+                    userName = decodeURIComponent(userName);
+                    console.log('📝 Found userName in cookie, restoring to sessionStorage:', userName);
+                    sessionStorage.setItem('userName', userName);
+                }
+            }
+            
+            return userName;
+        }
+        
+        function checkUserSession() {
+            // Try to get initials from sessionStorage or cookies
+            let initials = sessionStorage.getItem('userInitials');
+            
+            if (!initials) {
+                // Try cookie as fallback
+                initials = getCookie('userInitials');
+                
+                if (initials) {
+                    console.log('📝 Restored session from cookie:', initials);
+                    sessionStorage.setItem('userInitials', initials);
+                    
+                    // Also restore userName if available
+                    const userName = getCookie('userName');
+                    if (userName) {
+                        sessionStorage.setItem('userName', decodeURIComponent(userName));
+                    }
+                }
+            }
+            
+            if (!initials) {
+                console.error('❌ No user session found in sessionStorage or cookies. Redirecting to login...');
+                window.location.href = '/LOGINEDIT.HTM';
+                return false;
+            }
+            
+            return true;
+        }
+        
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 RECEIPTS_EDIT initializing...');
+            console.log('📦 Checking sessionStorage...');
+            console.log('   userInitials:', sessionStorage.getItem('userInitials'));
+            console.log('   userName:', sessionStorage.getItem('userName'));
+            
+            // Check user session - redirect to login if not authenticated
+            if (!checkUserSession()) {
+                console.error('❌ Session check failed - redirecting to login');
+                return;
+            }
+            
+            console.log('✅ Session check passed - continuing initialization');
+            
+            // Display logged in user
+            const userInitials = getUserInitials();
+            const userName = getUserName();
+            console.log('👤 Logged in user:', userInitials, '-', userName);
+            
+            // Update header with user name if element exists
+            const userDisplayElement = document.getElementById('currentUserDisplay');
+            if (userDisplayElement) {
+                const displayName = userName || userInitials || 'User';
+                userDisplayElement.textContent = displayName;
+                console.log('✅ Updated header display:', displayName);
+            }
+            
+            document.getElementById('receiptDate').value = new Date().toISOString().split('T')[0];
+            console.log('🚀 RECEIPTS_EDIT initialized');
+        });
+        
+        // ========== LIID AUTO-NUMBER FUNCTIONS ==========
+        async function getNextPONumberFromLIID() {
+            try {
+                console.log('🔢 Getting next PO Number from LIID...');
+                
+                const cacheBuster = Date.now();
+                const response = await fetch(`GET_LIID_CLEAN.XML?TYPE=PO&_cb=${cacheBuster}`);
+                const xmlText = await response.text();
+                
+                console.log('📥 LIID Response:', xmlText);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+                
+                const status = xmlDoc.querySelector('status')?.textContent;
+                const nextId = xmlDoc.querySelector('next_id')?.textContent;
+                const idType = xmlDoc.querySelector('id_type')?.textContent;
+                
+                console.log('📊 Parsed LIID: status=' + status + ', id_type=' + idType + ', next_id=' + nextId);
+                
+                if (status === 'success' && nextId) {
+                    console.log('✅ Got PO Number from LIID:', nextId);
+                    return nextId;
+                } else {
+                    throw new Error('LIID returned no valid ID');
+                }
+                
+            } catch (error) {
+                console.error('❌ LIID error:', error);
+                showNotification('❌ Could not get PO Number from system', 'error');
+                return null;
+            }
+        }
+        
+        async function updateLIIDCounter(type, usedId) {
+            try {
+                const response = await fetch(`UPDATE_LIID.XML?TYPE=${encodeURIComponent(type)}&ID=${encodeURIComponent(usedId)}`);
+                const xmlText = await response.text();
+                
+                if (!response.ok) {
+                    console.warn(`Warning: Could not update LIID counter. Status: ${response.status}`);
+                    return;
+                }
+                
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+                const status = xmlDoc.querySelector('status')?.textContent;
+                
+                if (status !== 'success') {
+                    const errorMsg = xmlDoc.querySelector('message')?.textContent || 'Unknown error updating counter';
+                    console.warn(`Warning: LIID counter update failed: ${errorMsg}`);
+                }
+            } catch (error) {
+                console.warn('Warning: Error updating LIID counter:', error);
+                // Don't throw error - this is not critical for the main functionality
+            }
+        }
+        
+        // Notifications
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            setTimeout(() => notification.style.display = 'none', 4000);
+        }
+        
+        // Search PO
+        async function searchPO() {
+            const poNumber = document.getElementById('poNumberInput').value.trim();
+            if (!poNumber) {
+                showNotification('Please enter PO Number', 'warning');
+                return;
+            }
+            
+            console.log('🔍 Searching PO:', poNumber);
+            document.getElementById('lineItemsTableBody').innerHTML = '<tr><td colspan="7" style="text-align: center;"><div class="loading-spinner"></div><p>Loading PO...</p></td></tr>';
+            document.getElementById('lineItemsSection').style.display = 'block';
+            
+            try {
+                const cacheBuster = Date.now();
+                // Using GET_PO2_PRODUCTION.XML - same as PO_EDIT to get latest data
+                const url = `GET_PO2_PRODUCTION.XML?PO_NUMBER=${encodeURIComponent(poNumber)}&_cb=${cacheBuster}`;
+                console.log('📡 Fetching:', url);
+                const response = await fetch(url, {
+                    headers: { 'Accept': 'application/xml', 'Cache-Control': 'no-cache' }
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ Server Error:', errorText);
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const xmlText = await response.text();
+                console.log('📥 XML Response:', xmlText.substring(0, 500));
+                
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+                
+                if (xmlDoc.querySelector('error')) throw new Error('PO not found');
+                
+                // Extract PO data
+                const poData = {
+                    poNumber: xmlDoc.querySelector('po_number, PO_NUMBER')?.textContent || poNumber,
+                    vendorCode: xmlDoc.querySelector('vendor_code, VENDOR_CODE')?.textContent || '',
+                    vendorName: xmlDoc.querySelector('vendor_name, VENDOR_NAME')?.textContent || '',
+                    poDate: xmlDoc.querySelector('po_date, PO_DATE')?.textContent || '',
+                    lineItems: []
+                };
+                
+                // Extract line items
+                const lineElements = xmlDoc.querySelectorAll('line_item, lineitem');
+                console.log(`📦 Found ${lineElements.length} line items`);
+                
+                lineElements.forEach((lineEl, idx) => {
+                    const lineNumber = lineEl.querySelector('line_item_code, line_number, LINE_NUMBER, line_code')?.textContent || (idx + 1);
+                    const partNumber = lineEl.querySelector('part_number, PART_NUMBER, part_code')?.textContent || '';
+                    const description = lineEl.querySelector('description, DESCRIPTION, part_desc')?.textContent || '';
+                    const um = lineEl.querySelector('um, UM, uom, UOM')?.textContent?.trim() || 'EA';
+                    const unitPrice = parseFloat(lineEl.querySelector('unit_price, UNIT_PRICE, price')?.textContent || '0');
+                    
+                    console.log(`📦 Line ${lineNumber}: Part=${partNumber}, UM=${um}`);
+                    
+                    // Calculate total ACK qty
+                    let totalAckQty = 0;
+                    const ackElements = lineEl.querySelectorAll('ack_qty, ACK_QTY, acknowledgment_qty');
+                    ackElements.forEach(ackEl => {
+                        totalAckQty += parseFloat(ackEl.textContent || '0');
+                    });
+                    
+                    if (totalAckQty === 0) {
+                        totalAckQty = parseFloat(lineEl.querySelector('quantity, QUANTITY, qty')?.textContent || '0');
+                    }
+                    
+                    poData.lineItems.push({
+                        lineNumber, partNumber, description, um, totalAckQty, unitPrice
+                    });
+                });
+                
+                currentPOData = poData;
+                
+                // Display PO info
+                document.getElementById('displayPONumber').textContent = poData.poNumber;
+                document.getElementById('displayVendor').textContent = `${poData.vendorCode} - ${poData.vendorName}`;
+                document.getElementById('displayPODate').textContent = formatDateForDisplay(poData.poDate);
+                document.getElementById('displayTotalLines').textContent = poData.lineItems.length;
+                document.getElementById('poInfoSection').style.display = 'block';
+                
+                // Display line items
+                displayLineItems(poData.lineItems);
+                showNotification(`✅ PO ${poNumber} loaded`, 'success');
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                showNotification(`Error: ${error.message}`, 'error');
+                document.getElementById('lineItemsSection').style.display = 'none';
+            }
+        }
+        
+        // Display line items
+        function displayLineItems(items) {
+            const tbody = document.getElementById('lineItemsTableBody');
+            tbody.innerHTML = '';
+            
+            if (items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 30px;">No line items found</td></tr>';
+                return;
+            }
+            
+            items.forEach((item, idx) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="text-align: center;"><strong>${item.lineNumber}</strong></td>
+                    <td><strong>${item.partNumber}</strong></td>
+                    <td>${item.description}</td>
+                    <td style="text-align: center;">${item.um}</td>
+                    <td style="text-align: right; font-weight: 700; color: #0ea5e9;">${item.totalAckQty}</td>
+                    <td style="text-align: right;">$${item.unitPrice.toFixed(3)}</td>
+                    <td style="text-align: center;">
+                        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.9em;" onclick="selectLineItem(${idx})">
+                            <i class="fas fa-check"></i> Select
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Select line item
+        async function selectLineItem(index) {
+            const item = currentPOData.lineItems[index];
+            currentLineItem = item;
+            
+            console.log('✅ Selected:', item);
+            
+            // Highlight row
+            document.querySelectorAll('#lineItemsTableBody tr').forEach(tr => tr.classList.remove('selected'));
+            document.querySelectorAll('#lineItemsTableBody tr')[index].classList.add('selected');
+            
+            // Lookup price from VENDPRC
+            await lookupPriceFromVENDPRC(item.partNumber, currentPOData.vendorCode, item.totalAckQty);
+            
+            // Update selected line item info in yellow section
+            document.getElementById('displayLineNumber').textContent = item.lineNumber;
+            document.getElementById('displayPartNumber').textContent = item.partNumber;
+            document.getElementById('displayDescription').textContent = item.description;
+            document.getElementById('displayUM').textContent = item.um;
+            document.getElementById('displayTotalACKs').textContent = item.totalAckQty;
+            document.getElementById('selectedLineItemInfo').style.display = 'block';
+            
+            // Populate hidden fields for form submission
+            document.getElementById('receiptUnitPrice').value = item.unitPrice.toFixed(3);
+            
+            // Clear input quantity
+            document.getElementById('receiptQty').value = '';
+            
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('receiptDate').value = today;
+            
+            calculateTotal();
+            
+            document.getElementById('receiptForm').style.display = 'block';
+            document.getElementById('receiptForm').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Lookup price from VENDPRC
+        async function lookupPriceFromVENDPRC(partNumber, vendorCode, qty) {
+            try {
+                const cacheBuster = Date.now();
+                const url = `GET_VENDPRC.XML?PART_NUMBER=${encodeURIComponent(partNumber)}&VENDOR_NUMBER=${encodeURIComponent(vendorCode)}&_cb=${cacheBuster}`;
+                console.log('💰 Looking up price:', url);
+                
+                const response = await fetch(url, {
+                    headers: { 'Accept': 'application/xml', 'Cache-Control': 'no-cache' }
+                });
+                
+                if (!response.ok) return;
+                
+                const xmlText = await response.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+                
+                const rangeElements = xmlDoc.querySelectorAll('range');
+                let selectedPrice = null;
+                
+                for (let i = 0; i < rangeElements.length; i++) {
+                    const range = rangeElements[i];
+                    const minQty = parseFloat(range.querySelector('fromQty, MIN_QTY')?.textContent) || 0;
+                    const maxQty = parseFloat(range.querySelector('toQty, MAX_QTY')?.textContent) || 999999999;
+                    const price = parseFloat(range.querySelector('price, PRICE')?.textContent) || 0;
+                    
+                    if (qty >= minQty && qty <= maxQty) {
+                        selectedPrice = price;
+                        break;
+                    }
+                }
+                
+                if (selectedPrice !== null && selectedPrice > 0) {
+                    currentLineItem.unitPrice = selectedPrice;
+                    document.getElementById('receiptUnitPrice').value = selectedPrice.toFixed(3);
+                    console.log(`✅ Price from VENDPRC: $${selectedPrice.toFixed(3)}`);
+                    calculateTotal();
+                }
+                
+            } catch (error) {
+                console.error('❌ VENDPRC lookup error:', error);
+            }
+        }
+        
+        // Calculate total amount
+        function calculateTotal() {
+            const qty = parseFloat(document.getElementById('receiptQty').value) || 0;
+            const price = parseFloat(document.getElementById('receiptUnitPrice').value) || 0;
+            const total = qty * price;
+            
+            document.getElementById('displayReceiptQty').textContent = qty.toFixed(2);
+            document.getElementById('displayUnitPrice').textContent = '$' + price.toFixed(3);
+            document.getElementById('displayTotal').textContent = '$' + total.toFixed(3);
+        }
+        
+        // Save receipt
+        async function saveReceipt() {
+            if (!currentPOData || !currentLineItem) {
+                showNotification('Please select a line item first', 'error');
+                return;
+            }
+            
+            const poNumber = currentPOData.poNumber;
+            const partNumber = currentLineItem.partNumber;
+            const receiptQty = parseFloat(document.getElementById('receiptQty').value);
+            const unitPrice = parseFloat(document.getElementById('receiptUnitPrice').value);
+            const receiptDate = document.getElementById('receiptDate').value;
+            const pedimentoNumber = document.getElementById('pedimentoNumber')?.value.trim() || '';
+            
+            if (!poNumber || !partNumber || !receiptQty || !receiptDate) {
+                showNotification('Please fill in all required fields (Receipt Qty and Date)', 'error');
+                return;
+            }
+            
+            if (receiptQty <= 0) {
+                showNotification('Receipt Qty must be greater than 0', 'error');
+                return;
+            }
+            
+            // Calculate total in MR3 format (multiply by 1000)
+            const totalAmount = receiptQty * unitPrice;
+            const totalMR3 = Math.round(totalAmount * 1000);
+            
+            console.log('💾 Saving receipt:', {
+                poNumber,
+                partNumber,
+                receiptQty,
+                unitPrice,
+                totalAmount,
+                totalMR3,
+                pedimentoNumber
+            });
+            
+            // Prepare data for UPDATE_RECEIPTS.XML
+            const formData = new URLSearchParams();
+            formData.append('PO_NUMBER', poNumber);
+            formData.append('PART_NUMBER', partNumber);
+            formData.append('RECEIPT_QTY', receiptQty);
+            formData.append('PRICE_TOTAL', totalMR3);
+            formData.append('RECEIPT_DATE', receiptDate);
+            formData.append('PEDIMENTO_NUMBER', pedimentoNumber);
+            
+            try {
+                const cacheBuster = Date.now();
+                const response = await fetch(`UPDATE_RECEIPTS.XML?_cb=${cacheBuster}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData.toString()
+                });
+                
+                const xmlText = await response.text();
+                console.log('📥 Response:', xmlText);
+                
+                if (xmlText.includes('success') || xmlText.includes('SUCCESS')) {
+                    showNotification('✅ Receipt saved successfully!', 'success');
+                    setTimeout(() => {
+                        cancelReceipt();
+                        searchPO();
+                    }, 2000);
+                } else {
+                    throw new Error('Save failed');
+                }
+                
+            } catch (error) {
+                console.error('❌ Save error:', error);
+                showNotification('Error saving receipt', 'error');
+            }
+        }
+        
+        // Cancel
+        function cancelReceipt() {
+            document.getElementById('receiptForm').style.display = 'none';
+            document.getElementById('selectedLineItemInfo').style.display = 'none';
+            currentLineItem = null;
+            
+            // Clear all fields
+            document.getElementById('receiptQty').value = '';
+            document.getElementById('receiptUnitPrice').value = '';
+            document.getElementById('receiptDate').value = '';
+            document.getElementById('pedimentoNumber').value = '';
+            
+            // Reset totals display
+            document.getElementById('displayReceiptQty').textContent = '0';
+            document.getElementById('displayUnitPrice').textContent = '$0.000';
+            document.getElementById('displayTotal').textContent = '$0.000';
+            
+            document.querySelectorAll('#lineItemsTableBody tr').forEach(tr => tr.classList.remove('selected'));
+        }
+        
+        // Sidebar menu functionality - Close on overlay click
+        document.addEventListener('DOMContentLoaded', () => {
+            const sbToggle = document.getElementById('sb-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            
+            // Handle overlay click to close sidebar
+            if (overlay) {
+                overlay.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    sbToggle.checked = false;
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                });
+            }
+            
+            // Handle checkbox change
+            if (sbToggle) {
+                sbToggle.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        sidebar.classList.add('active');
+                        overlay.classList.add('active');
+                    } else {
+                        sidebar.classList.remove('active');
+                        overlay.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Close sidebar when clicking menu items (labels)
+            const menuLabels = document.querySelectorAll('.sidebar-menu label');
+            menuLabels.forEach(label => {
+                label.addEventListener('click', () => {
+                    sbToggle.checked = false;
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

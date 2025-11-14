@@ -1,0 +1,82 @@
+<pre>
+PicLan-IP/BASIC ^ ^
+*
+* SAVE_PO_TMP.XML - Save Purchase Order to TMP database for "Save for Later"
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'TMP' TO TMPF ELSE STOP 201,'TMP'
+
+XVM = CHAR(253)
+XSM = CHAR(252)
+XAM = CHAR(254)
+
+PL_GETVAR TEMP_ID FROM 'temp_id' ELSE TEMP_ID = ''
+PL_GETVAR SAVE_MODE FROM 'save_mode' ELSE SAVE_MODE = ''
+PL_GETVAR PO_NUMBER FROM 'po_number' ELSE PO_NUMBER = ''
+PL_GETVAR PO_DATE FROM 'po_date' ELSE PO_DATE = ''
+PL_GETVAR VENDOR_CODE FROM 'vendor_code' ELSE VENDOR_CODE = ''
+PL_GETVAR STATUS FROM 'status' ELSE STATUS = ''
+PL_GETVAR LINE_ITEMS FROM 'line_items' ELSE LINE_ITEMS = ''
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+PL_ADD_HDR '"Access-Control-Allow-Origin: *"'
+PL_ADD_HDR '"Access-Control-Allow-Methods: GET, POST, OPTIONS"'
+PL_ADD_HDR '"Access-Control-Allow-Headers: Content-Type"'
+
+* Initialize response
+SUCCESS = 0
+MESSAGE = ''
+
+* If no temp_id provided, use user initials format (PO*EC)
+PL_GETVAR USER_INITIALS FROM 'user_initials' ELSE USER_INITIALS = ''
+IF TEMP_ID = '' THEN
+  IF USER_INITIALS <> '' THEN
+    TEMP_ID = 'PO*' : USER_INITIALS
+  END ELSE
+    TEMP_ID = 'PO*TMP*' : DATE() : '*' : TIME()
+  END
+END
+
+* Build TMP record for PO
+* Field 1 = PO Number
+* Field 2 = Vendor Code  
+* Field 3 = PO Date
+* Field 4 = Status
+* Field 5 = Timestamp (date\time)
+* Field 6 = User Initials
+* Field 32+ = Line Items (JSON encoded)
+
+TMP_REC = ''
+TMP_REC<1> = PO_NUMBER
+TMP_REC<2> = VENDOR_CODE
+TMP_REC<3> = PO_DATE
+TMP_REC<4> = STATUS
+TMP_REC<5> = DATE() : XSM : TIME()
+TMP_REC<6> = USER_INITIALS
+
+* Store line items as JSON string
+IF LINE_ITEMS <> '' THEN
+  TMP_REC<32> = LINE_ITEMS
+END
+
+* Write to TMP file
+WRITE TMP_REC ON TMPF, TEMP_ID
+
+* Success
+SUCCESS = 1
+MESSAGE = 'Draft saved successfully'
+
+* Output XML response (same method as SAVE_SO_TMP.XML)
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : '<response>'
+XML.RESPONSE = XML.RESPONSE : '<success>' : SUCCESS : '</success>'
+XML.RESPONSE = XML.RESPONSE : '<message>' : MESSAGE : '</message>'
+XML.RESPONSE = XML.RESPONSE : '<temp_id>' : TEMP_ID : '</temp_id>'
+XML.RESPONSE = XML.RESPONSE : '<timestamp>' : TMP_REC<5> : '</timestamp>'
+XML.RESPONSE = XML.RESPONSE : '</response>'
+
+WRITE XML.RESPONSE ON XMLDATAF,'PO_RESPONSE.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/PO_RESPONSE.XML','',ERR)
+RETURN
+</pre>

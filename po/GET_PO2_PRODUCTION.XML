@@ -1,0 +1,781 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+*
+* GET_PO_PRODUCTION.XML - Complete optimized version
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO' TO POF ELSE STOP 201,'PO'
+OPEN 'SHIPVIAS' TO SHIPVIASF ELSE STOP 201,'SHIPVIAS'
+OPEN 'VENDOR' TO VENDORF ELSE STOP 201,'VENDOR'
+
+XVM = CHAR(253)
+XSM = CHAR(252)
+PL_GETVAR PO_NUMBER FROM 'PO_NUMBER' ELSE PO_NUMBER = ''
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?><purchaseorders><po>'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_PO_NUMBER_RECEIVED: [' : PO_NUMBER : '] -->'
+
+READ PO.RECORD FROM POF, PO_NUMBER ELSE
+    XML.RESPONSE = XML.RESPONSE : '<error>PO not found</error></po></purchaseorders>'
+    GOTO WRITE_RESPONSE
+END
+
+* DEBUG: Output all fields 1-15 to see actual data positions
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_PO_RECORD_FIELD1: [' : PO.RECORD<1> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_PO_RECORD_FIELD2: [' : PO.RECORD<2> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_PO_RECORD_FIELD3: [' : PO.RECORD<3> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_PO_RECORD_FIELD4: [' : PO.RECORD<4> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_PO_RECORD_FIELD5: [' : PO.RECORD<5> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_PO_RECORD_FIELD6: [' : PO.RECORD<6> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_PO_RECORD_FIELD7: [' : PO.RECORD<7> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_PO_RECORD_FIELD8: [' : PO.RECORD<8> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_PO_RECORD_FIELD9: [' : PO.RECORD<9> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_PO_RECORD_FIELD10: [' : PO.RECORD<10> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_PO_RECORD_FIELD11: [' : PO.RECORD<11> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_PO_RECORD_FIELD12: [' : PO.RECORD<12> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_PO_RECORD_FIELD13: [' : PO.RECORD<13> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_PO_RECORD_FIELD14: [' : PO.RECORD<14> : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_PO_RECORD_FIELD15: [' : PO.RECORD<15> : '] -->'
+
+* Basic PO info
+XML.RESPONSE = XML.RESPONSE : '<po_number>' : PO_NUMBER : '</po_number>'
+XML.RESPONSE = XML.RESPONSE : '<po_date>' : PO.RECORD<1> : '</po_date>'
+XML.RESPONSE = XML.RESPONSE : '<buyer>' : PO.RECORD<8> : '</buyer>'
+XML.RESPONSE = XML.RESPONSE : '<vendor_number>' : PO.RECORD<2> : '</vendor_number>'
+XML.RESPONSE = XML.RESPONSE : '<po_status>' : PO.RECORD<15> : '</po_status>'
+XML.RESPONSE = XML.RESPONSE : '<ship_via>' : PO.RECORD<11> : '</ship_via>'
+XML.RESPONSE = XML.RESPONSE : '<terms>' : PO.RECORD<12> : '</terms>'
+XML.RESPONSE = XML.RESPONSE : '<email>' : PO.RECORD<80> : '</email>'
+
+* Ship Via info - Read name from SHIPVIAS database
+SHIPVIA_CODE = PO.RECORD<11>
+SHIPVIA_NAME = ''
+SHIPVIA_DESC = ''
+
+IF SHIPVIA_CODE <> '' THEN
+    * Try exact match first
+    READ SHIPVIA.RECORD FROM SHIPVIASF, SHIPVIA_CODE ELSE
+        * If exact match fails, try to extract main part (before space or parentheses)
+        SHIPVIA_SHORT = SHIPVIA_CODE
+        IF INDEX(SHIPVIA_SHORT, ' ', 1) > 0 THEN
+            SHIPVIA_SHORT = FIELD(SHIPVIA_SHORT, ' ', 1)
+        END
+        IF INDEX(SHIPVIA_SHORT, '(', 1) > 0 THEN
+            SHIPVIA_SHORT = FIELD(SHIPVIA_SHORT, '(', 1)
+        END
+        
+        * Try lookup with shortened code
+        READ SHIPVIA.RECORD FROM SHIPVIASF, SHIPVIA_SHORT ELSE SHIPVIA.RECORD = ''
+        
+        * Debug what we're trying to lookup
+        IF SHIPVIA.RECORD <> '' THEN
+            FOUND_STATUS = 'YES'
+        END ELSE
+            FOUND_STATUS = 'NO'
+        END
+        XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_SHIPVIA_LOOKUP: ORIGINAL=' : SHIPVIA_CODE : ' SHORTENED=' : SHIPVIA_SHORT : ' FOUND=' : FOUND_STATUS : ' -->'
+    END
+END
+
+* Process the result regardless of which lookup succeeded
+IF SHIPVIA_CODE <> '' AND SHIPVIA.RECORD <> '' THEN
+    SHIPVIA_NAME = SHIPVIA.RECORD<1>
+    SHIPVIA_DESC = SHIPVIA.RECORD<2>
+END
+
+* Always output the fields (even if empty)
+XML.RESPONSE = XML.RESPONSE : '<ship_via_name>' : SHIPVIA_NAME : '</ship_via_name>'
+XML.RESPONSE = XML.RESPONSE : '<ship_via_description>' : SHIPVIA_DESC : '</ship_via_description>'
+
+* Vendor info
+VENDOR_NUM = PO.RECORD<2>
+IF VENDOR_NUM = '' THEN VENDOR_NUM = PO.RECORD<7>
+IF VENDOR_NUM = '' THEN VENDOR_NUM = PO.RECORD<13>
+XML.RESPONSE = XML.RESPONSE : '<vendor_info><vendor_number>' : VENDOR_NUM : '</vendor_number>'
+IF VENDOR_NUM <> '' THEN
+    READ VENDOR.RECORD FROM VENDORF, VENDOR_NUM ELSE VENDOR.RECORD = ''
+    IF VENDOR.RECORD <> '' THEN
+        * Try different fields for real city name
+        V_CITY = VENDOR.RECORD<3>
+        IF V_CITY = '' OR NUM(V_CITY) THEN
+            V_CITY = VENDOR.RECORD<2>
+            * If address2 contains city info, extract it
+            IF INDEX(V_CITY, ',', 1) > 0 THEN
+                V_CITY = FIELD(V_CITY, ',', 2)
+                V_CITY = TRIM(V_CITY)
+            END
+        END
+        
+        * Clean any remaining codes from city
+        IF INDEX(V_CITY, '*', 1) > 0 THEN V_CITY = FIELD(V_CITY, '*', 1)
+        
+        V_STATE = VENDOR.RECORD<5>  
+        IF INDEX(V_STATE, '*', 1) > 0 THEN V_STATE = FIELD(V_STATE, '*', 1)
+        
+        V_CONTACT = VENDOR.RECORD<8>
+        IF INDEX(V_CONTACT, '*', 1) > 0 THEN V_CONTACT = FIELD(V_CONTACT, '*', 1)
+        
+        XML.RESPONSE = XML.RESPONSE : '<vendor_name>' : VENDOR.RECORD<1> : '</vendor_name>'
+        XML.RESPONSE = XML.RESPONSE : '<vendor_address1>' : VENDOR.RECORD<2> : '</vendor_address1>'
+        XML.RESPONSE = XML.RESPONSE : '<vendor_address2>' : VENDOR.RECORD<3> : '</vendor_address2>'
+        XML.RESPONSE = XML.RESPONSE : '<vendor_city>' : V_CITY : '</vendor_city>'
+        XML.RESPONSE = XML.RESPONSE : '<vendor_state>' : V_STATE : '</vendor_state>'
+        XML.RESPONSE = XML.RESPONSE : '<vendor_zip>' : VENDOR.RECORD<6> : '</vendor_zip>'
+        XML.RESPONSE = XML.RESPONSE : '<vendor_country>' : VENDOR.RECORD<7> : '</vendor_country>'
+        XML.RESPONSE = XML.RESPONSE : '<vendor_contact>' : V_CONTACT : '</vendor_contact>'
+        XML.RESPONSE = XML.RESPONSE : '<vendor_phone>' : VENDOR.RECORD<9> : '</vendor_phone>'
+        XML.RESPONSE = XML.RESPONSE : '<vendor_email>' : VENDOR.RECORD<10> : '</vendor_email>'
+    END
+    IF VENDOR.RECORD = '' THEN
+        XML.RESPONSE = XML.RESPONSE : '<vendor_name></vendor_name><vendor_address1></vendor_address1><vendor_address2></vendor_address2><vendor_city></vendor_city><vendor_state></vendor_state><vendor_zip></vendor_zip><vendor_country></vendor_country><vendor_contact></vendor_contact><vendor_phone></vendor_phone><vendor_email></vendor_email>'
+    END
+END
+IF VENDOR_NUM = '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<vendor_name></vendor_name><vendor_address1></vendor_address1><vendor_address2></vendor_address2><vendor_city></vendor_city><vendor_state></vendor_state><vendor_zip></vendor_zip><vendor_country></vendor_country><vendor_contact></vendor_contact><vendor_phone></vendor_phone><vendor_email></vendor_email>'
+END
+XML.RESPONSE = XML.RESPONSE : '</vendor_info>'
+
+* Ship-to info with full address lookup
+SHIPTO_CODE = PO.RECORD<4>
+IF SHIPTO_CODE = '' THEN SHIPTO_CODE = PO.RECORD<3>
+IF SHIPTO_CODE = '' THEN SHIPTO_CODE = PO.RECORD<6>
+
+* Output ship_to for frontend compatibility
+XML.RESPONSE = XML.RESPONSE : '<ship_to>' : SHIPTO_CODE : '</ship_to>'
+XML.RESPONSE = XML.RESPONSE : '<shipto_info><shipto_number>' : SHIPTO_CODE : '</shipto_number>'
+IF SHIPTO_CODE <> '' THEN
+    READ SHIPTO.RECORD FROM VENDORF, SHIPTO_CODE ELSE SHIPTO.RECORD = ''
+    IF SHIPTO.RECORD <> '' THEN
+        * Try to get real city name from address fields
+        S_CITY = SHIPTO.RECORD<3>
+        IF S_CITY = '' OR NUM(S_CITY) THEN
+            S_CITY = SHIPTO.RECORD<2>
+            * If address contains city, extract it
+            IF INDEX(S_CITY, ',', 1) > 0 THEN
+                CITY_PARTS = DCOUNT(S_CITY, ',')
+                IF CITY_PARTS >= 2 THEN
+                    S_CITY = FIELD(S_CITY, ',', CITY_PARTS - 1)
+                    S_CITY = TRIM(S_CITY)
+                END
+            END
+        END
+        
+        * Clean shipto data by taking first part before '*'
+        IF INDEX(S_CITY, '*', 1) > 0 THEN S_CITY = FIELD(S_CITY, '*', 1)
+        
+        S_STATE = SHIPTO.RECORD<5>
+        IF INDEX(S_STATE, '*', 1) > 0 THEN S_STATE = FIELD(S_STATE, '*', 1)
+        
+        S_ZIP = SHIPTO.RECORD<6>
+        IF INDEX(S_ZIP, '*', 1) > 0 THEN S_ZIP = FIELD(S_ZIP, '*', 1)
+        
+        XML.RESPONSE = XML.RESPONSE : '<shipto_name>' : SHIPTO.RECORD<1> : '</shipto_name>'
+        XML.RESPONSE = XML.RESPONSE : '<name>' : SHIPTO.RECORD<1> : '</name>'
+        XML.RESPONSE = XML.RESPONSE : '<shipto_address1>' : SHIPTO.RECORD<2> : '</shipto_address1>'
+        XML.RESPONSE = XML.RESPONSE : '<address1>' : SHIPTO.RECORD<2> : '</address1>'
+        XML.RESPONSE = XML.RESPONSE : '<shipto_address2>' : SHIPTO.RECORD<3> : '</shipto_address2>'
+        XML.RESPONSE = XML.RESPONSE : '<address2>' : SHIPTO.RECORD<3> : '</address2>'
+        XML.RESPONSE = XML.RESPONSE : '<shipto_city>' : S_CITY : '</shipto_city>'
+        XML.RESPONSE = XML.RESPONSE : '<city>' : S_CITY : '</city>'
+        XML.RESPONSE = XML.RESPONSE : '<shipto_state>' : S_STATE : '</shipto_state>'
+        XML.RESPONSE = XML.RESPONSE : '<state>' : S_STATE : '</state>'
+        XML.RESPONSE = XML.RESPONSE : '<shipto_zip>' : S_ZIP : '</shipto_zip>'
+        XML.RESPONSE = XML.RESPONSE : '<zip>' : S_ZIP : '</zip>'
+    END
+    IF SHIPTO.RECORD = '' THEN
+        XML.RESPONSE = XML.RESPONSE : '<shipto_name></shipto_name><name></name>'
+        XML.RESPONSE = XML.RESPONSE : '<shipto_address1></shipto_address1><address1></address1>'
+        XML.RESPONSE = XML.RESPONSE : '<shipto_address2></shipto_address2><address2></address2>'
+        XML.RESPONSE = XML.RESPONSE : '<shipto_city></shipto_city><city></city>'
+        XML.RESPONSE = XML.RESPONSE : '<shipto_state></shipto_state><state></state>'
+        XML.RESPONSE = XML.RESPONSE : '<shipto_zip></shipto_zip><zip></zip>'
+    END
+END
+IF SHIPTO_CODE = '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<shipto_name></shipto_name><name></name>'
+    XML.RESPONSE = XML.RESPONSE : '<shipto_address1></shipto_address1><address1></address1>'
+    XML.RESPONSE = XML.RESPONSE : '<shipto_address2></shipto_address2><address2></address2>'
+    XML.RESPONSE = XML.RESPONSE : '<shipto_city></shipto_city><city></city>'
+    XML.RESPONSE = XML.RESPONSE : '<shipto_state></shipto_state><state></state>'
+    XML.RESPONSE = XML.RESPONSE : '<shipto_zip></shipto_zip><zip></zip>'
+END
+XML.RESPONSE = XML.RESPONSE : '</shipto_info>'
+
+* Line items (simplified)
+LINE_ITEMS = PO.RECORD<31>
+PART_NUMS = PO.RECORD<32>
+DESCRIPTIONS = PO.RECORD<33>
+QUANTITIES = PO.RECORD<35>
+PRICES = PO.RECORD<36>
+UOMS = PO.RECORD<37>
+
+* Get tracking data for line items
+NEEDS_RAW = PO.RECORD<38>
+ACK_RAW = PO.RECORD<49>
+SCHED_RAW = PO.RECORD<34>
+
+* DEBUG: Check field values
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG FIELD 31: [' : LINE_ITEMS : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG FIELD 32: [' : PART_NUMS : '] -->'
+
+XML.RESPONSE = XML.RESPONSE : '<line_items>'
+IF LINE_ITEMS <> '' THEN
+    * CRITICAL DEBUG: Check what character is actually used as separator
+    XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG LINE_ITEMS LENGTH: ' : LEN(LINE_ITEMS) : ' -->'
+    FOR DEBUG_IDX = 1 TO LEN(LINE_ITEMS)
+        CHAR_CODE = SEQ(LINE_ITEMS[DEBUG_IDX,1])
+        XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG CHAR ' : DEBUG_IDX : ': ASCII=' : CHAR_CODE : ' -->'
+    NEXT DEBUG_IDX
+    
+    * CHAR(253) works natively with DCOUNT and FIELD - no conversion needed
+    LINE_COUNT = DCOUNT(LINE_ITEMS, XVM)
+    XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG LINE_COUNT NATIVE XVM: ' : LINE_COUNT : ' -->'
+    
+    * Field 49 should already contain CHAR(252) and CHAR(253) only - no conversion needed
+    TEMP_ACK_RAW = ACK_RAW
+    XML.RESPONSE = XML.RESPONSE : '<!-- RAW_ACK_FIELD49: [' : ACK_RAW : '] -->'
+    
+    * REMOVED: All conversion logic - data should already have CHAR(252) and CHAR(253)
+    
+    XML.RESPONSE = XML.RESPONSE : '<!-- CONVERTED_ACK_RAW: [' : TEMP_ACK_RAW : '] -->'
+    XML.RESPONSE = XML.RESPONSE : '<!-- MULTIVALUE_COUNT_AFTER: [' : DCOUNT(TEMP_ACK_RAW, XVM) : '] -->'
+    
+    FOR I = 1 TO LINE_COUNT
+        XML.RESPONSE = XML.RESPONSE : '<line_item>'
+        XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG LINE ' : I : ' of ' : LINE_COUNT : ' -->'
+        
+        LINE_CODE = FIELD(LINE_ITEMS, XVM, I)
+        PART_NUM = FIELD(PART_NUMS, XVM, I)
+        RAW_QTY_VAL = FIELD(QUANTITIES, XVM, I)
+        DESC_VAL = FIELD(DESCRIPTIONS, XVM, I)
+        RAW_PRICE_VAL = FIELD(PRICES, XVM, I) 
+        UOM_VAL = FIELD(UOMS, XVM, I)
+        IF UOM_VAL = '' THEN UOM_VAL = 'EA'
+        
+        * MR4 CONVERSION: Convert internal format to display format (4 decimal places)
+        * Internal: 200000, Display: 20.0000
+        * Formula: display = internal / 10000 (10^4 para 4 decimales)
+        IF RAW_PRICE_VAL <> '' AND NUM(RAW_PRICE_VAL) THEN
+            * Direct division and string conversion
+            PRICE_VAL = (RAW_PRICE_VAL + 0) / 10000
+        END ELSE
+            PRICE_VAL = RAW_PRICE_VAL
+        END
+        
+        * CRITICAL FIX: Clean quantity field that contains multivalue corruption
+        QTY_VAL = RAW_QTY_VAL
+        IF INDEX(QTY_VAL, XSM, 1) > 0 THEN
+            QTY_VAL = FIELD(QTY_VAL, XSM, 1)
+        END
+        IF INDEX(QTY_VAL, XVM, 1) > 0 THEN
+            QTY_VAL = FIELD(QTY_VAL, XVM, 1)
+        END
+        * Remove any date contamination like "2\21089"
+        IF INDEX(QTY_VAL, '\', 1) > 0 THEN
+            QTY_VAL = FIELD(QTY_VAL, '\', 1)
+        END
+        QTY_VAL = TRIM(QTY_VAL)
+        
+        * CLEAN part number - remove any CHAR(252) or CHAR(253) separators
+        CLEAN_PART_NUM = PART_NUM
+        IF INDEX(CLEAN_PART_NUM, XSM, 1) > 0 THEN
+            CLEAN_PART_NUM = FIELD(CLEAN_PART_NUM, XSM, 1)
+        END
+        IF INDEX(CLEAN_PART_NUM, XVM, 1) > 0 THEN
+            CLEAN_PART_NUM = FIELD(CLEAN_PART_NUM, XVM, 1)
+        END
+        
+        * Price already converted by MR4 - use it directly as FINAL_PRICE_VAL
+        FINAL_PRICE_VAL = PRICE_VAL
+        
+        XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG LINE_CODE: [' : LINE_CODE : '] -->'
+        XML.RESPONSE = XML.RESPONSE : '<!-- RAW_PART_NUM: [' : PART_NUM : '] CLEAN_PART_NUM: [' : CLEAN_PART_NUM : '] -->'
+        XML.RESPONSE = XML.RESPONSE : '<!-- RAW_PRICE_INTERNAL: [' : RAW_PRICE_VAL : '] FINAL_PRICE_DISPLAY: [' : FINAL_PRICE_VAL : '] -->'
+        XML.RESPONSE = XML.RESPONSE : '<line_item_code>' : LINE_CODE : '</line_item_code>'
+        XML.RESPONSE = XML.RESPONSE : '<part_number>' : CLEAN_PART_NUM : '</part_number>'
+        
+        IF DESC_VAL = '' THEN DESC_VAL = PART_NUM
+        XML.RESPONSE = XML.RESPONSE : '<description>' : DESC_VAL : '</description>'
+        
+        XML.RESPONSE = XML.RESPONSE : '<quantity>' : QTY_VAL : '</quantity>'
+        XML.RESPONSE = XML.RESPONSE : '<unit_price>' : FINAL_PRICE_VAL : '</unit_price>'
+        XML.RESPONSE = XML.RESPONSE : '<um>' : UOM_VAL : '</um>'
+        
+        * Add tracking data per line item - Using pre-converted TEMP_ACK_RAW
+        
+        LINE_NEED = FIELD(NEEDS_RAW, XVM, I)
+        LINE_ACK = FIELD(TEMP_ACK_RAW, XVM, I)
+        LINE_SCHED = FIELD(SCHED_RAW, XVM, I)
+        XML.RESPONSE = XML.RESPONSE : '<!-- LINE_ACK for line ' : I : ': [' : LINE_ACK : '] -->'
+        
+        
+        * Need entries for this line (all subvalues) - CLEANED
+        XML.RESPONSE = XML.RESPONSE : '<need_entries>'
+        IF LINE_NEED <> '' THEN
+            * Clean the entire line need data first
+            CONVERT 'ý' TO '' IN LINE_NEED
+            CONVERT 'Ã' TO '' IN LINE_NEED
+            CONVERT CHAR(13) TO '' IN LINE_NEED
+            CONVERT CHAR(10) TO '' IN LINE_NEED
+            
+            NEED_SUB_COUNT = DCOUNT(LINE_NEED, XSM)
+            IF NEED_SUB_COUNT = 0 THEN NEED_SUB_COUNT = 1
+            FOR N = 1 TO NEED_SUB_COUNT
+                NEED_SUB = FIELD(LINE_NEED, XSM, N)
+                IF NEED_SUB <> '' THEN
+                    NEED_DATE_VAL = FIELD(NEED_SUB, '*', 1)
+                    NEED_QTY_VAL = FIELD(NEED_SUB, '*', 2)
+                    
+                    * CRITICAL FIX: Clean need date from line index prefix
+                    IF INDEX(NEED_DATE_VAL, ':', 1) > 0 THEN
+                        NEED_DATE_VAL = FIELD(NEED_DATE_VAL, ':', 2)
+                    END
+                    
+                    * Clean the quantity value completely
+                    IF INDEX(NEED_QTY_VAL, '2025', 1) > 0 THEN
+                        NEED_QTY_VAL = FIELD(NEED_QTY_VAL, '2025', 1)
+                    END
+                    IF INDEX(NEED_QTY_VAL, '-', 1) > 0 THEN
+                        NEED_QTY_VAL = FIELD(NEED_QTY_VAL, '-', 1)  
+                    END
+                    IF INDEX(NEED_QTY_VAL, '\', 1) > 0 THEN
+                        NEED_QTY_VAL = FIELD(NEED_QTY_VAL, '\', 1)
+                    END
+                    NEED_QTY_VAL = TRIM(NEED_QTY_VAL)
+                    
+                    XML.RESPONSE = XML.RESPONSE : '<need_entry>'
+                    XML.RESPONSE = XML.RESPONSE : '<need_date>' : NEED_DATE_VAL : '</need_date>'
+                    XML.RESPONSE = XML.RESPONSE : '<need_qty>' : NEED_QTY_VAL : '</need_qty>'
+                    XML.RESPONSE = XML.RESPONSE : '</need_entry>'
+                END
+            NEXT N
+        END
+        XML.RESPONSE = XML.RESPONSE : '</need_entries>'
+        
+        * Legacy single need fields for backwards compatibility
+        FIRST_NEED = FIELD(LINE_NEED, XSM, 1)
+        NEED_DATE_VAL = FIELD(FIRST_NEED, '*', 1)
+        NEED_QTY_VAL = FIELD(FIRST_NEED, '*', 2)
+        
+        * CRITICAL FIX: Clean need date from line index prefix
+        IF INDEX(NEED_DATE_VAL, ':', 1) > 0 THEN
+            NEED_DATE_VAL = FIELD(NEED_DATE_VAL, ':', 2)
+        END
+        
+        * CRITICAL FIX: Clean need quantity from date contamination
+        IF INDEX(NEED_QTY_VAL, '2025', 1) > 0 THEN
+            NEED_QTY_VAL = FIELD(NEED_QTY_VAL, '2025', 1)
+        END
+        IF INDEX(NEED_QTY_VAL, '-', 1) > 0 THEN
+            NEED_QTY_VAL = FIELD(NEED_QTY_VAL, '-', 1)  
+        END
+        IF INDEX(NEED_QTY_VAL, '\', 1) > 0 THEN
+            NEED_QTY_VAL = FIELD(NEED_QTY_VAL, '\', 1)
+        END
+        NEED_QTY_VAL = TRIM(NEED_QTY_VAL)
+        
+        XML.RESPONSE = XML.RESPONSE : '<need_date>' : NEED_DATE_VAL : '</need_date>'
+        XML.RESPONSE = XML.RESPONSE : '<need_qty>' : NEED_QTY_VAL : '</need_qty>'
+        
+        * Ack entries for this line (all subvalues)
+        XML.RESPONSE = XML.RESPONSE : '<ack_entries>'
+        IF LINE_ACK <> '' THEN
+            XML.RESPONSE = XML.RESPONSE : '<!-- RAW_LINE_ACK: [' : LINE_ACK : '] -->'
+            
+            * LINE_ACK should ONLY contain CHAR(252) and CHAR(253) - no conversion needed
+            TEMP_LINE_ACK = LINE_ACK
+            XML.RESPONSE = XML.RESPONSE : '<!-- USING_RAW_LINE_ACK_WITH_CHAR252_CHAR253_ONLY -->'
+            
+            ACK_SUB_COUNT = DCOUNT(TEMP_LINE_ACK, XSM)
+            IF ACK_SUB_COUNT = 0 THEN ACK_SUB_COUNT = 1
+            XML.RESPONSE = XML.RESPONSE : '<!-- ACK_SUB_COUNT for line ' : I : ': [' : ACK_SUB_COUNT : '] -->'
+            FOR A = 1 TO ACK_SUB_COUNT
+                ACK_SUB = FIELD(TEMP_LINE_ACK, XSM, A)
+                IF ACK_SUB <> '' THEN
+                    ACK_DATE_VAL = FIELD(ACK_SUB, '*', 1)
+                    ACK_QTY_VAL = FIELD(ACK_SUB, '*', 2)
+                    
+                    * CRITICAL FIX: Clean ack date from line index prefix like "2:3:3:21090"
+                    IF INDEX(ACK_DATE_VAL, ':', 1) > 0 THEN
+                        * Extract the last part after the final colon
+                        COLON_COUNT = DCOUNT(ACK_DATE_VAL, ':')
+                        ACK_DATE_VAL = FIELD(ACK_DATE_VAL, ':', COLON_COUNT)
+                    END
+                    
+                    * Clean quantity by extracting only digits
+                    CLEAN_ACK_QTY = ''
+                    IF ACK_QTY_VAL <> '' THEN
+                        ACK_QTY_LEN = LEN(ACK_QTY_VAL)
+                        FOR ACK_I = 1 TO ACK_QTY_LEN
+                            ACK_CHAR = ACK_QTY_VAL[ACK_I,1]
+                            IF ACK_CHAR >= '0' AND ACK_CHAR <= '9' THEN
+                                CLEAN_ACK_QTY = CLEAN_ACK_QTY : ACK_CHAR
+                            END
+                            IF ACK_CHAR < '0' OR ACK_CHAR > '9' THEN ACK_I = ACK_QTY_LEN
+                        NEXT ACK_I
+                        IF CLEAN_ACK_QTY <> '' THEN ACK_QTY_VAL = CLEAN_ACK_QTY
+                    END
+                    
+                    XML.RESPONSE = XML.RESPONSE : '<ack_entry>'
+                    XML.RESPONSE = XML.RESPONSE : '<ack_date>' : ACK_DATE_VAL : '</ack_date>'
+                    XML.RESPONSE = XML.RESPONSE : '<ack_qty>' : ACK_QTY_VAL : '</ack_qty>'
+                    XML.RESPONSE = XML.RESPONSE : '<line_position>' : I : '</line_position>'
+                    XML.RESPONSE = XML.RESPONSE : '</ack_entry>'
+                END
+            NEXT A
+        END
+        XML.RESPONSE = XML.RESPONSE : '</ack_entries>'
+        
+        * Legacy single ack fields for backwards compatibility
+        FIRST_ACK = FIELD(LINE_ACK, XSM, 1)
+        ACK_DATE_VAL = FIELD(FIRST_ACK, '*', 1)
+        ACK_QTY_VAL = FIELD(FIRST_ACK, '*', 2)
+        
+        * CRITICAL FIX: Clean ack date from line index prefix like "2:3:3:21090"
+        IF INDEX(ACK_DATE_VAL, ':', 1) > 0 THEN
+            * Extract the last part after the final colon
+            COLON_COUNT = DCOUNT(ACK_DATE_VAL, ':')
+            ACK_DATE_VAL = FIELD(ACK_DATE_VAL, ':', COLON_COUNT)
+        END
+        
+        * Clean the legacy quantity too
+        CLEAN_ACK_QTY = ''
+        IF ACK_QTY_VAL <> '' THEN
+            ACK_QTY_LEN = LEN(ACK_QTY_VAL)
+            FOR ACK_I = 1 TO ACK_QTY_LEN
+                ACK_CHAR = ACK_QTY_VAL[ACK_I,1]
+                IF ACK_CHAR >= '0' AND ACK_CHAR <= '9' THEN
+                    CLEAN_ACK_QTY = CLEAN_ACK_QTY : ACK_CHAR
+                END
+                IF ACK_CHAR < '0' OR ACK_CHAR > '9' THEN ACK_I = ACK_QTY_LEN
+            NEXT ACK_I
+            IF CLEAN_ACK_QTY <> '' THEN ACK_QTY_VAL = CLEAN_ACK_QTY
+        END
+        XML.RESPONSE = XML.RESPONSE : '<ack_date>' : ACK_DATE_VAL : '</ack_date>'
+        XML.RESPONSE = XML.RESPONSE : '<ack_qty>' : ACK_QTY_VAL : '</ack_qty>'
+        
+        * Schedule entries for this line - MINIMAL PROCESSING TO PRESERVE DATA
+        XML.RESPONSE = XML.RESPONSE : '<schedule_entries>'
+        IF LINE_SCHED <> '' THEN
+            * Minimal cleaning - only remove control characters, keep structure intact
+            TEMP_LINE_SCHED = LINE_SCHED
+            CONVERT CHAR(0) TO '' IN TEMP_LINE_SCHED
+            CONVERT CHAR(1) TO '' IN TEMP_LINE_SCHED
+            CONVERT CHAR(2) TO '' IN TEMP_LINE_SCHED
+            TEMP_LINE_SCHED = TRIM(TEMP_LINE_SCHED)
+            
+            SCHED_SUB_COUNT = DCOUNT(TEMP_LINE_SCHED, XSM)
+            IF SCHED_SUB_COUNT = 0 AND TEMP_LINE_SCHED <> '' THEN SCHED_SUB_COUNT = 1
+            
+            * Process each entry in exact order without aggressive cleaning
+            FOR J = 1 TO SCHED_SUB_COUNT
+                SCHED_ITEM = FIELD(TEMP_LINE_SCHED, XSM, J)
+                IF SCHED_ITEM <> '' THEN
+                    SCHED_DATE_VAL = FIELD(SCHED_ITEM, '*', 1)
+                    SCHED_QTY_VAL = FIELD(SCHED_ITEM, '*', 2)
+                    
+                    * CRITICAL: Filter out invalid Julian dates like "1", "0", etc. (SAME AS GLOBAL)
+                    SKIP_INVALID_LINE_DATE = 0
+                    IF NUM(SCHED_DATE_VAL) AND SCHED_DATE_VAL <> '' THEN
+                        IF SCHED_DATE_VAL < 365 THEN
+                            SKIP_INVALID_LINE_DATE = 1
+                            * Debug: Log filtered dates in line items
+                            XML.RESPONSE = XML.RESPONSE : '<!-- LINE ITEM FILTERED INVALID DATE: ' : SCHED_DATE_VAL : ' -->'
+                        END
+                    END
+                    
+                    * Only process valid dates in line items
+                    IF SKIP_INVALID_LINE_DATE = 0 THEN
+                        * Minimal cleaning for quantity - preserve ALL numeric values
+                        IF SCHED_QTY_VAL <> '' THEN
+                            SCHED_QTY_VAL = TRIM(SCHED_QTY_VAL)
+                            * ONLY remove obvious Julian date corruption, nothing else
+                            IF LEN(SCHED_QTY_VAL) > 5 AND INDEX(SCHED_QTY_VAL, '20994', 1) > 0 THEN
+                                TEMP_QTY = FIELD(SCHED_QTY_VAL, '20994', 1)
+                                IF TEMP_QTY <> '' AND NUM(TEMP_QTY) THEN 
+                                    SCHED_QTY_VAL = TEMP_QTY
+                                END
+                            END
+                        END
+                        
+                        XML.RESPONSE = XML.RESPONSE : '<schedule_entry>'
+                        XML.RESPONSE = XML.RESPONSE : '<schedule_date>' : SCHED_DATE_VAL : '</schedule_date>'
+                        XML.RESPONSE = XML.RESPONSE : '<schedule_qty>' : SCHED_QTY_VAL : '</schedule_qty>'
+                        XML.RESPONSE = XML.RESPONSE : '<line_position>' : I : '</line_position>'
+                        XML.RESPONSE = XML.RESPONSE : '</schedule_entry>'
+                    END
+                END
+            NEXT J
+        END
+        XML.RESPONSE = XML.RESPONSE : '</schedule_entries>'
+        
+        XML.RESPONSE = XML.RESPONSE : '</line_item>'
+    NEXT I
+END
+XML.RESPONSE = XML.RESPONSE : '</line_items>'
+
+* Essential notes - Convert multivalue separator to CRLF for proper display
+HEADER_NOTES_RAW = PO.RECORD<25>
+CRLF = CHAR(13):CHAR(10)
+CONVERT XVM TO CRLF IN HEADER_NOTES_RAW
+XML.RESPONSE = XML.RESPONSE : '<header_notes>' : HEADER_NOTES_RAW : '</header_notes>'
+XML.RESPONSE = XML.RESPONSE : '<noted_stamp>' : PO.RECORD<30> : '</noted_stamp>'
+XML.RESPONSE = XML.RESPONSE : '<production_notes>' : PO.RECORD<73> : '</production_notes>'
+
+* Acknowledgments processing (cleaned and parsed) - ONLY field 49
+ACK_DATA = PO.RECORD<49>
+XML.RESPONSE = XML.RESPONSE : '<acknowledgments>'
+IF ACK_DATA <> '' THEN
+    * Clean the data first to remove corruption
+    CONVERT CHAR(13) TO '' IN ACK_DATA
+    CONVERT CHAR(10) TO '' IN ACK_DATA  
+    CONVERT 'ý' TO '' IN ACK_DATA
+    CONVERT 'Ã' TO '' IN ACK_DATA
+    ACK_DATA = TRIM(ACK_DATA)
+    
+    * Process all acknowledgments from all line items
+    ACK_COUNT = DCOUNT(ACK_DATA, XVM)
+    FOR ACK_IDX = 1 TO ACK_COUNT
+        ACK_LINE_DATA = FIELD(ACK_DATA, XVM, ACK_IDX)
+        IF ACK_LINE_DATA <> '' THEN
+            ACK_SUB_COUNT = DCOUNT(ACK_LINE_DATA, XSM)
+            IF ACK_SUB_COUNT = 0 THEN ACK_SUB_COUNT = 1
+            FOR A = 1 TO ACK_SUB_COUNT
+                ACK_SUB = FIELD(ACK_LINE_DATA, XSM, A)
+                IF ACK_SUB <> '' THEN
+                    ACK_DATE_VAL = FIELD(ACK_SUB, '*', 1)
+                    ACK_QTY_VAL = FIELD(ACK_SUB, '*', 2)
+                    
+                    * Clean quantity by extracting only digits
+                    CLEAN_ACK_QTY = ''
+                    IF ACK_QTY_VAL <> '' THEN
+                        ACK_QTY_LEN = LEN(ACK_QTY_VAL)
+                        FOR ACK_I = 1 TO ACK_QTY_LEN
+                            ACK_CHAR = ACK_QTY_VAL[ACK_I,1]
+                            IF ACK_CHAR >= '0' AND ACK_CHAR <= '9' THEN
+                                CLEAN_ACK_QTY = CLEAN_ACK_QTY : ACK_CHAR
+                            END
+                            IF ACK_CHAR < '0' OR ACK_CHAR > '9' THEN ACK_I = ACK_QTY_LEN
+                        NEXT ACK_I
+                        IF CLEAN_ACK_QTY <> '' THEN ACK_QTY_VAL = CLEAN_ACK_QTY
+                    END
+                    
+                    XML.RESPONSE = XML.RESPONSE : '<ack_entry>'
+                    XML.RESPONSE = XML.RESPONSE : '<ack_date>' : ACK_DATE_VAL : '</ack_date>'
+                    XML.RESPONSE = XML.RESPONSE : '<ack_qty>' : ACK_QTY_VAL : '</ack_qty>'
+                    XML.RESPONSE = XML.RESPONSE : '<line_position>' : I : '</line_position>'
+                    XML.RESPONSE = XML.RESPONSE : '</ack_entry>'
+                END
+            NEXT A
+        END
+    NEXT ACK_IDX
+END
+XML.RESPONSE = XML.RESPONSE : '<ack_field49>' : ACK_DATA : '</ack_field49>'
+XML.RESPONSE = XML.RESPONSE : '</acknowledgments>'
+
+* Needs info processing - Field 38 with multivalue/subvalue parsing
+NEEDS_DATA = PO.RECORD<38>
+IF NEEDS_DATA <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<needs_info>'
+    XML.RESPONSE = XML.RESPONSE : '<debug_needs_line_count>' : DCOUNT(NEEDS_DATA, XVM) : '</debug_needs_line_count>'
+    
+    * Parse multivalue (line items) and subvalue (multiple needs per line)
+    NEEDS_LINE_COUNT = DCOUNT(NEEDS_DATA, XVM)
+    FOR NEEDS_LINE_IDX = 1 TO NEEDS_LINE_COUNT
+        NEEDS_LINE_DATA = FIELD(NEEDS_DATA, XVM, NEEDS_LINE_IDX)
+        XML.RESPONSE = XML.RESPONSE : '<debug_line_data>' : NEEDS_LINE_DATA : '</debug_line_data>'
+        
+        IF NEEDS_LINE_DATA <> '' THEN
+            * Parse subvalues (individual need entries within this line)
+            NEEDS_SUB_COUNT = DCOUNT(NEEDS_LINE_DATA, XSM)
+            IF NEEDS_SUB_COUNT = 0 THEN NEEDS_SUB_COUNT = 1
+            XML.RESPONSE = XML.RESPONSE : '<debug_subval_count>' : NEEDS_SUB_COUNT : '</debug_subval_count>'
+            
+            FOR NEEDS_SUB = 1 TO NEEDS_SUB_COUNT
+                NEEDS_SUB_VAL = FIELD(NEEDS_LINE_DATA, XSM, NEEDS_SUB)
+                XML.RESPONSE = XML.RESPONSE : '<debug_subval>' : NEEDS_SUB_VAL : '</debug_subval>'
+                
+                IF NEEDS_SUB_VAL <> '' THEN
+                    * Parse date*qty format
+                    NEED_DATE = FIELD(NEEDS_SUB_VAL, '*', 1)
+                    NEED_QTY = FIELD(NEEDS_SUB_VAL, '*', 2)
+                    
+                    XML.RESPONSE = XML.RESPONSE : '<debug_parsed_date>' : NEED_DATE : '</debug_parsed_date>'
+                    XML.RESPONSE = XML.RESPONSE : '<debug_parsed_qty>' : NEED_QTY : '</debug_parsed_qty>'
+                    
+                    * Only create entry if we have both date and qty
+                    IF NEED_DATE <> '' AND NEED_QTY <> '' THEN
+                        XML.RESPONSE = XML.RESPONSE : '<need_entry>'
+                        XML.RESPONSE = XML.RESPONSE : '<need_date>' : NEED_DATE : '</need_date>'
+                        XML.RESPONSE = XML.RESPONSE : '<need_qty>' : NEED_QTY : '</need_qty>'
+                        XML.RESPONSE = XML.RESPONSE : '<line_position>' : NEEDS_LINE_IDX : '</line_position>'
+                        XML.RESPONSE = XML.RESPONSE : '</need_entry>'
+                    END
+                END
+            NEXT NEEDS_SUB
+        END
+    NEXT NEEDS_LINE_IDX
+    
+    XML.RESPONSE = XML.RESPONSE : '</needs_info>'
+END
+
+* Schedule info processing - MINIMAL CLEANING TO PRESERVE ORIGINAL ORDER
+SCHED_DATA = PO.RECORD<34>
+IF SCHED_DATA <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<schedule_info>'
+    
+    * Minimal cleaning - only control characters
+    TEMP_SCHED_DATA = SCHED_DATA
+    CONVERT CHAR(0) TO '' IN TEMP_SCHED_DATA
+    CONVERT CHAR(1) TO '' IN TEMP_SCHED_DATA
+    CONVERT CHAR(2) TO '' IN TEMP_SCHED_DATA
+    TEMP_SCHED_DATA = TRIM(TEMP_SCHED_DATA)
+    
+    SCHED_COUNT = DCOUNT(TEMP_SCHED_DATA, XVM)
+    FOR SCHED_IDX = 1 TO SCHED_COUNT
+        SCHED_MV = FIELD(TEMP_SCHED_DATA, XVM, SCHED_IDX)
+        IF SCHED_MV <> '' THEN
+            SCHED_SUBCOUNT = DCOUNT(SCHED_MV, XSM)
+            IF SCHED_SUBCOUNT = 0 AND SCHED_MV <> '' THEN SCHED_SUBCOUNT = 1
+            
+            FOR SCHED_SUB = 1 TO SCHED_SUBCOUNT
+                SCHED_ITEM = FIELD(SCHED_MV, XSM, SCHED_SUB)
+                IF SCHED_ITEM <> '' THEN
+                    SCHED_DATE = FIELD(SCHED_ITEM, '*', 1)
+                    SCHED_QTY = FIELD(SCHED_ITEM, '*', 2)
+                    
+                    * CRITICAL: Filter out invalid Julian dates like "1", "0", etc.
+                    SKIP_INVALID_DATE = 0
+                    IF NUM(SCHED_DATE) AND SCHED_DATE <> '' THEN
+                        IF SCHED_DATE < 365 THEN
+                            SKIP_INVALID_DATE = 1
+                            * Debug: Log filtered dates
+                            XML.RESPONSE = XML.RESPONSE : '<!-- FILTERED INVALID DATE: ' : SCHED_DATE : ' -->'
+                        END
+                    END
+                    
+                    * Debug: Log processing decision
+                    XML.RESPONSE = XML.RESPONSE : '<!-- PROCESSING DATE: ' : SCHED_DATE : ' SKIP=' : SKIP_INVALID_DATE : ' -->'
+                    
+                    * Only process valid dates
+                    IF SKIP_INVALID_DATE = 0 THEN
+                        * Preserve original quantities with minimal cleaning
+                        IF SCHED_QTY <> '' THEN
+                            SCHED_QTY = TRIM(SCHED_QTY)
+                            * Only clean obvious Julian date corruption
+                            IF LEN(SCHED_QTY) > 5 AND INDEX(SCHED_QTY, '20994', 1) > 0 THEN
+                                TEMP_QTY = FIELD(SCHED_QTY, '20994', 1)
+                                IF TEMP_QTY <> '' AND NUM(TEMP_QTY) THEN
+                                    SCHED_QTY = TEMP_QTY
+                                END
+                            END
+                        END
+                        
+                        XML.RESPONSE = XML.RESPONSE : '<schedule_entry>'
+                        XML.RESPONSE = XML.RESPONSE : '<schedule_date>' : SCHED_DATE : '</schedule_date>'
+                        XML.RESPONSE = XML.RESPONSE : '<schedule_qty>' : SCHED_QTY : '</schedule_qty>'
+                        XML.RESPONSE = XML.RESPONSE : '<line_position>' : I : '</line_position>'
+                        XML.RESPONSE = XML.RESPONSE : '</schedule_entry>'
+                    END
+                END
+            NEXT SCHED_SUB
+        END
+    NEXT SCHED_IDX
+    XML.RESPONSE = XML.RESPONSE : '</schedule_info>'
+END
+
+* CRITICAL FIX: Add global needs_info section for frontend
+NEEDS_FIELD_38 = PO.RECORD<38>
+XML.RESPONSE = XML.RESPONSE : '<debug_needs_field38>[' : NEEDS_FIELD_38 : ']</debug_needs_field38>'
+IF NEEDS_FIELD_38 <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<needs_info>'
+    NEEDS_LINE_COUNT = DCOUNT(NEEDS_FIELD_38, XVM)
+    XML.RESPONSE = XML.RESPONSE : '<debug_needs_line_count>' : NEEDS_LINE_COUNT : '</debug_needs_line_count>'
+    FOR NEEDS_LINE_IDX = 1 TO NEEDS_LINE_COUNT
+        NEEDS_LINE_DATA = FIELD(NEEDS_FIELD_38, XVM, NEEDS_LINE_IDX)
+        XML.RESPONSE = XML.RESPONSE : '<debug_line_data>' : NEEDS_LINE_DATA : '</debug_line_data>'
+        IF NEEDS_LINE_DATA <> '' THEN
+            * Process subvalues within this line
+            NEEDS_SUBVAL_COUNT = DCOUNT(NEEDS_LINE_DATA, XSM)
+            XML.RESPONSE = XML.RESPONSE : '<debug_subval_count>' : NEEDS_SUBVAL_COUNT : '</debug_subval_count>'
+            FOR NEEDS_SUB_IDX = 1 TO NEEDS_SUBVAL_COUNT
+                NEEDS_SUBVAL = FIELD(NEEDS_LINE_DATA, XSM, NEEDS_SUB_IDX)
+                XML.RESPONSE = XML.RESPONSE : '<debug_subval>' : NEEDS_SUBVAL : '</debug_subval>'
+                IF NEEDS_SUBVAL <> '' THEN
+                    NEEDS_DATE_GLOBAL = FIELD(NEEDS_SUBVAL, '*', 1)
+                    NEEDS_QTY_GLOBAL = FIELD(NEEDS_SUBVAL, '*', 2)
+                    
+                    * CRITICAL FIX: Clean global need date from line index prefix
+                    IF INDEX(NEEDS_DATE_GLOBAL, ':', 1) > 0 THEN
+                        COLON_COUNT = DCOUNT(NEEDS_DATE_GLOBAL, ':')
+                        NEEDS_DATE_GLOBAL = FIELD(NEEDS_DATE_GLOBAL, ':', COLON_COUNT)
+                    END
+                    
+                    * CRITICAL FIX: Clean global need quantity from date contamination
+                    IF INDEX(NEEDS_QTY_GLOBAL, '2025', 1) > 0 THEN
+                        NEEDS_QTY_GLOBAL = FIELD(NEEDS_QTY_GLOBAL, '2025', 1)
+                    END
+                    IF INDEX(NEEDS_QTY_GLOBAL, '-', 1) > 0 THEN
+                        NEEDS_QTY_GLOBAL = FIELD(NEEDS_QTY_GLOBAL, '-', 1)  
+                    END
+                    IF INDEX(NEEDS_QTY_GLOBAL, '\', 1) > 0 THEN
+                        NEEDS_QTY_GLOBAL = FIELD(NEEDS_QTY_GLOBAL, '\', 1)
+                    END
+                    NEEDS_QTY_GLOBAL = TRIM(NEEDS_QTY_GLOBAL)
+                    
+                    XML.RESPONSE = XML.RESPONSE : '<debug_parsed_date>' : NEEDS_DATE_GLOBAL : '</debug_parsed_date>'
+                    XML.RESPONSE = XML.RESPONSE : '<debug_parsed_qty>' : NEEDS_QTY_GLOBAL : '</debug_parsed_qty>'
+                    IF NEEDS_DATE_GLOBAL <> '' AND NEEDS_QTY_GLOBAL <> '' THEN
+                        XML.RESPONSE = XML.RESPONSE : '<need_entry>'
+                        XML.RESPONSE = XML.RESPONSE : '<need_date>' : NEEDS_DATE_GLOBAL : '</need_date>'
+                        XML.RESPONSE = XML.RESPONSE : '<need_qty>' : NEEDS_QTY_GLOBAL : '</need_qty>'
+                        XML.RESPONSE = XML.RESPONSE : '<line_position>' : NEEDS_LINE_IDX : '</line_position>'
+                        XML.RESPONSE = XML.RESPONSE : '</need_entry>'
+                    END
+                END
+            NEXT NEEDS_SUB_IDX
+        END
+    NEXT NEEDS_LINE_IDX
+    XML.RESPONSE = XML.RESPONSE : '</needs_info>'
+END
+
+* Line notes processing with contamination debug
+LINE_NOTES_DATA = PO.RECORD<40>
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_FIELD_40_RAW: [' : LINE_NOTES_DATA : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_FIELD_40_LENGTH: [' : LEN(LINE_NOTES_DATA) : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_FIELD_40_CONTAINS_ASTERISK: [' : (INDEX(LINE_NOTES_DATA, '*', 1) > 0) : '] -->'
+XML.RESPONSE = XML.RESPONSE : '<!-- DEBUG_FIELD_40_CONTAINS_BACKSLASH: [' : (INDEX(LINE_NOTES_DATA, '\', 1) > 0) : '] -->'
+IF LINE_NOTES_DATA <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<line_notes>'
+    NOTES_COUNT = DCOUNT(LINE_NOTES_DATA, XVM)
+    FOR NOTES_IDX = 1 TO NOTES_COUNT
+        NOTE_ENTRY = FIELD(LINE_NOTES_DATA, XVM, NOTES_IDX)
+        IF NOTE_ENTRY <> '' THEN
+            XML.RESPONSE = XML.RESPONSE : '<line_note>'
+            XML.RESPONSE = XML.RESPONSE : '<note>' : NOTE_ENTRY : '</note>'
+            XML.RESPONSE = XML.RESPONSE : '</line_note>'
+        END
+    NEXT NOTES_IDX
+    XML.RESPONSE = XML.RESPONSE : '</line_notes>'
+END
+
+* Buyer info lookup
+BUYER_CODE = PO.RECORD<8>
+IF BUYER_CODE <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<buyer_info>'
+    XML.RESPONSE = XML.RESPONSE : '<buyer_code>' : BUYER_CODE : '</buyer_code>'
+    XML.RESPONSE = XML.RESPONSE : '<buyer_name></buyer_name>'
+    XML.RESPONSE = XML.RESPONSE : '<buyer_email></buyer_email>'
+    XML.RESPONSE = XML.RESPONSE : '<buyer_initials>' : BUYER_CODE : '</buyer_initials>'
+    XML.RESPONSE = XML.RESPONSE : '</buyer_info>'
+END
+
+XML.RESPONSE = XML.RESPONSE : '<status>found</status></po></purchaseorders>'
+
+WRITE_RESPONSE:
+WRITE XML.RESPONSE ON XMLDATAF,'GET_PO2_PRODUCTION.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/GET_PO2_PRODUCTION.XML','',ERR)
+RETURN
+</PRE>

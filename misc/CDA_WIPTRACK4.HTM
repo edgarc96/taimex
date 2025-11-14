@@ -1,0 +1,343 @@
+<head>
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="GENERATOR" content="Microsoft FrontPage 3.0">
+<title>WIP Tracking</title>
+<meta name="GENERATOR" content="Microsoft FrontPage 3.0">
+<meta name="GENERATOR" content="Microsoft FrontPage 3.0">
+<style type="text/css">
+input[type=text] { box-sizing: border-box; padding: 6px 10px; border: 2px solid #ccc; border-radius: 4px; background-color: #f8f8f8;}
+input[type=submit] {background-color: #4CAF50; border: none; color: white; padding: 16px 20px; margin: 4px 2px; visibility:visible;}
+select {padding: 12px 16px; margin: 4px 2px; visibility:visible;}
+body {overflow-y: hidden;}
+.auto-style2 {
+     text-align: left;
+}
+.auto-style3 {
+     font-size: x-large;
+     color: #000000;
+     font-family: Arial, Helvetica, sans-serif;
+}
+.auto-style4 {
+     font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+}
+.auto-style5 {
+     border-style: solid;
+     border-width: 1px;
+     font-family: Arial, Helvetica, sans-serif;
+     border-collapse: collapse;
+}
+.auto-style6 {
+     font-size: medium;
+}
+.susbtn {
+     color: black !important;
+     background-color: yellow !important;
+}
+.cancelbtn{
+     color: black !important;
+     background-color: red !important;
+}
+</style>
+
+<body vLink="#0033cc" aLink="#0033cc" link="#0033cc" leftMargin="0"
+topMargin="0" marginheight="0" marginwidth="0">
+<html>
+<div
+align="center"><center>
+
+<div
+
+<table border="0" cellpadding="6" cellspacing="0" width="100%" height="69" style="border-collapse: collapse; width:100%; height:171" bordercolor="#111111">
+  <tr>
+    <td width="100%" height="69" valign="top">
+  <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber1" height="20">
+    <tr>
+      <td height="1" align="center" style="width: 19%"></td>
+      <td width="45%" height="1">
+     <br>
+      <p class="auto-style2"><b><font face="Verdana" size="2" color="#FF0000">&nbsp;<span class="auto-style3">WIP 
+       Tracking</span></font></b></td>
+      <td width="14%" height="1" align="center"></td>
+      <td width="19%" height="1">
+      </td>
+    </tr>
+    </table>
+  <form method="post" name="getpage" action="/CDA_WIPTRACK4.HTM">
+    <table cellpadding="0" cellspacing="0" style="width: 85%;" bordercolor="#111111" id="AutoNumber2" class="auto-style5">
+      <tr>
+        <td style="width: 48%" class="auto-style2">&nbsp;</td>
+      </tr>
+      <tr>
+        <td style="width: 48%" class="auto-style2">
+          <table cellpadding="10" cellspacing="3" style="width: 100%">
+               <tr>
+                    <td style="width: 376px">&nbsp;</td>
+                    <td>&nbsp;</td>
+               </tr>
+               <tr>
+                    <td class="auto-style6" style="width: 376px">WO:</td>
+                    <td class="auto-style6">^WOID^</td>
+               </tr>
+               <tr>
+                    <td class="auto-style6" style="width: 376px">Location:</td>
+                    <td class="auto-style6">^WLOC^&nbsp; ^WLOCD^</td>
+               </tr>
+               <tr>
+                    <td class="auto-style6" style="width: 376px">PN:</td>
+                    <td class="auto-style6">^ASSY^</td>
+               </tr>
+               <tr>
+                    <td class="auto-style6" style="width: 376px">Quantity:</td>
+                    <td class="auto-style6">^WIPQTY^</td>
+               </tr>
+               <tr>
+                    <td class="auto-style6" style="width: 376px">Last Status:</td>
+                    <td class="auto-style6">^LAST.STATUS^.&nbsp; [<a href="/CDA_WIPTRACKLOG.HTM?WOID=^WOID^">View Log</a>]</td>
+               </tr>
+               <tr>
+                    <td class="auto-style6" style="width: 376px">&nbsp;</td>
+                    <td class="auto-style6">[<a href="PRINTWOCDA3.HTM?ID=^WOID^">View 
+                         WO Traveller</a>]</td>
+               </tr>
+               <tr>
+                    <td class="auto-style6" style="width: 376px">&nbsp;</td>
+                    <td class="auto-style6">&nbsp;</td>
+               </tr>
+               <tr>
+                    <td class="auto-style6" style="width: 376px">&nbsp;</td>
+                    <td class="auto-style6">Personnel on this operation:
+                    <select name="PEOPLE">
+                    <option selected="" value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    </select></td>
+               </tr>
+               <tr>
+                    <td class="auto-style6" style="width: 376px">&nbsp;</td>
+                    <td class="auto-style6">
+    <b><font color="#FF0000">^MSG^</font></b></td>
+               </tr>
+               <tr>
+                    <td style="width: 376px">&nbsp;</td>
+                    <td><input name="SUSPEND" class="susbtn" type="submit" value="Suspend OP">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <input name="COMPLETE" type="submit" value="Complete OP">&nbsp;&nbsp;
+                    <input name="CANCEL" class="cancelbtn" type="submit" value="Cancel"><br>
+    <b><font color="#FF0000">^MSG^</font></b></td>
+               </tr>
+          </table>
+          <font size="1"><span class="auto-style4"><br>
+          </span></font></td>
+      </tr>
+      <tr>
+        <td style="width: 48%" class="auto-style2">
+    <b><font color="#FF0000">^MSG^</font></b></td>
+      </tr>
+      </table>
+    <p align="center">
+    &nbsp;</p>
+       <input name="BADGEID" type="hidden" value="^BADGEID^">
+       <input name="WOID" type="hidden" value="^WOID^">
+  </form>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%" height="30" style="border-collapse: collapse" bordercolor="#111111">
+  <tr>
+    <td width="6%" valign="top" height="30"><img src="https://cdenb2.cde.com/cde_com/images/logo3.gif" align="texttop"
+    width="51" height="30"></td>
+    <td width="18%" valign="top" height="30" align="left"><p align="left"><font size="2">
+    &nbsp;&nbsp;&nbsp;</font></td>
+    <td width="87%" valign="top" height="30">
+    
+      <pre><span lang="en-us"><font face="Arial Narrow">  </font></span></pre>
+      </center></div>
+    </td>
+  </tr>
+</table>
+</center></div>
+
+
+  <div align="left">
+
+
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+* ============================================================
+*  PROGRAM: WIP Tracking Main Handler
+*  PURPOSE: Control logic for WO info, Suspend, Complete, Cancel
+*  AUTHOR : Edgar Cabrera (Cleaned and structured)
+* ============================================================
+
+* ---------- Inicialización de variables ----------
+BADGEID     = ''
+UPDATE      = ''
+WOID        = ''
+PEOPLE      = ''
+CANCEL      = ''
+SUSPEND     = ''
+COMPLETE    = ''
+OPNO        = ''
+OPDESC      = ''
+LAST.STATUS = ''
+MSG         = ''
+ERR         = ''
+ASSY        = ''
+WLOC        = ''
+WLOCD       = ''
+WIPQTY      = ''
+OPERNAME    = ''
+INIT        = ''
+WOREC       = ''
+WIPLOCREC   = ''
+WIPSTATUS   = ''
+OPREC       = ''
+BOO         = ''
+BOOSEQ      = ''
+WN          = ''
+NWN         = ''
+I           = 0
+WONO        = ''
+
+*
+* ---------- Obtener variables del entorno ----------
+PL_GETVAR BADGEID FROM 'BADGEID' ELSE BADGEID = ''
+PL_GETVAR UPDATE  FROM 'UPDATE'  ELSE UPDATE  = ''
+PL_GETVAR WOID    FROM 'WOID'    ELSE WOID    = ''
+PL_GETVAR PEOPLE  FROM 'PEOPLE'  ELSE PEOPLE  = ''
+PL_GETVAR CANCEL  FROM 'CANCEL'  ELSE CANCEL  = ''
+PL_GETVAR SUSPEND FROM 'SUSPEND' ELSE SUSPEND = ''
+PL_GETVAR COMPLETE FROM 'COMPLETE' ELSE COMPLETE = ''
+PL_GETVAR OPNO    FROM 'OPNO'    ELSE OPNO    = ''
+PL_GETVAR OPDESC  FROM 'OPDESC'  ELSE OPDESC  = ''
+PL_GETVAR LAST.STATUS FROM 'LAST.STATUS' ELSE LAST.STATUS = ''
+
+*
+* ---------- Abrir archivos ----------
+OPEN 'OPERS'     TO OPERSF     ELSE STOP 201,'OPERS'
+OPEN 'BADGES'    TO BADGEF     ELSE STOP 201,'BADGE'
+OPEN 'WO'        TO WOF        ELSE STOP 201,'WO'
+OPEN 'WIPLOC'    TO WIPLOCF    ELSE STOP 201,'WIPLOC'
+OPEN 'WIPSTATUS' TO WIPSTATUSF ELSE STOP 201,'WIPSTATUS'
+OPEN 'EOPS'      TO EOPSF      ELSE STOP 201,'EOPS'
+OPEN 'EBOO'      TO EBOOF      ELSE STOP 201,'EBOO'
+
+*
+* ---------- Botón CANCEL ----------
+IF CANCEL NE '' THEN
+   ERR = ''
+   BADGEID = ''
+   WOID = ''
+   CALL PLW.PAGE('CDA_WIPTRACK.HTM','',ERR)
+   RETURN
+END
+
+*
+* ---------- Leer Work Order ----------
+IF WOID # '' THEN
+   READ WOREC FROM WOF,WOID ELSE
+      ERR = 'INVALID WORK ORDER NUMBER .. ':WOID
+      GOTO 99
+   END
+   
+   WONO  = WOID
+   ASSY  = WOREC<32>
+   WLOC  = WOREC<90,1>
+   READ WIPLOCREC FROM WIPLOCF,WLOC ELSE WIPLOCREC = ''
+   WLOCD  = WIPLOCREC<1>
+   WIPQTY = WOREC<91,1>
+END
+
+*
+* ---------- Validar operador ----------
+INIT = FIELD(BADGEID,'|',1)
+IF INIT # '' THEN
+   READ OPREC FROM OPERSF,INIT ELSE
+      MSG = 'INVALID OPERS INITIALS :' : INIT
+      GOTO 99
+   END
+   OPERNAME = OPREC<1>
+END
+
+*
+* ---------- Determinar estado actual ----------
+IF WOID # '' THEN
+   READ WIPSTATUS FROM WIPSTATUSF,WONO ELSE WIPSTATUS = ''
+   OPNO = WIPSTATUS<16, DCOUNT(WIPSTATUS<16>, @VM)>
+   
+   IF OPNO # '' THEN
+      READV OPDESC FROM EOPSF, OPNO, 1 ELSE OPDESC = ''
+   END
+   
+   LAST.STATUS = 'New'
+   IF WIPSTATUS<1> = 'P' THEN LAST.STATUS = 'Paused'
+   IF WIPSTATUS<1> = 'O' THEN LAST.STATUS = 'In Progress'
+   
+   *
+   * ---------- Calcular secuencia BOO ----------
+   BOOSEQ = ''
+   READ BOO FROM EBOOF, WOREC<32> ELSE BOO = ''
+   
+   IF BOO<14> # '' THEN
+      FOR I = 1 TO DCOUNT(BOO<14>, @VM)
+         WN  = BOO<14,I>
+         NWN = BOO<14,I+1>
+         IF NWN = '' OR WN NE NWN THEN
+            BOOSEQ<1,-1> = WN
+         END
+      NEXT I
+      BOO<14> = BOOSEQ
+   END
+END
+
+*
+* ---------- Botón SUSPEND ----------
+IF SUSPEND NE '' THEN
+   PL_PUTVAR WOID    IN 'WOID'    ELSE NULL
+   PL_PUTVAR BADGEID IN 'BADGEID' ELSE NULL
+   PL_PUTVAR PEOPLE  IN 'PEOPLE'  ELSE NULL
+   ERR = ''
+   CALL PLW.PAGE('CDA_WIPTRACKSUSPEND.HTM','',ERR)
+   RETURN
+END
+
+*
+* ---------- Botón COMPLETE ----------
+IF COMPLETE NE '' THEN
+   WOID = TRIM(WOID)
+   WOID = OCONV(WOID,'MCU')
+   READ WOREC FROM WOF,WOID ELSE WOREC = ''
+   PL_GETVAR PEOPLE FROM 'PEOPLE' ELSE PEOPLE = '1'
+   IF PEOPLE = '' THEN PEOPLE = '1'
+
+   PL_PUTVAR WOID    IN 'WOID'    ELSE NULL
+   PL_PUTVAR BADGEID IN 'BADGEID' ELSE NULL
+   PL_PUTVAR PEOPLE  IN 'PEOPLE'  ELSE NULL
+
+   COMPLETE = ''
+   PL_PUTVAR COMPLETE IN 'COMPLETE' ELSE NULL
+   ERR = ''
+   CALL PLW.PAGE('CDA_WIPTRACKSCRAP2.HTM','',ERR)
+   RETURN
+END
+
+*
+* ---------- Fin normal del programa - mostrar página ----------
+GOTO 999
+
+*
+* ---------- Control de errores ----------
+99 *
+IF MSG = '' THEN MSG = ERR
+IF MSG = '' THEN MSG = '' ;* asegurar que existe
+GOTO 999
+
+*
+999 *
+* Continuar para mostrar la página HTML
+*
+</pre>
+  </div>
+</body>
+</html>                                                                                                                                                                

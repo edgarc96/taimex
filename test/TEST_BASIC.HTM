@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Test BASIC</title>
+</head>
+<body>
+  <h1>Test BASIC Error</h1>
+  
+  <div align="left">
+  <pre>
+PicLan-IP/BASIC ^ ^
+*
+* Test minimal BASIC code
+*
+MSG = ''
+EMSG = ''
+ERR = ''
+TS = DATE():TIME()
+RESULT = ''
+
+* Initialize variables
+NBOM = ''
+ECN = ''
+BOMPT = ''
+BOMOP = ''
+COSTLEVEL = ''
+RMSEQ = ''
+BOMTXT = ''
+REFERENCE_LINE = ''
+INSERT_POSITION = ''
+
+* File handles
+BOM.FILE = ''
+BOO.FILE = ''
+BOMTXT.FILE = ''
+
+* Array variables
+I = 0
+J = 0
+K = 0
+CNT = 0
+
+* Temp variables
+B10 = 0
+B1 = 0
+B2 = 0
+B3 = 0
+B4 = 0
+B5 = 0
+B6 = 0
+B7 = 0
+B8 = 0
+B9 = 0
+
+* Test basic operations
+OPEN 'EBOO' TO BOO.FILE ELSE
+  EMSG = 'Cannot open BOO file'
+  GOTO done:
+END
+
+OPEN 'EBOM' TO BOM.FILE ELSE
+  EMSG = 'Cannot open BOM file'
+  GOTO done:
+END
+
+OPEN 'BOMTXT' TO BOMTXT.FILE ELSE
+  EMSG = 'Cannot open BOMTXT file'
+  GOTO done:
+END
+
+done:
+  </pre>
+  </div>
+  
+  <div>
+    <p>EMSG: ^EMSG^</p>
+    <p>TS: ^TS^</p>
+  </div>
+</body>
+</html>

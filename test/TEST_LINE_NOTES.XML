@@ -1,0 +1,66 @@
+<PRE>
+PicLan-IP/BASIC ^ ^
+*
+* TEST_LINE_NOTES.XML - Test line notes parsing
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'SO' TO SOF ELSE STOP 201,'SO'
+
+PL_GETVAR SO_NUMBER FROM 'SO_NUMBER' ELSE SO_NUMBER = ''
+IF SO_NUMBER = '' THEN
+    PL_GETVAR SO_NUMBER FROM 'so_number' ELSE SO_NUMBER = ''
+END
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+XMLRESPONSE = '<?xml version="1.0" encoding="UTF-8"?><test>'
+
+READ SOREC FROM SOF, SO_NUMBER ELSE
+    XMLRESPONSE = XMLRESPONSE : '<error>SO not found</error>'
+    GOTO WRITE_RESPONSE
+END
+
+XMLRESPONSE = XMLRESPONSE : '<so_number>' : SO_NUMBER : '</so_number>'
+
+* Get Field 40 (Line Notes)
+FIELD40 = SOREC<40>
+FIELD40_LEN = LEN(FIELD40)
+
+XMLRESPONSE = XMLRESPONSE : '<field40_length>' : FIELD40_LEN : '</field40_length>'
+XMLRESPONSE = XMLRESPONSE : '<field40_raw><![CDATA[' : FIELD40 : ']]></field40_raw>'
+
+* Count multivalue entries
+MV_COUNT = DCOUNT(FIELD40, XVM)
+XMLRESPONSE = XMLRESPONSE : '<multivalue_count>' : MV_COUNT : '</multivalue_count>'
+
+* Extract first line note
+IF MV_COUNT > 0 THEN
+    FIRST_NOTE = FIELD(FIELD40, XVM, 1)
+    FIRST_NOTE_LEN = LEN(FIRST_NOTE)
+    XMLRESPONSE = XMLRESPONSE : '<first_note_length>' : FIRST_NOTE_LEN : '</first_note_length>'
+    XMLRESPONSE = XMLRESPONSE : '<first_note_raw><![CDATA[' : FIRST_NOTE : ']]></first_note_raw>'
+    
+    * Convert CHAR(252) to newlines
+    FIRST_NOTE_CONVERTED = CONVERT(XSM, CHAR(10), FIRST_NOTE)
+    XMLRESPONSE = XMLRESPONSE : '<first_note_converted><![CDATA[' : FIRST_NOTE_CONVERTED : ']]></first_note_converted>'
+    
+    * Show character codes
+    XMLRESPONSE = XMLRESPONSE : '<char_codes>'
+    FOR CHARIDX = 1 TO FIRST_NOTE_LEN
+        IF CHARIDX > 100 THEN EXIT
+        CHARCODE = SEQ(FIRST_NOTE[CHARIDX,1])
+        XMLRESPONSE = XMLRESPONSE : '<char pos="' : CHARIDX : '">' : CHARCODE : '</char>'
+    NEXT CHARIDX
+    XMLRESPONSE = XMLRESPONSE : '</char_codes>'
+END
+
+XMLRESPONSE = XMLRESPONSE : '</test>'
+
+WRITE_RESPONSE:
+WRITE XMLRESPONSE ON XMLDATAF,'RESPONSE.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/RESPONSE.XML','',ERR)
+RETURN
+</PRE>

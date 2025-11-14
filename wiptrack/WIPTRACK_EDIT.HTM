@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TAIMEX - WIP TRACKING</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <style>
+    :root {
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --sidebar-bg: #1e293b;
+      --sidebar-hover: #334155;
+      --sidebar-active: #475569;
+      --border-color: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-yellow: #f59e0b;
+      --accent-purple: #8b5cf6;
+      --accent-red: #ef4444;
+      --accent-orange: #f97316;
+      --card-radius: 16px;
+      --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.15);
+      --shadow-card: 0 2px 8px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
+      --shadow-hover: 0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 16px rgba(59, 130, 246, 0.08);
+      --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+    }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: #334155;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(30, 41, 59, 0.25);
+      position: relative;
+      z-index: 100;
+      width: 100%;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo-section img {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+
+    .title-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 16px;
+    }
+
+    .welcome-user {
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .welcome-user span {
+      color: #cbd5e1;
+      font-size: 0.8em;
+      font-weight: 400;
+    }
+
+    .welcome-user strong {
+      color: #3b82f6;
+      margin-left: 4px;
+      font-weight: 600;
+      font-size: 0.9em;
+    }
+
+    .title-section h2 {
+      font-size: 1em;
+      margin: 0;
+      font-weight: 600;
+      color: #f1f5f9;
+      letter-spacing: 0.3px;
+    }
+
+    .title-section p {
+      font-size: 0.8em;
+      margin: 0;
+      color: #a2a8ba;
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.2em;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .hamburger-menu svg {
+      width: 24px;
+      height: 24px;
+      fill: #fff;
+    }
+
+    .hamburger-menu svg path {
+      fill: #fff;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      width: 100%;
+      background: #f8fafc;
+    }
+
+    .wip-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+      overflow-y: auto;
+    }
+
+    .wip-card {
+      background: #fff;
+      border-radius: var(--card-radius);
+      padding: 40px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .wip-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      text-align: center;
+      letter-spacing: -0.02em;
+    }
+
+    .wip-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .form-group label {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group input {
+      padding: 16px 20px;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      font-size: 1.1rem;
+      transition: all var(--transition-smooth);
+      background: #f9fafb;
+      color: var(--text-primary);
+      width: 100%;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+      background: #fff;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+      justify-content: center;
+      margin-top: 16px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      border: none;
+      transition: all var(--transition-smooth);
+      min-width: 140px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue) 0%, #1e3a8a 100%);
+      color: #fff;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, var(--text-secondary) 0%, #334155 100%);
+      color: #fff;
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .feedback {
+      padding: 16px 24px;
+      border-radius: var(--card-radius);
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 24px;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .feedback.success {
+      background: rgba(34, 197, 94, 0.12);
+      color: #15803d;
+      border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+
+    .feedback.error {
+      background: rgba(239, 68, 68, 0.12);
+      color: #dc2626;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .icon {
+      font-size: 1.2rem;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .title-section {
+        text-align: left;
+        align-items: flex-start;
+      }
+
+      .title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .wip-wrapper {
+        padding: 20px 16px;
+      }
+
+      .wip-card {
+        padding: 30px 20px;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn {
+        padding: 14px 24px;
+        min-width: 120px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL" onerror="this.onerror=null;this.src='http://54.189.226.145/uploads/assets/images/taimex_logo.png';">
+        </div>
+      </div>
+      <div class="title-section">
+        <div class="title-row">
+          <div>
+            <h2>TAIMEX - WIP TRACKING</h2>
+            <p>TAIMEX - MANAGEMENT</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="wip-wrapper">
+        <div class="wip-card">
+          <div class="wip-title">WIP Tracking</div>
+          <div class="wip-subtitle">Scan your badge to begin tracking</div>
+          
+          <form method="post" name="getpage" action="/WIPTRACK_EDIT.HTM">
+            <div class="form-group">
+              <label>
+                <i class="fas fa-id-card icon"></i>
+                Scan Badge:
+              </label>
+              <input type="text" name="BADGEID" size="15" autocomplete="off" autofocus>
+            </div>
+            
+            <div class="action-buttons">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-check"></i> OK
+              </button>
+              <button type="button" class="btn btn-secondary" onclick="window.history.go(-1); return false;">
+                <i class="fas fa-arrow-left"></i> Back
+              </button>
+            </div>
+            
+            <div class="feedback" id="messageDisplay">
+              <i class="fas fa-info-circle icon"></i>
+              <span id="messageText">^MSG^</span>
+            </div>
+            
+            <input name="BADGEID" type="hidden" value="^BADGEID^">
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Auto-focus on badge input when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      const badgeInput = document.querySelector('input[name="BADGEID"]');
+      if (badgeInput) {
+        badgeInput.focus();
+      }
+    });
+  </script>
+
+  <PRE>
+PicLan-IP/BASIC ^ ^
+*
+      PL_GETVAR BADGEID FROM 'BADGEID' ELSE BADGEID = ''
+      PL_GETVAR UPDATE FROM 'UPDATE' ELSE UPDATE = ''
+      OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+      OPEN 'BADGES' TO BADGEF ELSE STOP 201,'BADGES'
+ *
+      MSG = ''
+      BREC = '' ; OPER = ''
+*
+      BADGEID = TRIM(BADGEID)
+      BADGEID = OCONV(BADGEID,'MCU')
+      PRINT 'BADGEID = ':BADGEID
+      IF UPDATE NE '' THEN
+   
+           READ OPER FROM OPERSF,BADGEID ELSE 
+              READ BREC FROM BADGEF,BADGEID ELSE
+                 MSG = 'INVALID OPERATOR BADGEID OR SYSTEM OPER ID'
+                 BADGEID = ''
+                 GOTO 99
+              END
+           END
+*
+           IF OPER NE '' THEN
+                BADGEID = BADGEID:'|':OPER<9>
+           END
+           IF BREC NE '' THEN
+                BADGEID = BREC<4>:'|':BADGEID
+           END
+           ERR = ''
+           PL_PUTVAR BADGEID IN 'BADGEID' ELSE NULL
+           PL_PUTVAR '' IN 'UPDATE' ELSE NULL
+           CALL PLW.PAGE('WIPTRACK2_EDIT.HTM','',ERR)
+           RETURN
+       END
+99 *
+*
+*
+    </PRE>
+</body>
+</html>
+     

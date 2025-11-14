@@ -1,0 +1,198 @@
+<pre>
+
+PicLan-IP/BASIC ^ ^
+*
+* UPDATE_VENDPRC.XML - Update or create vendor pricing records
+*
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'VENDPRC' TO VENDPRCF ELSE STOP 201,'VENDPRC'
+
+* Define constants
+XAM = CHAR(254)
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+* Get parameters from URL
+PL_GETVAR VENDOR_NUMBER FROM 'VENDOR_NUMBER' ELSE VENDOR_NUMBER = ''
+PL_GETVAR PART_NUMBER FROM 'PART_NUMBER' ELSE PART_NUMBER = ''
+PL_GETVAR VENDOR_NAME FROM 'VENDOR_NAME' ELSE VENDOR_NAME = ''
+PL_GETVAR PART_DESC FROM 'PART_DESC' ELSE PART_DESC = ''
+PL_GETVAR NOTES FROM 'NOTES' ELSE NOTES = ''
+PL_GETVAR DATE_VALUE FROM 'DATE' ELSE DATE_VALUE = ''
+PL_GETVAR PRICE_RANGES FROM 'PRICE_RANGES' ELSE PRICE_RANGES = ''
+PL_GETVAR ID FROM 'ID' ELSE ID = ''
+
+* Trim inputs
+VENDOR_NUMBER = TRIM(VENDOR_NUMBER)
+PART_NUMBER = TRIM(PART_NUMBER)
+VENDOR_NAME = TRIM(VENDOR_NAME)
+PART_DESC = TRIM(PART_DESC)
+NOTES = TRIM(NOTES)
+DATE_VALUE = TRIM(DATE_VALUE)
+PRICE_RANGES = TRIM(PRICE_RANGES)
+ID = TRIM(ID)
+
+* If ID provided, use as VENDOR_NUMBER
+IF ID <> "" THEN VENDOR_NUMBER = ID
+
+* Generate unique filename
+TIMESTAMP = OCONV(DATE():'*':TIME(), 'MD0')
+TIMESTAMP = TIMESTAMP : OCONV(RND(99999), 'MD0')
+OUTPUT_FILE = 'VENDPRC_UPDATE_' : TIMESTAMP : '.XML'
+
+* Set headers
+PL_ADD_HDR '"Content-Type: application/xml"'
+PL_ADD_HDR '"Cache-Control: no-cache, no-store, must-revalidate"'
+PL_ADD_HDR '"Pragma: no-cache"'
+PL_ADD_HDR '"Expires: 0"'
+
+* Initialize XML response
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>'
+XML.RESPONSE = XML.RESPONSE : XAM:'<response>'
+
+PRINT "===== UPDATE_VENDPRC.XML DEBUG ====="
+PRINT "VENDOR_NUMBER=": VENDOR_NUMBER
+PRINT "PART_NUMBER=": PART_NUMBER
+PRINT "VENDOR_NAME=": VENDOR_NAME
+PRINT "PART_DESC=": PART_DESC
+PRINT "NOTES=": NOTES
+PRINT "DATE=": DATE_VALUE
+PRINT "PRICE_RANGES=": PRICE_RANGES
+PRINT "===================================="
+
+* Validate required fields
+IF VENDOR_NUMBER = "" OR PART_NUMBER = "" THEN
+    XML.RESPONSE = XML.RESPONSE :XAM: '<status>error</status>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '<message>Missing required fields: VENDOR_NUMBER and PART_NUMBER</message>'
+    XML.RESPONSE = XML.RESPONSE :XAM: '</response>'
+    WRITE XML.RESPONSE ON XMLDATAF,OUTPUT_FILE
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/':OUTPUT_FILE,'',ERR)
+    RETURN
+END
+
+* Build record key: PART_NUMBER*VENDOR_NUMBER
+RECORD_KEY = PART_NUMBER : '*' : VENDOR_NUMBER
+
+* Read existing record or create new
+READ VENDPRC.RECORD FROM VENDPRCF, RECORD_KEY THEN
+    OPERATION = 'UPDATE'
+    PRINT "Updating existing record: ": RECORD_KEY
+END ELSE
+    VENDPRC.RECORD = ''
+    OPERATION = 'CREATE'
+    PRINT "Creating new record: ": RECORD_KEY
+END
+
+* Build the record - ALWAYS update all fields (even if empty)
+* Field 1: VENDOR NAME
+VENDPRC.RECORD<1> = VENDOR_NAME
+
+* Field 2: PART DESCRIPTION
+VENDPRC.RECORD<2> = PART_DESC
+
+* Field 3: RESERVED (no usar)
+VENDPRC.RECORD<3> = ''
+
+* Fields 6, 7, 8: PRICE RANGES as separate multivalue fields
+* Expected format from frontend: "MIN_QTY,MAX_QTY,PRICE;MIN_QTY,MAX_QTY,PRICE;..."
+* Field 6: MIN_QTY (multivalue)
+* Field 7: MAX_QTY (multivalue)
+* Field 8: PRICE (multivalue with MR3 format for 3 decimals)
+MIN_FIELD = ''
+MAX_FIELD = ''
+PRICE_FIELD = ''
+IF PRICE_RANGES <> "" THEN
+    * Split by semicolon for each range
+    RANGE_COUNT = DCOUNT(PRICE_RANGES, ';')
+    FOR I = 1 TO RANGE_COUNT
+        RANGE = FIELD(PRICE_RANGES, ';', I)
+        IF RANGE <> "" THEN
+            * Split by comma: MIN,MAX,PRICE
+            MIN_QTY = FIELD(RANGE, ',', 1)
+            MAX_QTY = FIELD(RANGE, ',', 2)
+            PRICE_RAW = FIELD(RANGE, ',', 3)
+            
+            * Build multivalue fields
+            IF I > 1 THEN
+                MIN_FIELD = MIN_FIELD : XVM
+                MAX_FIELD = MAX_FIELD : XVM
+                PRICE_FIELD = PRICE_FIELD : XVM
+            END
+            
+            * Add values
+            MIN_FIELD = MIN_FIELD : MIN_QTY
+            MAX_FIELD = MAX_FIELD : MAX_QTY
+            
+            * Convert price to internal format with MR3 (multiply by 1000)
+            * Example: 54.230 -> 54230
+            IF NUM(PRICE_RAW) THEN
+                PRICE_INTERNAL = PRICE_RAW * 1000
+                PRICE_FIELD = PRICE_FIELD : PRICE_INTERNAL
+            END ELSE
+                PRICE_FIELD = PRICE_FIELD : '0'
+            END
+        END
+    NEXT I
+END
+VENDPRC.RECORD<6> = MIN_FIELD
+VENDPRC.RECORD<7> = MAX_FIELD
+VENDPRC.RECORD<8> = PRICE_FIELD
+
+* Debug price ranges processing
+PRINT "===== PRICE RANGES DEBUG ====="
+PRINT "PRICE_RANGES input=": PRICE_RANGES
+PRINT "Field 6 (MIN_FIELD)=": MIN_FIELD
+PRINT "Field 7 (MAX_FIELD)=": MAX_FIELD
+PRINT "Field 8 (PRICE_FIELD)=": PRICE_FIELD
+PRINT "=============================="
+
+* Field 4: NOTES
+VENDPRC.RECORD<4> = NOTES
+
+* Field 5: DATE (use current date if not provided)
+IF DATE_VALUE <> "" THEN
+    VENDPRC.RECORD<5> = DATE_VALUE
+END ELSE
+    * Use current date in YYYY-MM-DD format
+    CURR_DATE = OCONV(DATE(), 'D4-')
+    VENDPRC.RECORD<5> = CURR_DATE
+END
+
+* Debug before write
+PRINT "===== BEFORE WRITE ====="
+PRINT "RECORD_KEY=": RECORD_KEY
+PRINT "Field 1 (VENDOR_NAME)=": VENDPRC.RECORD<1>
+PRINT "Field 2 (PART_DESC)=": VENDPRC.RECORD<2>
+PRINT "Field 3 (RESERVED)=": VENDPRC.RECORD<3>
+PRINT "Field 4 (NOTES)=": VENDPRC.RECORD<4>
+PRINT "Field 5 (DATE)=": VENDPRC.RECORD<5>
+PRINT "Field 6 (MIN_QTYS)=": VENDPRC.RECORD<6>
+PRINT "Field 7 (MAX_QTYS)=": VENDPRC.RECORD<7>
+PRINT "Field 8 (PRICES)=": VENDPRC.RECORD<8>
+PRINT "FULL RECORD=": VENDPRC.RECORD
+PRINT "========================"
+
+* Write the record
+WRITE VENDPRC.RECORD ON VENDPRCF, RECORD_KEY
+
+PRINT "===== AFTER WRITE ====="
+PRINT "Write command executed for key: ": RECORD_KEY
+PRINT "======================="
+
+* Build success response
+XML.RESPONSE = XML.RESPONSE :XAM: '<status>success</status>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<message>Record ' : OPERATION : 'd successfully</message>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<recordKey>' : RECORD_KEY : '</recordKey>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<vendorNumber>' : VENDOR_NUMBER : '</vendorNumber>'
+XML.RESPONSE = XML.RESPONSE :XAM: '<partNumber>' : PART_NUMBER : '</partNumber>'
+PRINT "Record written successfully: ": RECORD_KEY
+
+XML.RESPONSE = XML.RESPONSE :XAM: '</response>'
+
+* Output the XML
+WRITE XML.RESPONSE ON XMLDATAF,OUTPUT_FILE
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/':OUTPUT_FILE,'',ERR)
+RETURN
+</pre>

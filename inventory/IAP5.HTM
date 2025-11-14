@@ -1,0 +1,184 @@
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+<title>Inventory Addition</title>
+<SCRIPT LANGUAGE="JavaScript"><!--
+function setFocus() {
+    document.forms[0].elements[0].focus();
+}
+//--></SCRIPT>
+</head>
+
+<body bgcolor="#99FF99" topmargin="0" onLoad="setTimeout('setFocus()',1)">
+
+<div align="center">
+  <center>
+
+<table border="1" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="335" id="AutoNumber1" bgcolor="#FFFFFF">
+  <tr>
+    <form method="GET" action="/IAP5.HTM">
+      <td>
+    <table border="1" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber2">
+      <tr>
+        <td width="78%">
+		<p align="center"><font face="Verdana">Inventory Location Additions</font></td>
+      </tr>
+      <tr>
+        <td width="78%">&nbsp;</td>
+      </tr>
+      <tr>
+        <td width="78%" align="center"><font face="Verdana" size="2">&nbsp;&nbsp;&nbsp; 
+		Partnum&nbsp; = <font color="#800080">^PARTNUM^</font></font></td>
+      </tr>
+      <tr>
+        <td width="78%" align="center"><font face="Verdana" size="2">Location =
+		<font color="#800080">^LOCTN^^MCODE^^YCODE^</font></font></td>
+      </tr>
+      <tr>
+        <td>
+            <p align="center">^VWHSEMESSAGE^</p>
+        </td>
+      </tr>      
+      <tr>
+        <td width="78%">
+		<p align="center"><font face="Verdana" color="#FF0000">Scan Box ^BOXNUM^ Quantity</font></td>
+      </tr>
+      <tr>
+        <td width="78%">
+		<p align="center">
+		<input type="text" name="QTY" size="20" style="background-color: #FFFFCC" value="^QTY^" tabindex="1"><input type="submit" value="OK" name="OK" style="color: #FFFFFF; background-color: #FF0000"></td>
+      </tr>
+      <tr>
+        <td width="78%">&nbsp;</td>
+      </tr>
+      <tr>
+        <td width="78%">
+		<p align="center">
+		<input type="submit" value="New Loctn/Dcode" name="NEWLOC" tabindex="2" style="font-family: Verdana; font-size: 8pt; background-color: #9999FF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<input type="submit" value="Main Menu" name="MENU" tabindex="2" style="font-family: Verdana; font-size: 8pt; background-color: #66FF99"></td>
+      </tr>
+    </table>
+    </td>
+    	<input type="hidden" name="LOCTN" value="^LOCTN^">
+		<input type="hidden" name="PARTNUM" value="^PARTNUM^">
+		<input type="hidden" name="QTY" value="^QTY^">
+    	<input type="hidden" name="BOXNUM" value="^BOXNUM^">
+		<input type="hidden" name="LOCTOT" value="^LOCTOT^">
+      <input type="hidden" name="MCODE" value="^MCODE^">
+      <input type="hidden" name="YCODE" value="^YCODE^">
+      <input type="hidden" name="VWHSE" value="^VWHSE^">
+    </form>
+  </tr>
+</table>
+
+  </center>
+</div>
+<pre>PicLan-IP/BASIC ^ ^
+*
+ PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+    ERR = '' ; INITIALS=  ''
+    CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+    RETURN
+ END
+*
+PL_GETVAR YCODE FROM 'YCODE' ELSE YCODE = ''
+PL_GETVAR MCODE FROM 'MCODE' ELSE MCODE = ''
+PL_GETVAR QTY FROM 'QTY' ELSE QTY = ''
+PL_GETVAR LOCTN FROM 'LOCTN' ELSE LOCTN = ''
+PL_GETVAR PARTNUM FROM 'PARTNUM' ELSE PARTNUM = ''
+PL_GETVAR MENU FROM 'MENU' ELSE MENU = ''
+PL_GETVAR NEWLOC FROM 'NEWLOC' ELSE NEWLOC = ''
+PL_GETVAR BOXNUM FROM 'BOXNUM' ELSE BOXNUM = ''
+PL_GETVAR LOCTOT FROM 'LOCTOT' ELSE LOCTOT = ''
+PL_GETVAR VWHSE FROM 'VWHSE' ELSE VWHSE=''
+*
+OPEN '','INV' TO INVF ELSE STOP 201,"INV"
+OPEN '',"TRACK.REC" TO TRACKF ELSE STOP 201,"TRACK.REC"
+MSG=''
+VWHSEMESSAGE = ''
+IF VWHSE NE '' THEN
+    OPEN 'VWHSE,' TO VWHSE.FILE THEN
+        READ VWHSE.RECORD FROM VWHSE.FILE, VWHSE THEN
+            VWHSEMESSAGE= 'VWHSE - ':VWHSE:' ':OCONV(VWHSE.RECORD<2>,'TCUSTOMER;X;;1')
+        END
+    END
+END
+*
+IF QTY[1,1] = 'Q' THEN QTY = QTY[2,99]
+IF QTY NE '' AND NOT(NUM(QTY)) THEN
+  MSG = 'QTY MUST BE NUMERIC'
+  PL_PUTVAR MSG IN 'MSG' ELSE NULL
+  ERR='';MSG=''
+  CALL PLW.PAGE('PALMERROR2.HTM','',ERR)
+  RETURN
+  QTY=''
+END
+*
+IF MENU NE "" THEN 
+      ERR = ''
+      CALL PLW.PAGE('STOCKCHECK.HTM','',ERR)
+      RETURN
+END
+*
+IF NEWLOC NE "" THEN
+      ERR = ''
+      CALL PLW.PAGE('IAP1.HTM','',ERR)
+      RETURN
+END
+*
+
+IF QTY NE '' AND MSG = '' THEN
+    YRMO = YCODE:MCODE
+    NEWLOCTN = LOCTN:YRMO
+    IF VWHSE NE '' THEN
+        ERR=''
+        IF QTY GE 0 THEN
+            CALL PUTVWHSELOC(VWHSE, PARTNUM, QTY, LOCTN, YCODE:MCODE, ERR)
+        END ELSE
+            CALL TAKEVWHSELOC(VWHSE, PARTNUM, (QTY*-1), NEWLOCTN, ERR)
+        END
+        IF ERR NE '' THEN
+            MSG = ERR
+            ERR=''
+            PL_PUTVAR MSG IN 'MSG' ELSE NULL    
+            CALL PLW.PAGE('PALMERROR2.HTM','',ERR)
+            RETURN
+        END        
+    END ELSE
+        READ INV FROM INVF,PARTNUM ELSE INV = ''
+100 *
+        LOCATE(NEWLOCTN,INV<31>,1;HIT) ELSE
+            INV<31,-1> = NEWLOCTN
+            GOTO 100
+        END
+        INV<32,HIT>+=QTY
+        WRITE INV ON INVF,PARTNUM
+    END
+    NEWID = PARTNUM:"*":NEWLOCTN:"*":QTY:"*":OCONV(DATE(),"D2-"):"*":OCONV(TIME(),"MTS"):"*":INITIALS:'*':VWHSE
+    WRITE '' ON TRACKF,NEWID    
+    LOCTOT=LOCTOT+QTY
+    PARTNUM='';QTY=''
+    BOXNUM=BOXNUM+1    
+    PL_PUTVAR PARTNUM IN 'PARTNUM' ELSE NULL
+    PL_PUTVAR QTY IN 'QTY' ELSE NULL
+    PL_PUTVAR LOCTN IN 'LOCTN' ELSE NULL
+    PL_PUTVAR BOXNUM IN 'BOXNUM' ELSE NULL
+    PL_PUTVAR LOCTOT IN 'LOCTOT' ELSE NULL
+    PL_PUTVAR VWHSE IN 'VWHSE' ELSE NULL
+    ERR = ''
+    CALL PLW.PAGE('IAP4.HTM','',ERR)
+    RETURN
+END
+
+</pre>
+
+</body>
+
+</html>
+
+
+

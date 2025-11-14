@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Menu - TAIMEX System</title>
+    <link rel="stylesheet" href="styles/nbmmedit.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="system-title">TAIMEX System</h1>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <section class="welcome-section">
+                <h2 class="welcome-title">Welcome <span class="user-name">^USER^</span></h2>
+                <p class="system-time" id="current-time"></p>
+            </section>
+
+            <section class="menu-section">
+                <form method="post" action="/NBMM.HTM" name="MAINMENU" class="menu-form">
+                    <div class="menu-grid">
+                        <button type="submit" name="MENU1" value="SALES MENU" class="menu-btn sales-btn">
+                            <span class="btn-icon">📊</span>
+                            <span class="btn-text">SALES MENU</span>
+                        </button>
+                        
+                        <button type="submit" name="MENU2" value="PURCHASING MENU" class="menu-btn purchasing-btn">
+                            <span class="btn-icon">🛒</span>
+                            <span class="btn-text">PURCHASING MENU</span>
+                        </button>
+                        
+                        <button type="submit" name="QCMENU" value="QC MENU" class="menu-btn qc-btn">
+                            <span class="btn-icon">✅</span>
+                            <span class="btn-text">QC MENU</span>
+                        </button>
+                        
+                        <button type="submit" name="MENU5" value="STOCK MENU" class="menu-btn stock-btn">
+                            <span class="btn-icon">📦</span>
+                            <span class="btn-text">STOCK MENU</span>
+                        </button>
+                        
+                        <button type="submit" name="MENU6" value="SCHED MENU" class="menu-btn sched-btn">
+                            <span class="btn-icon">📅</span>
+                            <span class="btn-text">SCHED MENU</span>
+                        </button>
+                        
+                        <button type="submit" name="MENU7" value="WIP MENU" class="menu-btn wip-btn">
+                            <span class="btn-icon">⚙️</span>
+                            <span class="btn-text">WIP MENU</span>
+                        </button>
+                        
+                        <button type="submit" name="MENU3" value="LOGOUT" class="menu-btn logout-btn">
+                            <span class="btn-icon">🚪</span>
+                            <span class="btn-text">LOGOUT</span>
+                        </button>
+                    </div>
+                    
+                    <input type="hidden" name="INITIALS" value="^INITIALS^">
+                </form>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-text">© 2024 TAIMEX System. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Display current time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('current-time').textContent = timeString;
+        }
+        
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+        // Add interactive effects
+        document.querySelectorAll('.menu-btn').forEach(btn => {
+            btn.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+            });
+            
+            btn.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+
+    <!-- Server-side processing code (preserved from original) -->
+    <pre style="display:none;">PicLan-IP/BASIC ^ ^
+*
+*    PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+*      PL_GETVAR INITIALS FROM 'INITIALS' ELSE
+*        ERR = '' ; INITIALS=  ''
+*         CALL PLW.PAGE('LOGIN.HTM','',ERR)
+*        RETURN
+*      END
+*    END
+  INITIALS = 'EC'
+      PRINT 'INITIALS ON MAINMENU 2':INITIALS
+    PL_SET_COOKIE 'SONO' TO '' 
+    PL_SET_COOKIE 'QTNO' TO ''
+*PL_SET_COOKIE 'INIT' TO INITIALS
+    OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+    OPEN 'SOCHG' TO SOCHGF ELSE STOP 201,'SOCHG'
+    OPEN 'SOCART' TO SOCARTF ELSE STOP 201,'SOCART'
+    OPEN 'WSOACK' TO WSOACKF ELSE STOP 201,'WSOACK'
+*
+PRINT 'INITIALS = ':INITIALS
+   READ OPER FROM OPERSF,INITIALS<1> ELSE 
+        ERR = ''
+        CALL PLW.PAGE('LOGIN.HTM','',ERR)
+        RETURN
+   END
+*
+   USER = OPER<1>
+   PL_GETVAR OPTION FROM 'OPTION' ELSE OPTION = ''
+   PL_GETVAR CONTINUE FROM 'CONTINUE' ELSE CONTINUE = ''
+   PL_GETVAR MENU1 FROM 'MENU1' ELSE MENU1 = ''
+   PL_GETVAR MENU2 FROM 'MENU2' ELSE MENU2 = ''
+   PL_GETVAR MENU3 FROM 'MENU3' ELSE MENU3 = ''
+   PL_GETVAR MENU4 FROM 'MENU4' ELSE MENU4 = ''
+   PL_GETVAR MENU5 FROM 'MENU5' ELSE MENU5 = ''
+   PL_GETVAR MENU6 FROM 'MENU6' ELSE MENU6 = ''
+   PL_GETVAR MENU7 FROM 'MENU7' ELSE MENU7 = ''
+   PL_GETVAR VWHSE.MENU FROM 'VWHSE.MENU' ELSE VWHSE.MENU = ''
+   PL_GETVAR RMA.MENU FROM 'RMA.MENU' ELSE RMA.MENU=''
+   PL_GETVAR QCMENU FROM 'QCMENU' ELSE QCMENU = ''
+   PL_SET_COOKIE 'SESSIONID' TO ''
+   PL_SET_COOKIE 'VKEY' TO ''
+   
+*
+*
+  IF MENU1 NE '' OR MENU2 NE '' OR MENU3 NE '' OR MENU4 NE '' OR MENU6 NE '' OR MENU7 NE ''  OR RMA.MENU NE '' OR MENU5 NE '' OR VWHSE.MENU NE '' OR QCMENU NE ''  THEN
+    BEGIN CASE
+          CASE OPTION = '1' OR MENU1 NE ''
+                ERR = ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'OPTION' ELSE NULL
+                CALL PLW.PAGE('NBSALES.HTM','',ERR)
+                RETURN
+          CASE OPTION = '2' OR MENU2 NE '' 
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'OPTION' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('NBPOMENU.HTM','',ERR)
+                RETURN
+           CASE QCMENU NE ''
+                ERR = ''
+                *CALL PLW.PAGE('RMAFILEA.HTM','',ERR)
+                CALL PLW.PAGE('QCMENU.HTM','',ERR)
+                RETURN
+           CASE MENU5 NE ''
+                ERR = ''
+                CALL PLW.PAGE('STOCKMENU.HTM','',ERR)
+                RETURN 
+          CASE MENU6 NE ''
+
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL 
+
+
+
+
+                ERR = ''
+                CALL PLW.PAGE('SCHEDMENU.HTM','',ERR)
+                RETURN        
+          CASE MENU7 NE ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('WIPMENU.HTM','',ERR)
+                RETURN        
+           CASE OPTION = '99' OR MENU3 NE '' 
+              PL_SET_COOKIE 'INIT' TO ''
+              ERR = ''
+              CALL PLW.PAGE('LOGIN.HTM','',ERR)
+              RETURN
+    END CASE
+  END
+*
+*
+</pre>
+</body>
+</html>

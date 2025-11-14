@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAIMEX Management System - Main Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --sidebar-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --accent-blue: #2563eb;
+            --card-radius: 12px;
+            --sidebar-width: 280px;
+            --header-height: 64px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100vh;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg-body);
+            color: #334155;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Fixed */
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+            color: #fff;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(30, 41, 59, 0.25);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            height: var(--header-height);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .hamburger-menu {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+            display: none;
+        }
+
+        .hamburger-menu:hover {
+            background-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .logo-section img {
+            height: 40px;
+            width: auto;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .welcome-user {
+            white-space: nowrap;
+        }
+
+        .welcome-user span {
+            color: #cbd5e1;
+            font-size: 0.8em;
+            font-weight: 400;
+        }
+
+        .welcome-user strong {
+            color: #3b82f6;
+            margin-left: 4px;
+            font-weight: 600;
+        }
+
+        .title-section h2 {
+            font-size: 0.95em;
+            margin: 0;
+            font-weight: 500;
+            color: #cbd5e1;
+        }
+
+        /* Sidebar Permanente con Menús Jerárquicos */
+        .sidebar {
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--header-height));
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            z-index: 50;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(calc(-1 * var(--sidebar-width)));
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .sidebar-content {
+            padding: 8px 0;
+        }
+
+        .sidebar-content form {
+            margin: 0;
+            padding: 0;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Menú Principal */
+        .menu-item {
+            margin: 0;
+        }
+
+        .menu-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-link:hover {
+            background: #f8fafc;
+            color: var(--text-primary);
+            border-left-color: var(--accent-blue);
+        }
+
+        .menu-link.active {
+            background: rgba(37, 99, 235, 0.08);
+            color: var(--accent-blue);
+            border-left-color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .menu-icon {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .menu-text {
+            flex: 1;
+        }
+
+        .menu-arrow {
+            transition: transform 0.2s ease;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .menu-link.expanded .menu-arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Submenús */
+        .submenu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: #f8fafc;
+        }
+
+        .submenu.expanded {
+            max-height: 1000px;
+        }
+
+        .submenu-item {
+            margin: 0;
+        }
+
+        .submenu-link {
+            display: block;
+            padding: 10px 20px 10px 52px;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+            border-left: 3px solid transparent;
+        }
+
+        .submenu-link:hover {
+            background: #f1f5f9;
+            color: var(--text-primary);
+            border-left-color: var(--accent-blue);
+        }
+
+        .submenu-link.active {
+            background: rgba(37, 99, 235, 0.12);
+            color: var(--accent-blue);
+            border-left-color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-left: var(--sidebar-width);
+            margin-top: var(--header-height);
+            overflow: hidden;
+            transition: margin-left 0.3s ease;
+        }
+
+        .sidebar.collapsed ~ .main-content {
+            margin-left: 0;
+        }
+
+        .content-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+        }
+
+        .content-area {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Área de carga dinámica */
+        #dynamic-content {
+            min-height: 400px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(calc(-1 * var(--sidebar-width)));
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .hamburger-menu {
+                display: block;
+            }
+
+            .sidebar-overlay {
+                display: block;
+                position: fixed;
+                top: var(--header-height);
+                left: 0;
+                width: 100vw;
+                height: calc(100vh - var(--header-height));
+                background: rgba(0, 0, 0, 0.5);
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s ease;
+                z-index: 40;
+            }
+
+            .sidebar.active ~ .sidebar-overlay {
+                opacity: 1;
+                visibility: visible;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="hamburger-menu" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="logo-section">
+                    <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX">
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="welcome-user">
+                    <span>Welcome,</span>
+                    <strong id="currentUserDisplay">^USER^</strong>
+                </div>
+                <div class="title-section">
+                    <h2>TAIMEX Management System</h2>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar con Menús Jerárquicos Funcionales -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>Main Menu</h3>
+            </div>
+            <div class="sidebar-content">
+                <form method="post" action="/NBMMEDIT.HTM" name="MAINMENU" id="mainMenuForm">
+                    <input type="hidden" name="INITIALS" value="^INITIALS^">
+                    <ul class="sidebar-menu">
+                        <!-- Sales Menu -->
+                        <li class="menu-item">
+                            <a class="menu-link" onclick="toggleMenu(this)" href="javascript:void(0)">
+                                <i class="fas fa-file-invoice menu-icon"></i>
+                                <span class="menu-text">Sales Menu</span>
+                                <i class="fas fa-chevron-down menu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="submenu-item"><a href="/CUSTSEARCHSO_EDIT.HTM" class="submenu-link">SO Entry</a></li>
+                                <li class="submenu-item"><a href="javascript:void(0)" class="submenu-link" onclick="return submitMenu('MENU1', 'SALES MENU', event);">Sales Order Menu</a></li>
+                                <li class="submenu-item"><a href="javascript:void(0)" class="submenu-link" onclick="return loadPage('QUOTE_MENU', event);">Quote Menu</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Purchasing Menu -->
+                        <li class="menu-item">
+                            <a class="menu-link" onclick="toggleMenu(this)" href="javascript:void(0)">
+                                <i class="fas fa-shopping-cart menu-icon"></i>
+                                <span class="menu-text">Purchasing Menu</span>
+                                <i class="fas fa-chevron-down menu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="submenu-item"><a href="javascript:void(0)" class="submenu-link" onclick="return submitMenu('MENU2', 'PURCHASING MENU', event);">View Purchasing Menu</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Code Menu -->
+                        <li class="menu-item">
+                            <a class="menu-link" onclick="toggleMenu(this)" href="javascript:void(0)">
+                                <i class="fas fa-code menu-icon"></i>
+                                <span class="menu-text">Code Menu</span>
+                                <i class="fas fa-chevron-down menu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="submenu-item"><a href="javascript:void(0)" class="submenu-link" onclick="return loadPage('PART_CODES', event);">Part Codes</a></li>
+                                <li class="submenu-item"><a href="javascript:void(0)" class="submenu-link" onclick="return loadPage('CUSTOMER_CODES', event);">Customer Codes</a></li>
+                                <li class="submenu-item"><a href="javascript:void(0)" class="submenu-link" onclick="return loadPage('VENDOR_CODES', event);">Vendor Codes</a></li>
+                                <li class="submenu-item"><a href="javascript:void(0)" class="submenu-link" onclick="return loadPage('GL_CODES', event);">GL Codes</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- QC Menu -->
+                        <li class="menu-item">
+                            <a class="menu-link" onclick="toggleMenu(this)" href="javascript:void(0)">
+                                <i class="fas fa-check-circle menu-icon"></i>
+                                <span class="menu-text">QC Menu</span>
+                                <i class="fas fa-chevron-down menu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="submenu-item"><a href="javascript:void(0)" class="submenu-link" onclick="return submitMenu('QCMENU', 'QC MENU', event);">View QC Menu</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Stock Menu -->
+                        <li class="menu-item">
+                            <a class="menu-link" onclick="toggleMenu(this)" href="javascript:void(0)">
+                                <i class="fas fa-boxes menu-icon"></i>
+                                <span class="menu-text">Stock Menu</span>
+                                <i class="fas fa-chevron-down menu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="submenu-item"><a href="javascript:void(0)" class="submenu-link" onclick="return submitMenu('MENU5', 'STOCK MENU', event);">View Stock Menu</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Sched Menu -->
+                        <li class="menu-item">
+                            <a class="menu-link" onclick="toggleMenu(this)" href="javascript:void(0)">
+                                <i class="fas fa-calendar-alt menu-icon"></i>
+                                <span class="menu-text">Sched Menu</span>
+                                <i class="fas fa-chevron-down menu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="submenu-item"><a href="javascript:void(0)" class="submenu-link" onclick="return submitMenu('MENU6', 'SCHED MENU', event);">View Sched Menu</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- WIP Menu -->
+                        <li class="menu-item">
+                            <a class="menu-link" onclick="toggleMenu(this)" href="javascript:void(0)">
+                                <i class="fas fa-industry menu-icon"></i>
+                                <span class="menu-text">WIP Menu</span>
+                                <i class="fas fa-chevron-down menu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="submenu-item"><a href="javascript:void(0)" class="submenu-link" onclick="return submitMenu('MENU7', 'WIP MENU', event);">View WIP Menu</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- RMA (sin submenú) -->
+                        <li class="menu-item">
+                            <a class="menu-link" href="javascript:void(0)" onclick="return submitMenu('RMA.MENU', 'RMA', event);">
+                                <i class="fas fa-undo menu-icon"></i>
+                                <span class="menu-text">RMA</span>
+                            </a>
+                        </li>
+
+                        <!-- Part Inquiry (sin submenú) -->
+                        <li class="menu-item">
+                            <a class="menu-link" href="javascript:void(0)" onclick="return loadPage('PART_INQUIRY', event);">
+                                <i class="fas fa-search menu-icon"></i>
+                                <span class="menu-text">Part Inquiry</span>
+                            </a>
+                        </li>
+
+                        <!-- Warehouse Inquiry (sin submenú) -->
+                        <li class="menu-item">
+                            <a class="menu-link" href="javascript:void(0)" onclick="return submitMenu('VWHSE.MENU', 'WAREHOUSE', event);">
+                                <i class="fas fa-warehouse menu-icon"></i>
+                                <span class="menu-text">Warehouse Inquiry</span>
+                            </a>
+                        </li>
+
+                        <!-- Logout -->
+                        <li class="menu-item" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 8px;">
+                            <a class="menu-link" href="javascript:void(0)" onclick="return submitMenu('MENU3', 'LOGOUT', event);">
+                                <i class="fas fa-sign-out-alt menu-icon"></i>
+                                <span class="menu-text">Logout</span>
+                            </a>
+                        </li>
+                    </ul>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Sidebar Overlay (móvil) -->
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-wrapper">
+                <div class="content-area">
+                    <div id="dynamic-content">
+                        <h1>Welcome to TAIMEX Management System</h1>
+                        <p>Select an option from the menu to get started.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Toggle sidebar en móvil
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        // Toggle menú con submenús
+        function toggleMenu(element) {
+            const submenu = element.nextElementSibling;
+            const isExpanded = element.classList.contains('expanded');
+            
+            // Cerrar todos los menús
+            document.querySelectorAll('.menu-link').forEach(link => {
+                link.classList.remove('expanded');
+            });
+            document.querySelectorAll('.submenu').forEach(sub => {
+                sub.classList.remove('expanded');
+            });
+            
+            // Abrir el menú clickeado si no estaba expandido
+            if (!isExpanded && submenu) {
+                element.classList.add('expanded');
+                submenu.classList.add('expanded');
+            }
+        }
+
+        // Función específica para SO Entry (BYPASS de NBMMEDIT por compilación repetida)
+        function submitSOEntry(evt) {
+            if (evt) { evt.preventDefault(); evt.stopPropagation(); }
+            try {
+                // Propaga INITIALS a cookie INIT para que CUSTSEARCHSO_EDIT pueda leerlo si lo requiere
+                const iniInput = document.querySelector('input[name="INITIALS"]');
+                const initials = iniInput ? iniInput.value : '';
+                if (initials) {
+                    document.cookie = 'INIT=' + encodeURIComponent(initials) + '; path=/';
+                }
+            } catch (e) {
+                console.warn('No se pudo setear cookie INIT:', e);
+            }
+            // Redirige directo a la pantalla de búsqueda de SO
+            window.location.href = '/CUSTSEARCHSO_EDIT.HTM';
+            return false;
+        }
+
+        // Submit menu con los parámetros correctos para PicLan-IP/BASIC
+        function submitMenu(menuName, menuValue, evt) {
+            const form = document.getElementById('mainMenuForm');
+
+            // Limpiar campos anteriores
+            const oldInputs = form.querySelectorAll('input[type="hidden"]:not([name="INITIALS"])');
+            oldInputs.forEach(input => input.remove());
+
+            // Crear nuevo campo con el nombre correcto
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = menuName;
+            input.value = menuValue;
+            form.appendChild(input);
+
+            // Actualizar items activos
+            document.querySelectorAll('.submenu-link, .menu-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            if (evt && evt.target) {
+                evt.target.classList.add('active');
+            }
+
+            // Submit form
+            form.submit();
+            return false;
+        }
+
+        // Cargar página dinámicamente (para opciones que no tienen backend aún)
+        function loadPage(page, evt) {
+            console.log('Loading page:', page);
+
+            // Actualizar items activos
+            document.querySelectorAll('.submenu-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            if (evt && evt.target) {
+                evt.target.classList.add('active');
+            }
+
+            // Actualizar contenido dinámico
+            document.getElementById('dynamic-content').innerHTML = `
+                <h1>Loading ${page}...</h1>
+                <p>This is a placeholder for ${page}. Backend integration pending.</p>
+            `;
+
+            // Cerrar sidebar en móvil
+            if (window.innerWidth <= 1024) {
+                toggleSidebar();
+            }
+            return false;
+        }
+    </script>
+     <pre style="display:none;">PicLan-IP/BASIC ^ ^
+*
+*    PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+*      PL_GETVAR INITIALS FROM 'INITIALS' ELSE
+*        ERR = '' ; INITIALS=  ''
+*         CALL PLW.PAGE('LOGINEDIT.HTM','',ERR)
+*        RETURN
+*      END
+*    END
+  INITIALS = 'EC'
+    PL_SET_COOKIE 'SONO' TO '' 
+    PL_SET_COOKIE 'QTNO' TO ''
+*PL_SET_COOKIE 'INIT' TO INITIALS
+    OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+    OPEN 'SOCHG' TO SOCHGF ELSE STOP 201,'SOCHG'
+    OPEN 'SOCART' TO SOCARTF ELSE STOP 201,'SOCART'
+    OPEN 'WSOACK' TO WSOACKF ELSE STOP 201,'WSOACK'
+*
+*PRINT 'INITIALS = ':INITIALS
+   READ OPER FROM OPERSF,INITIALS<1> ELSE 
+        ERR = ''
+        CALL PLW.PAGE('LOGINEDIT.HTM','',ERR)
+        RETURN
+   END
+*
+   USER = OPER<1>
+   PL_GETVAR OPTION FROM 'OPTION' ELSE OPTION = ''
+   PL_GETVAR CONTINUE FROM 'CONTINUE' ELSE CONTINUE = ''
+   PL_GETVAR MENU1 FROM 'MENU1' ELSE MENU1 = ''
+   PL_GETVAR MENU2 FROM 'MENU2' ELSE MENU2 = ''
+   PL_GETVAR MENU3 FROM 'MENU3' ELSE MENU3 = ''
+   PL_GETVAR MENU4 FROM 'MENU4' ELSE MENU4 = ''
+   PL_GETVAR MENU5 FROM 'MENU5' ELSE MENU5 = ''
+   PL_GETVAR MENU6 FROM 'MENU6' ELSE MENU6 = ''
+   PL_GETVAR MENU7 FROM 'MENU7' ELSE MENU7 = ''
+   PL_GETVAR VWHSE.MENU FROM 'VWHSE.MENU' ELSE VWHSE.MENU = ''
+   PL_GETVAR RMA.MENU FROM 'RMA.MENU' ELSE RMA.MENU=''
+   PL_GETVAR QCMENU FROM 'QCMENU' ELSE QCMENU = ''
+   PL_SET_COOKIE 'SESSIONID' TO ''
+   PL_SET_COOKIE 'VKEY' TO ''
+   
+*
+*
+  IF MENU1 NE '' OR MENU2 NE '' OR MENU3 NE '' OR MENU4 NE '' OR MENU6 NE '' OR MENU7 NE ''  OR RMA.MENU NE '' OR MENU5 NE '' OR VWHSE.MENU NE '' OR QCMENU NE ''  THEN
+    BEGIN CASE
+          CASE OPTION = '1' OR MENU1 NE ''
+                ERR = ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'OPTION' ELSE NULL
+                CALL PLW.PAGE('CUSTSEARCHSO_EDIT.HTM','',ERR)
+                RETURN
+          CASE OPTION = '2' OR MENU2 NE '' 
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'OPTION' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('NBPOMENU.HTM','',ERR)
+                RETURN
+           CASE QCMENU NE ''
+                ERR = ''
+                *CALL PLW.PAGE('RMAFILEA.HTM','',ERR)
+                CALL PLW.PAGE('QCMENU.HTM','',ERR)
+                RETURN
+           CASE MENU5 NE ''
+                ERR = ''
+                CALL PLW.PAGE('STOCKMENU.HTM','',ERR)
+                RETURN 
+          CASE MENU6 NE ''
+
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL 
+
+
+
+
+                ERR = ''
+                CALL PLW.PAGE('SCHEDMENU.HTM','',ERR)
+                RETURN        
+          CASE MENU7 NE ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('WIPMENU.HTM','',ERR)
+                RETURN        
+           CASE OPTION = '99' OR MENU3 NE '' 
+              PL_SET_COOKIE 'INIT' TO ''
+              ERR = ''
+              CALL PLW.PAGE('LOGINEDIT.HTM','',ERR)
+              RETURN
+    END CASE
+  END
+  RETURN
+*
+*
+</pre>
+</body>
+</html>

@@ -1,0 +1,1902 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAIMEX - Generador de Sistemas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .generator-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 24px;
+            height: calc(100vh - 40px);
+        }
+
+        .config-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .preview-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            color: #1e293b;
+            margin-bottom: 8px;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .template-card {
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .template-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .template-card.active {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .template-card i {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #667eea;
+        }
+
+        .template-card .name {
+            font-weight: 500;
+            color: #1e293b;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .color-inputs {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .color-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .color-input-wrapper input[type="color"] {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .color-input-wrapper input[type="text"] {
+            flex: 1;
+        }
+
+        .tab-item, .field-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 8px;
+            margin-bottom: 8px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .field-item {
+            grid-template-columns: 1.2fr 0.8fr 1fr auto;
+        }
+
+        .remove-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .remove-btn:hover {
+            background: #dc2626;
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .add-btn:hover {
+            background: #5568d3;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-outline {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #f0f4ff;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .preview-header h2 {
+            color: #1e293b;
+            font-size: 18px;
+        }
+
+        .preview-frame-container {
+            flex: 1;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        #previewFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .storage-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .storage-btn {
+            padding: 8px 12px;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .storage-btn:hover {
+            background: #e2e8f0;
+        }
+
+        @media (max-width: 1200px) {
+            .generator-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .preview-frame-container {
+                min-height: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="generator-container">
+        <!-- Panel de Configuración -->
+        <div class="config-panel">
+            <h1><i class="fas fa-magic"></i> Generador de Sistemas</h1>
+            <p class="subtitle">Crea sistemas CRUD personalizados en minutos</p>
+
+            <!-- Templates Predefinidos -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-layer-group"></i>
+                    Plantillas Predefinidas
+                </div>
+                <div class="template-grid">
+                    <div class="template-card active" onclick="selectTemplate('prices', this)">
+                        <i class="fas fa-dollar-sign"></i>
+                        <div class="name">Precios</div>
+                    </div>
+                    <div class="template-card" onclick="selectTemplate('inventory', this)">
+                        <i class="fas fa-boxes"></i>
+                        <div class="name">Inventario</div>
+                    </div>
+                    <div class="template-card" onclick="selectTemplate('employees', this)">
+                        <i class="fas fa-users"></i>
+                        <div class="name">Empleados</div>
+                    </div>
+                    <div class="template-card" onclick="selectTemplate('projects', this)">
+                        <i class="fas fa-project-diagram"></i>
+                        <div class="name">Proyectos</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guardar/Cargar Configuraciones -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-save"></i>
+                    Configuraciones
+                </div>
+                <div class="storage-buttons">
+                    <button class="storage-btn" onclick="saveConfig()">
+                        <i class="fas fa-download"></i> Guardar
+                    </button>
+                    <button class="storage-btn" onclick="loadConfig()">
+                        <i class="fas fa-upload"></i> Cargar
+                    </button>
+                    <button class="storage-btn" onclick="exportConfig()">
+                        <i class="fas fa-file-export"></i> Exportar
+                    </button>
+                    <button class="storage-btn" onclick="importConfig()">
+                        <i class="fas fa-file-import"></i> Importar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Información del Sistema -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    Información del Sistema
+                </div>
+                <div class="form-group">
+                    <label>Título del Sistema</label>
+                    <input type="text" id="systemTitle" placeholder="Ej: TAIMEX - Sistema de Gestión" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>Subtítulo</label>
+                    <input type="text" id="systemSubtitle" placeholder="Ej: Sistema de Control de Inventario" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>URL del Logo</label>
+                    <input type="text" id="logoUrl" placeholder="https://..." oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>Nombre de Usuario</label>
+                    <input type="text" id="userName" placeholder="Admin User" oninput="updatePreview()">
+                </div>
+            </div>
+
+            <!-- Colores -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-palette"></i>
+                    Esquema de Colores
+                </div>
+                <div class="color-inputs">
+                    <div class="form-group">
+                        <label>Color Primario</label>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="primaryColor" onchange="updatePreview()">
+                            <input type="text" id="primaryColorText" oninput="syncColor('primary', this.value)" placeholder="#1e293b">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Color Secundario</label>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="secondaryColor" onchange="updatePreview()">
+                            <input type="text" id="secondaryColorText" oninput="syncColor('secondary', this.value)" placeholder="#1e3a8a">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Color Acento</label>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="accentColor" onchange="updatePreview()">
+                            <input type="text" id="accentColorText" oninput="syncColor('accent', this.value)" placeholder="#fbbf24">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Color Fondo</label>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="backgroundColor" onchange="updatePreview()">
+                            <input type="text" id="backgroundColorText" oninput="syncColor('background', this.value)" placeholder="#f1f5f9">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-columns"></i>
+                    Pestañas del Sistema
+                </div>
+                <div id="tabsConfig"></div>
+                <button class="add-btn" onclick="addTab()">
+                    <i class="fas fa-plus"></i>
+                    Agregar Pestaña
+                </button>
+            </div>
+
+            <!-- Campos -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-list"></i>
+                    Campos del Formulario
+                </div>
+                <div id="fieldsConfig"></div>
+                <button class="add-btn" onclick="addField()">
+                    <i class="fas fa-plus"></i>
+                    Agregar Campo
+                </button>
+            </div>
+
+            <!-- Acciones -->
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="resetConfig()">
+                    <i class="fas fa-undo"></i>
+                    Resetear
+                </button>
+                <button class="btn btn-primary" onclick="generateTemplate()">
+                    <i class="fas fa-rocket"></i>
+                    Generar Sistema
+                </button>
+            </div>
+        </div>
+
+        <!-- Panel de Preview -->
+        <div class="preview-panel">
+            <div class="preview-header">
+                <h2><i class="fas fa-eye"></i> Vista Previa</h2>
+            </div>
+            <div class="preview-frame-container">
+                <iframe id="previewFrame"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="handleImport(event)">
+
+    <script>
+let currentTemplate = 'prices';
+let config = {
+    systemTitle: 'TAIMEX - Client & Part Data System',
+    systemSubtitle: 'Sistema de Gestión',
+    logoUrl: 'https://via.placeholder.com/120x40/1e293b/ffffff?text=LOGO',
+    userName: 'Admin User',
+    primaryColor: '#1e293b',
+    secondaryColor: '#1e3a8a',
+    accentColor: '#fbbf24',
+    backgroundColor: '#f1f5f9',
+    tabs: [
+        { name: 'Captura de Datos', icon: 'fas fa-plus' },
+        { name: 'Buscar y Ver', icon: 'fas fa-search' },
+        { name: 'Gestionar Registros', icon: 'fas fa-edit' }
+    ],
+    fields: [
+        { name: 'Cliente', type: 'text', placeholder: 'Nombre del cliente' },
+        { name: 'Número de Parte', type: 'text', placeholder: 'Código de parte' },
+        { name: 'Fecha', type: 'date', placeholder: 'Seleccionar fecha' }
+    ]
+};
+
+function selectTemplate(template, element) {
+    currentTemplate = template;
+    document.querySelectorAll('.template-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    if (element) {
+        const card = element.closest ? element.closest('.template-card') : element;
+        if (card) card.classList.add('active');
+    }
+    
+    updateConfigForTemplate(template);
+    updatePreview();
+}
+
+function updateConfigForTemplate(template) {
+    const templates = {
+        prices: {
+            systemTitle: 'TAIMEX - Client & Part Data System',
+            systemSubtitle: 'Sistema de Gestión de Precios',
+            tabs: [
+                { name: 'Captura de Datos', icon: 'fas fa-plus' },
+                { name: 'Buscar y Ver', icon: 'fas fa-search' },
+                { name: 'Gestionar Registros', icon: 'fas fa-edit' }
+            ],
+            fields: [
+                { name: 'Cliente', type: 'text', placeholder: 'Nombre del cliente' },
+                { name: 'Número de Parte', type: 'text', placeholder: 'Código de parte' },
+                { name: 'Fecha', type: 'date', placeholder: 'Seleccionar fecha' }
+            ]
+        },
+        inventory: {
+            systemTitle: 'TAIMEX - Inventory Management System',
+            systemSubtitle: 'Sistema de Control de Inventario',
+            tabs: [
+                { name: 'Agregar Producto', icon: 'fas fa-plus' },
+                { name: 'Consultar Stock', icon: 'fas fa-boxes' },
+                { name: 'Movimientos', icon: 'fas fa-exchange-alt' }
+            ],
+            fields: [
+                { name: 'Producto', type: 'text', placeholder: 'Nombre del producto' },
+                { name: 'SKU', type: 'text', placeholder: 'Código SKU' },
+                { name: 'Cantidad', type: 'number', placeholder: 'Stock disponible' },
+                { name: 'Precio', type: 'number', placeholder: 'Precio unitario' }
+            ]
+        },
+        employees: {
+            systemTitle: 'TAIMEX - Employee Management System',
+            systemSubtitle: 'Sistema de Gestión de Personal',
+            tabs: [
+                { name: 'Nuevo Empleado', icon: 'fas fa-user-plus' },
+                { name: 'Directorio', icon: 'fas fa-users' },
+                { name: 'Administrar', icon: 'fas fa-user-cog' }
+            ],
+            fields: [
+                { name: 'Nombre Completo', type: 'text', placeholder: 'Nombre y apellidos' },
+                { name: 'Email', type: 'email', placeholder: 'correo@empresa.com' },
+                { name: 'Departamento', type: 'text', placeholder: 'Área de trabajo' },
+                { name: 'Fecha de Ingreso', type: 'date', placeholder: 'Fecha de contratación' }
+            ]
+        },
+        projects: {
+            systemTitle: 'TAIMEX - Project Management System',
+            systemSubtitle: 'Sistema de Gestión de Proyectos',
+            tabs: [
+                { name: 'Nuevo Proyecto', icon: 'fas fa-project-diagram' },
+                { name: 'Proyectos Activos', icon: 'fas fa-tasks' },
+                { name: 'Reportes', icon: 'fas fa-chart-bar' }
+            ],
+            fields: [
+                { name: 'Nombre del Proyecto', type: 'text', placeholder: 'Título del proyecto' },
+                { name: 'Cliente', type: 'text', placeholder: 'Cliente asignado' },
+                { name: 'Fecha de Inicio', type: 'date', placeholder: 'Fecha de inicio' },
+                { name: 'Estado', type: 'select', placeholder: 'Estado del proyecto' }
+            ]
+        }
+    };
+
+    if (templates[template]) {
+        const templateConfig = templates[template];
+        document.getElementById('systemTitle').value = templateConfig.systemTitle;
+        document.getElementById('systemSubtitle').value = templateConfig.systemSubtitle;
+        
+        const tabsContainer = document.getElementById('tabsConfig');
+        tabsContainer.innerHTML = '';
+        templateConfig.tabs.forEach(tab => {
+            addTabWithData(tab.name, tab.icon);
+        });
+        
+        const fieldsContainer = document.getElementById('fieldsConfig');
+        fieldsContainer.innerHTML = '';
+        templateConfig.fields.forEach(field => {
+            addFieldWithData(field.name, field.type, field.placeholder);
+        });
+    }
+}
+
+function addTab() {
+    const tabsContainer = document.getElementById('tabsConfig');
+    const tabItem = document.createElement('div');
+    tabItem.className = 'tab-item';
+    tabItem.innerHTML = `
+        <input type="text" placeholder="Nombre del Tab" oninput="updatePreview()">
+        <input type="text" placeholder="Icono (ej: fas fa-plus)" oninput="updatePreview()">
+        <button class="remove-btn" onclick="removeTab(this)"><i class="fas fa-trash"></i></button>
+    `;
+    tabsContainer.appendChild(tabItem);
+}
+
+function addTabWithData(name, icon) {
+    const tabsContainer = document.getElementById('tabsConfig');
+    const tabItem = document.createElement('div');
+    tabItem.className = 'tab-item';
+    tabItem.innerHTML = `
+        <input type="text" placeholder="Nombre del Tab" value="${name}" oninput="updatePreview()">
+        <input type="text" placeholder="Icono (ej: fas fa-plus)" value="${icon}" oninput="updatePreview()">
+        <button class="remove-btn" onclick="removeTab(this)"><i class="fas fa-trash"></i></button>
+    `;
+    tabsContainer.appendChild(tabItem);
+}
+
+function removeTab(button) {
+    button.parentElement.remove();
+    updatePreview();
+}
+
+function addField() {
+    const fieldsContainer = document.getElementById('fieldsConfig');
+    const fieldItem = document.createElement('div');
+    fieldItem.className = 'field-item';
+    fieldItem.innerHTML = `
+        <input type="text" placeholder="Nombre del Campo" oninput="updatePreview()">
+        <select onchange="updatePreview()">
+            <option value="text">Texto</option>
+            <option value="email">Email</option>
+            <option value="number">Número</option>
+            <option value="date">Fecha</option>
+            <option value="select">Lista</option>
+        </select>
+        <input type="text" placeholder="Placeholder" oninput="updatePreview()">
+        <button class="remove-btn" onclick="removeField(this)"><i class="fas fa-trash"></i></button>
+    `;
+    fieldsContainer.appendChild(fieldItem);
+}
+
+function addFieldWithData(name, type, placeholder) {
+    const fieldsContainer = document.getElementById('fieldsConfig');
+    const fieldItem = document.createElement('div');
+    fieldItem.className = 'field-item';
+    fieldItem.innerHTML = `
+        <input type="text" placeholder="Nombre del Campo" value="${name}" oninput="updatePreview()">
+        <select onchange="updatePreview()">
+            <option value="text" ${type === 'text' ? 'selected' : ''}>Texto</option>
+            <option value="email" ${type === 'email' ? 'selected' : ''}>Email</option>
+            <option value="number" ${type === 'number' ? 'selected' : ''}>Número</option>
+            <option value="date" ${type === 'date' ? 'selected' : ''}>Fecha</option>
+            <option value="select" ${type === 'select' ? 'selected' : ''}>Lista</option>
+        </select>
+        <input type="text" placeholder="Placeholder" value="${placeholder}" oninput="updatePreview()">
+        <button class="remove-btn" onclick="removeField(this)"><i class="fas fa-trash"></i></button>
+    `;
+    fieldsContainer.appendChild(fieldItem);
+}
+
+function removeField(button) {
+    button.parentElement.remove();
+    updatePreview();
+}
+
+function updatePreview() {
+    console.group('🔍 DEBUG updatePreview()');
+    
+    config.systemTitle = document.getElementById('systemTitle').value;
+    config.systemSubtitle = document.getElementById('systemSubtitle').value;
+    config.logoUrl = document.getElementById('logoUrl').value;
+    config.userName = document.getElementById('userName').value;
+    config.primaryColor = document.getElementById('primaryColor').value;
+    config.secondaryColor = document.getElementById('secondaryColor').value;
+    config.accentColor = document.getElementById('accentColor').value;
+    config.backgroundColor = document.getElementById('backgroundColor').value;
+
+    config.tabs = [];
+    document.querySelectorAll('#tabsConfig .tab-item').forEach(item => {
+        const inputs = item.querySelectorAll('input');
+        if (inputs[0].value && inputs[1].value) {
+            config.tabs.push({
+                name: inputs[0].value,
+                icon: inputs[1].value
+            });
+        }
+    });
+
+    config.fields = [];
+    document.querySelectorAll('#fieldsConfig .field-item').forEach(item => {
+        const inputs = item.querySelectorAll('input');
+        const select = item.querySelector('select');
+        if (inputs[0].value) {
+            config.fields.push({
+                name: inputs[0].value,
+                type: select.value,
+                placeholder: inputs[1].value
+            });
+        }
+    });
+
+    console.log('Config completo:', config);
+    console.log('Tabs:', config.tabs);
+    console.log('Fields:', config.fields);
+    
+    try {
+        const previewHTML = generatePreviewHTML();
+        console.log('HTML Preview generado (primeros 500 chars):', previewHTML.substring(0, 500));
+        console.log('HTML Preview (últimos 500 chars):', previewHTML.substring(previewHTML.length - 500));
+        console.log('Longitud total del HTML:', previewHTML.length);
+        
+        const frame = document.getElementById('previewFrame');
+        if (!frame) {
+            console.error('❌ No se encontró el iframe previewFrame');
+        } else {
+            console.log('✅ Iframe encontrado, asignando srcdoc...');
+            frame.srcdoc = previewHTML;
+            console.log('✅ srcdoc asignado correctamente');
+        }
+    } catch (error) {
+        console.error('❌ Error al generar preview:', error);
+        console.error('Stack:', error.stack);
+    }
+    
+    console.groupEnd();
+}
+
+function generatePreviewHTML() {
+    console.group('🔍 DEBUG generatePreviewHTML()');
+    
+    const safeConfig = {
+        systemTitle: config.systemTitle || 'Sistema',
+        logoUrl: config.logoUrl || '',
+        userName: config.userName || 'Usuario',
+        primaryColor: config.primaryColor || '#1e293b',
+        secondaryColor: config.secondaryColor || '#1e3a8a',
+        accentColor: config.accentColor || '#fbbf24',
+        backgroundColor: config.backgroundColor || '#f1f5f9',
+        tabs: config.tabs || [],
+        fields: config.fields || []
+    };
+    
+    console.log('safeConfig:', safeConfig);
+    console.log('Tabs count:', safeConfig.tabs.length);
+    console.log('Fields count:', safeConfig.fields.length);
+    
+    const htmlResult = `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${safeConfig.systemTitle}</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body {
+                    font-family: 'Inter', sans-serif;
+                    background: linear-gradient(135deg, ${safeConfig.backgroundColor} 0%, #e2e8f0 100%);
+                    color: #334155;
+                    height: 100vh;
+                    overflow: hidden;
+                }
+                .header {
+                    background: linear-gradient(135deg, ${safeConfig.primaryColor} 0%, ${safeConfig.secondaryColor} 100%);
+                    color: white;
+                    padding: 16px 24px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                .header-left {
+                    display: flex;
+                    align-items: center;
+                    gap: 20px;
+                }
+                .header img {
+                    height: 40px;
+                    width: auto;
+                }
+                .header h1 {
+                    font-size: 1.2em;
+                    font-weight: 700;
+                }
+                .welcome-user strong {
+                    color: ${safeConfig.accentColor};
+                }
+                .main-content {
+                    padding: 20px;
+                    height: calc(100vh - 80px);
+                    overflow-y: auto;
+                }
+                .tab-navigation {
+                    margin-bottom: 20px;
+                }
+                .tab-buttons {
+                    display: flex;
+                    gap: 10px;
+                    border-bottom: 2px solid #e2e8f0;
+                }
+                .tab-button {
+                    padding: 12px 20px;
+                    border: none;
+                    background: transparent;
+                    color: #64748b;
+                    cursor: pointer;
+                    border-bottom: 3px solid transparent;
+                    transition: all 0.2s;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+                .tab-button.active {
+                    color: ${safeConfig.primaryColor};
+                    border-bottom-color: ${safeConfig.primaryColor};
+                }
+                .form-container {
+                    background: white;
+                    padding: 30px;
+                    border-radius: 12px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    margin-bottom: 20px;
+                }
+                .form-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 20px;
+                }
+                .form-group label {
+                    display: block;
+                    margin-bottom: 8px;
+                    font-weight: 500;
+                    color: #374151;
+                }
+                .form-group input, .form-group select {
+                    width: 100%;
+                    padding: 12px;
+                    border: 2px solid #e5e7eb;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    transition: border-color 0.2s;
+                }
+                .form-group input:focus, .form-group select:focus {
+                    outline: none;
+                    border-color: ${safeConfig.primaryColor};
+                }
+                .btn {
+                    padding: 12px 24px;
+                    border: none;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-weight: 500;
+                    transition: all 0.2s;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+                .btn-primary {
+                    background: ${safeConfig.primaryColor};
+                    color: white;
+                }
+                .btn-primary:hover {
+                    background: ${safeConfig.secondaryColor};
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <div class="header-left">
+                    <img src="${safeConfig.logoUrl}" alt="Logo" onerror="this.style.display='none'">
+                    <h1>${safeConfig.systemTitle}</h1>
+                </div>
+                <div class="welcome-user">
+                    <span>Bienvenido,</span>
+                    <strong>${safeConfig.userName}</strong>
+                </div>
+            </div>
+            
+            <div class="main-content">
+                <div class="tab-navigation">
+                    <div class="tab-buttons">
+                        ${safeConfig.tabs.map((tab, index) => `
+                            <button class="tab-button ${index === 0 ? 'active' : ''}">
+                                <i class="${tab.icon}"></i>
+                                ${tab.name}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="form-container">
+                    <h3 style="margin-bottom: 24px; color: #1e293b;">${safeConfig.tabs[0] ? safeConfig.tabs[0].name : 'Formulario'}</h3>
+                    <div class="form-grid">
+                        ${safeConfig.fields.map(field => `
+                            <div class="form-group">
+                                <label>${field.name}</label>
+                                <input type="${field.type}" placeholder="${field.placeholder}">
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="margin-top: 24px;">
+                        <button class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            Guardar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+    
+    console.log('✅ HTML generado exitosamente');
+    console.log('Tipo de retorno:', typeof htmlResult);
+    console.log('Es string?', typeof htmlResult === 'string');
+    console.groupEnd();
+    
+    return htmlResult;
+}
+
+function generateTemplate() {
+    const fullHTML = generateCompleteSystemHTML();
+    
+    // Crear y descargar archivo
+    const blob = new Blob([fullHTML], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sistema_${currentTemplate}_${Date.now()}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showNotification('¡Sistema generado exitosamente!', 'El archivo se ha descargado automáticamente.');
+}
+
+function generateCompleteSystemHTML() {
+    const fieldIds = config.fields.map((field, index) => `field-${index}`);
+    const fieldKeys = config.fields.map(field => field.name.toLowerCase().replace(/\s+/g, ''));
+    
+    return `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>${config.systemTitle}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Base Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100vh; overflow: hidden; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, ${config.backgroundColor} 0%, #e2e8f0 100%);
+            background-attachment: fixed;
+            color: #334155;
+        }
+
+        .container {
+            width: 100vw; height: 100vh; background: #ffffff;
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, ${config.primaryColor} 0%, ${config.secondaryColor} 100%);
+            color: #ffffff;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(30, 41, 59, 0.25);
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .logo-section img {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+            filter: brightness(1.1);
+        }
+
+        .header .logo-section h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8em;
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: white;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-user {
+            position: relative;
+            z-index: 1;
+            white-space: nowrap;
+        }
+
+        .welcome-user span {
+            color: #cbd5e1;
+            font-size: 0.8em;
+            font-weight: 400;
+        }
+
+        .welcome-user strong {
+            color: ${config.accentColor};
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 24px;
+            gap: 24px;
+        }
+
+        /* Tab Navigation */
+        .tab-navigation {
+            flex-shrink: 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 8px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0;
+        }
+
+        .tab-button {
+            padding: 16px 24px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .tab-button:hover {
+            background: #f8fafc;
+            color: ${config.primaryColor};
+        }
+
+        .tab-button.active {
+            background: white;
+            color: ${config.primaryColor};
+            border-bottom-color: ${config.primaryColor};
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .tab-pane {
+            display: none;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        /* Form Styles */
+        .form-container {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: #ffffff;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: ${config.primaryColor};
+            box-shadow: 0 0 0 3px ${config.primaryColor}20;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: ${config.primaryColor};
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: ${config.secondaryColor};
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        /* Grid Styles */
+        .excel-grid-wrapper {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .grid-toolbar {
+            padding: 20px 24px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .excel-grid-container {
+            flex: 1;
+            overflow: auto;
+        }
+
+        .excel-grid-premium {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .excel-header {
+            background: ${config.primaryColor};
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            border-right: 1px solid rgba(255,255,255,0.2);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .excel-header:hover {
+            background: ${config.secondaryColor};
+        }
+
+        .excel-cell {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+            background: white;
+            transition: background-color 0.2s;
+        }
+
+        .excel-cell:hover {
+            background: #f8fafc;
+        }
+
+        /* Notification Styles */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .notification {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            padding: 20px;
+            margin-bottom: 12px;
+            border-left: 4px solid #10b981;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 16px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tab-buttons {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <div class="logo-section">
+                    <img src="${config.logoUrl}" alt="Logo" onerror="showFallbackLogo(this)">
+                    <h1 style="display: none;">${config.systemTitle}</h1>
+                </div>
+            </div>
+            <div class="welcome-user">
+                <span>Bienvenido,</span>
+                <strong>${config.userName}</strong>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="tab-navigation">
+                <div class="tab-buttons">
+                    ${config.tabs.map((tab, index) => `
+                        <button class="tab-button ${index === 0 ? 'active' : ''}" onclick="switchTab('tab-${index}')">
+                            <i class="${tab.icon}"></i>${tab.name}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+
+            <div class="tab-content">
+                <!-- Tab 0: Formulario de captura -->
+                <div id="tab-0" class="tab-pane active">
+                    <div class="form-container">
+                        <h3 style="margin-bottom: 24px; color: #1e293b;">${config.tabs[0]?.name || 'Agregar Registro'}</h3>
+                        <form onsubmit="addRecord(event)">
+                            <div class="form-grid">
+                                ${config.fields.map((field, index) => `
+                                    <div class="form-group">
+                                        <label>${field.name}</label>
+                                        <input type="${field.type}" id="field-${index}" placeholder="${field.placeholder}" required>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div style="display: flex; gap: 16px;">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Guardar
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                                    <i class="fas fa-eraser"></i>
+                                    Limpiar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tab 1: Buscar y Ver -->
+                <div id="tab-1" class="tab-pane">
+                    <div class="form-container">
+                        <h3 style="margin-bottom: 24px; color: #1e293b;">${config.tabs[1]?.name || 'Buscar Registros'}</h3>
+                        <div class="form-grid">
+                            ${config.fields.map((field, index) => `
+                                <div class="form-group">
+                                    <label>Buscar por ${field.name}</label>
+                                    <input type="${field.type}" id="search-${index}" placeholder="Filtrar por ${field.name.toLowerCase()}" oninput="filterRecords()">
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div style="display: flex; gap: 16px; margin-top: 16px;">
+                            <button class="btn btn-secondary" onclick="clearFilters()">
+                                <i class="fas fa-times"></i>
+                                Limpiar Filtros
+                            </button>
+                            <button class="btn btn-success" onclick="exportToCSV()">
+                                <i class="fas fa-download"></i>
+                                Exportar CSV
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="excel-grid-wrapper">
+                        <div class="grid-toolbar">
+                            <div class="toolbar-left">
+                                <span class="results-count">
+                                    <i class="fas fa-database"></i> 
+                                    <span id="recordCount">0</span> registros encontrados
+                                </span>
+                            </div>
+                        </div>
+                        <div class="excel-grid-container">
+                            <table class="excel-grid-premium">
+                                <thead>
+                                    <tr>
+                                        ${config.fields.map((field, index) => `
+                                            <th class="excel-header" onclick="sortTable(${index})">
+                                                ${field.name}
+                                                <i class="fas fa-sort" style="margin-left: 8px; opacity: 0.7;"></i>
+                                            </th>
+                                        `).join('')}
+                                        <th class="excel-header">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recordsTableBody">
+                                    <!-- Los registros se cargarán aquí dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Gestionar Registros -->
+                <div id="tab-2" class="tab-pane">
+                    <div class="form-container">
+                        <h3 style="margin-bottom: 24px; color: #1e293b;">${config.tabs[2]?.name || 'Editar Registro'}</h3>
+                        <form onsubmit="updateRecord(event)" id="editForm" style="display: none;">
+                            <div class="form-grid">
+                                ${config.fields.map((field, index) => `
+                                    <div class="form-group">
+                                        <label>${field.name}</label>
+                                        <input type="${field.type}" id="edit-field-${index}" placeholder="${field.placeholder}" required>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div style="display: flex; gap: 16px; margin-top: 24px;">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Actualizar
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="cancelEdit()">
+                                    <i class="fas fa-times"></i>
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                        <div id="noEditMessage" style="text-align: center; padding: 40px; color: #6b7280;">
+                            <i class="fas fa-edit" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
+                            <p>Selecciona un registro de la pestaña "${config.tabs[1]?.name || 'Buscar y Ver'}" para editarlo aquí.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let records = [];
+        let currentEditIndex = -1;
+        let sortDirection = {};
+
+        function showFallbackLogo(img) {
+            img.style.display = 'none';
+            img.nextElementSibling.style.display = 'block';
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        function addRecord(event) {
+            event.preventDefault();
+            
+            const formData = {};
+            ${config.fields.map((field, index) => `
+                formData['${fieldKeys[index]}'] = document.getElementById('field-${index}').value;
+            `).join('')}
+            
+            records.push(formData);
+            renderRecords();
+            clearForm();
+            showSuccessNotification('¡Registro agregado!', 'El registro se ha guardado correctamente.');
+        }
+
+        function clearForm() {
+            ${config.fields.map((field, index) => `
+                document.getElementById('field-${index}').value = '';
+            `).join('')}
+        }
+
+        function renderRecords(recordsToRender = records) {
+            const tbody = document.getElementById('recordsTableBody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = recordsToRender.map((record, index) => {
+                return '<tr>' +
+                    ${config.fields.map((field, fieldIndex) => `"<td class='excel-cell'>" + (record['${fieldKeys[fieldIndex]}'] || '') + "</td>" +`).join('\n                    ')}
+                    '<td class="excel-cell">' +
+                        '<button class="btn btn-primary" style="padding: 6px 12px; margin-right: 8px;" onclick="editRecord(' + records.indexOf(record) + ')">' +
+                            '<i class="fas fa-edit"></i>' +
+                        '</button>' +
+                        '<button class="btn btn-danger" style="padding: 6px 12px;" onclick="deleteRecord(' + records.indexOf(record) + ')">' +
+                            '<i class="fas fa-trash"></i>' +
+                        '</button>' +
+                    '</td>' +
+                '</tr>';
+            }).join('');
+            
+            updateRecordCount(recordsToRender.length);
+        }
+
+        function updateRecordCount(count = null) {
+            const countElement = document.getElementById('recordCount');
+            if (countElement) {
+                countElement.textContent = count !== null ? count : records.length;
+            }
+        }
+
+        function filterRecords() {
+            const filters = {};
+            ${config.fields.map((field, index) => `
+                filters['${fieldKeys[index]}'] = document.getElementById('search-${index}').value.toLowerCase();
+            `).join('')}
+            
+            const filteredRecords = records.filter(record => {
+                return Object.keys(filters).every(key => {
+                    if (!filters[key]) return true;
+                    return (record[key] || '').toLowerCase().includes(filters[key]);
+                });
+            });
+            
+            renderRecords(filteredRecords);
+        }
+
+        function clearFilters() {
+            ${config.fields.map((field, index) => `
+                document.getElementById('search-${index}').value = '';
+            `).join('')}
+            renderRecords();
+        }
+
+        function sortTable(fieldIndex) {
+            const fieldKey = '${fieldKeys[0]}'.split(',')[fieldIndex] || Object.keys(records[0] || {})[fieldIndex];
+            if (!fieldKey) return;
+            
+            const direction = sortDirection[fieldKey] === 'asc' ? 'desc' : 'asc';
+            sortDirection[fieldKey] = direction;
+            
+            records.sort((a, b) => {
+                const aVal = (a[fieldKey] || '').toString().toLowerCase();
+                const bVal = (b[fieldKey] || '').toString().toLowerCase();
+                
+                if (direction === 'asc') {
+                    return aVal.localeCompare(bVal);
+                } else {
+                    return bVal.localeCompare(aVal);
+                }
+            });
+            
+            renderRecords();
+        }
+
+        function editRecord(index) {
+            currentEditIndex = index;
+            const record = records[index];
+            
+            ${config.fields.map((field, fieldIndex) => `
+                document.getElementById('edit-field-${fieldIndex}').value = record['${fieldKeys[fieldIndex]}'] || '';
+            `).join('')}
+            
+            document.getElementById('editForm').style.display = 'block';
+            document.getElementById('noEditMessage').style.display = 'none';
+            
+            // Cambiar a la pestaña de gestión
+            switchTab('tab-2');
+            document.querySelectorAll('.tab-button')[2].classList.add('active');
+        }
+
+        function updateRecord(event) {
+            event.preventDefault();
+            
+            if (currentEditIndex === -1) return;
+            
+            const updatedData = {};
+            ${config.fields.map((field, index) => `
+                updatedData['${fieldKeys[index]}'] = document.getElementById('edit-field-${index}').value;
+            `).join('')}
+            
+            records[currentEditIndex] = updatedData;
+            renderRecords();
+            cancelEdit();
+            showSuccessNotification('¡Registro actualizado!', 'Los cambios se han guardado correctamente.');
+        }
+
+        function cancelEdit() {
+            currentEditIndex = -1;
+            document.getElementById('editForm').style.display = 'none';
+            document.getElementById('noEditMessage').style.display = 'block';
+        }
+
+        function deleteRecord(index) {
+            if (confirm('¿Estás seguro de que deseas eliminar este registro?')) {
+                records.splice(index, 1);
+                renderRecords();
+                showSuccessNotification('¡Registro eliminado!', 'El registro se ha eliminado correctamente.');
+            }
+        }
+
+        function exportToCSV() {
+            if (records.length === 0) {
+                alert('No hay registros para exportar.');
+                return;
+            }
+            
+            const headers = [${config.fields.map(field => `'${field.name}'`).join(', ')}];
+            const csvContent = [headers.join(',')];
+            
+            records.forEach(record => {
+                const row = [${fieldKeys.map(key => `record['${key}'] || ''`).join(', ')}];
+                csvContent.push(row.join(','));
+            });
+            
+            const blob = new Blob([csvContent.join('\\n')], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'registros_${currentTemplate}_' + new Date().toISOString().split('T')[0] + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function showSuccessNotification(title, message = '') {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = 
+                '<div style="display: flex; align-items: center; gap: 12px;">' +
+                    '<i class="fas fa-check-circle" style="color: #10b981; font-size: 20px;"></i>' +
+                    '<div>' +
+                        '<div style="font-weight: 600; color: #1e293b;">' + title + '</div>' +
+                        (message ? '<div style="font-size: 14px; color: #6b7280;">' + message + '</div>' : '') +
+                    '</div>' +
+                '</div>';
+            
+            let container = document.querySelector('.notification-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'notification-container';
+                document.body.appendChild(container);
+            }
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            updateRecordCount();
+        });
+    </script>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+</body>
+</html>`;
+}
+
+function resetConfig() {
+    // Resetear a configuración por defecto
+    document.getElementById('systemTitle').value = 'TAIMEX - Client & Part Data System';
+    document.getElementById('systemSubtitle').value = 'Sistema de Gestión';
+    document.getElementById('logoUrl').value = 'https://via.placeholder.com/120x40/1e293b/ffffff?text=LOGO';
+    document.getElementById('userName').value = 'Admin User';
+    document.getElementById('primaryColor').value = '#1e293b';
+    document.getElementById('secondaryColor').value = '#1e3a8a';
+    document.getElementById('accentColor').value = '#fbbf24';
+    document.getElementById('backgroundColor').value = '#f1f5f9';
+    
+    updateConfigForTemplate('prices');
+    updatePreview();
+}
+
+function showNotification(title, message) {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <i class="fas fa-check-circle" style="color: #10b981; font-size: 20px;"></i>
+            <div>
+                <div style="font-weight: 600; color: #1e293b;">${title}</div>
+                <div style="font-size: 14px; color: #6b7280;">${message}</div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
+
+// Sincronizar color pickers
+function syncColor(colorName, value) {
+    const colorInput = document.getElementById(`${colorName}Color`);
+    const textInput = document.getElementById(`${colorName}ColorText`);
+    
+    if (value.startsWith('#') && value.length === 7) {
+        colorInput.value = value;
+        textInput.value = value;
+        updatePreview();
+    }
+}
+
+// Guardar configuración en localStorage
+function saveConfig() {
+    updatePreview(); // Asegurar que config está actualizado
+    localStorage.setItem('taimex_generator_config', JSON.stringify(config));
+    showNotification('Configuración Guardada', 'La configuración se guardó correctamente en tu navegador.');
+}
+
+// Cargar configuración desde localStorage
+function loadConfig() {
+    const savedConfig = localStorage.getItem('taimex_generator_config');
+    if (savedConfig) {
+        try {
+            const loadedConfig = JSON.parse(savedConfig);
+            applyConfig(loadedConfig);
+            showNotification('Configuración Cargada', 'La configuración se cargó correctamente.');
+        } catch (e) {
+            alert('Error al cargar la configuración guardada.');
+        }
+    } else {
+        alert('No hay configuración guardada en tu navegador.');
+    }
+}
+
+// Exportar configuración como JSON
+function exportConfig() {
+    updatePreview(); // Asegurar que config esté actualizado
+    const dataStr = JSON.stringify(config, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `taimex_config_${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showNotification('Configuración Exportada', 'Archivo JSON descargado exitosamente.');
+}
+
+// Importar configuración desde JSON
+function importConfig() {
+    document.getElementById('importFileInput').click();
+}
+
+function handleImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedConfig = JSON.parse(e.target.result);
+            applyConfig(importedConfig);
+            showNotification('Configuración Importada', 'La configuración se importó correctamente.');
+        } catch (error) {
+            alert('Error al importar el archivo. Asegúrate de que sea un JSON válido.');
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = ''; // Reset input
+}
+
+// Aplicar configuración al formulario
+function applyConfig(loadedConfig) {
+    // Actualizar campos básicos
+    document.getElementById('systemTitle').value = loadedConfig.systemTitle || '';
+    document.getElementById('systemSubtitle').value = loadedConfig.systemSubtitle || '';
+    document.getElementById('logoUrl').value = loadedConfig.logoUrl || '';
+    document.getElementById('userName').value = loadedConfig.userName || '';
+    
+    // Actualizar colores
+    if (loadedConfig.primaryColor) {
+        document.getElementById('primaryColor').value = loadedConfig.primaryColor;
+        document.getElementById('primaryColorText').value = loadedConfig.primaryColor;
+    }
+    if (loadedConfig.secondaryColor) {
+        document.getElementById('secondaryColor').value = loadedConfig.secondaryColor;
+        document.getElementById('secondaryColorText').value = loadedConfig.secondaryColor;
+    }
+    if (loadedConfig.accentColor) {
+        document.getElementById('accentColor').value = loadedConfig.accentColor;
+        document.getElementById('accentColorText').value = loadedConfig.accentColor;
+    }
+    if (loadedConfig.backgroundColor) {
+        document.getElementById('backgroundColor').value = loadedConfig.backgroundColor;
+        document.getElementById('backgroundColorText').value = loadedConfig.backgroundColor;
+    }
+    
+    // Actualizar tabs
+    const tabsContainer = document.getElementById('tabsConfig');
+    tabsContainer.innerHTML = '';
+    if (loadedConfig.tabs && loadedConfig.tabs.length > 0) {
+        loadedConfig.tabs.forEach(tab => {
+            addTabWithData(tab.name, tab.icon);
+        });
+    }
+    
+    // Actualizar fields
+    const fieldsContainer = document.getElementById('fieldsConfig');
+    fieldsContainer.innerHTML = '';
+    if (loadedConfig.fields && loadedConfig.fields.length > 0) {
+        loadedConfig.fields.forEach(field => {
+            addFieldWithData(field.name, field.type, field.placeholder);
+        });
+    }
+    
+    config = loadedConfig;
+    updatePreview();
+}
+
+// Inicializar vista previa al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar valores de color text
+    document.getElementById('primaryColorText').value = config.primaryColor;
+    document.getElementById('secondaryColorText').value = config.secondaryColor;
+    document.getElementById('accentColorText').value = config.accentColor;
+    document.getElementById('backgroundColorText').value = config.backgroundColor;
+    
+    // Sincronizar color pickers con inputs de texto
+    ['primary', 'secondary', 'accent', 'background'].forEach(colorName => {
+        const colorInput = document.getElementById(`${colorName}Color`);
+        if (colorInput) {
+            colorInput.addEventListener('change', function() {
+                document.getElementById(`${colorName}ColorText`).value = this.value;
+            });
+        }
+    });
+    
+    // Cargar template inicial
+    updateConfigForTemplate('prices');
+    updatePreview();
+});
+</script>
+<script>
+// Debug global de errores
+window.addEventListener('error', function(event) {
+    console.group('🔍 DEBUG ERROR DETECTADO');
+    console.error('Mensaje:', event.message);
+    console.error('Archivo:', event.filename);
+    console.error('Línea:', event.lineno, 'Columna:', event.colno);
+    console.error('Stack:', event.error ? event.error.stack : 'No disponible');
+    console.groupEnd();
+    
+    // Crear panel de debug visual
+    showDebugPanel('ERROR', 
+        'Mensaje: ' + event.message + '\n' +
+        'Archivo: ' + event.filename + '\n' +
+        'Línea: ' + event.lineno + ', Columna: ' + event.colno + '\n' +
+        'Stack: ' + (event.error ? event.error.stack : 'No disponible')
+    );
+});
+
+window.addEventListener('unhandledrejection', function(event) {
+    console.group('🔍 DEBUG PROMESA RECHAZADA');
+    console.error('Razón:', event.reason);
+    console.groupEnd();
+    
+    showDebugPanel('PROMESA RECHAZADA', 'Razón: ' + event.reason);
+});
+
+function showDebugPanel(title, message) {
+    // Remover panel anterior si existe
+    const existingPanel = document.getElementById('debugPanel');
+    if (existingPanel) existingPanel.remove();
+    
+    const panel = document.createElement('div');
+    panel.id = 'debugPanel';
+    panel.style.cssText = 'position: fixed; top: 20px; right: 20px; max-width: 500px; background: #dc2626; color: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 99999; font-family: monospace; font-size: 12px; max-height: 400px; overflow-y: auto;';
+    
+    const header = document.createElement('div');
+    header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;';
+    
+    const titleEl = document.createElement('strong');
+    titleEl.style.fontSize = '14px';
+    titleEl.textContent = '🔍 ' + title;
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'X';
+    closeBtn.style.cssText = 'background: white; color: #dc2626; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;';
+    closeBtn.onclick = function() { panel.remove(); };
+    
+    header.appendChild(titleEl);
+    header.appendChild(closeBtn);
+    
+    const pre = document.createElement('pre');
+    pre.style.cssText = 'white-space: pre-wrap; word-wrap: break-word; margin: 0;';
+    pre.textContent = message;
+    
+    panel.appendChild(header);
+    panel.appendChild(pre);
+    document.body.appendChild(panel);
+}
+</script>
+</body>
+</html>

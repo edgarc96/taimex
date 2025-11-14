@@ -1,0 +1,100 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+<title>Inventory Addition</title>
+<SCRIPT LANGUAGE="JavaScript"><!--
+function setFocus() {
+    document.forms[0].elements[0].focus();
+}
+//--></SCRIPT>
+</head>
+
+<body bgcolor="#99FF99" topmargin="0" onLoad="setTimeout('setFocus()',1)">
+
+<div align="center">
+  <center>
+
+<table border="1" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="335" id="AutoNumber1" bgcolor="#FFFFFF">
+  <tr>
+    <form method="GET" action="/IAP1.HTM">
+      <td>
+    <table border="1" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber2">
+      <tr>
+        <td width="78%">
+		<p align="center"><font face="Verdana">Inventory Location Additions</font></td>
+      </tr>
+      <tr>
+        <td width="78%">&nbsp;</td>
+      </tr>
+      <tr>
+        <td width="78%">
+		<p align="center"><font face="Verdana" color="#FF0000">Scan Location</font></td>
+      </tr>
+      <tr>
+        <td width="78%">
+		<p align="center">
+		<input type="text" name="LOCTN" size="20" style="background-color: #FFFFCC" value="^LOCTN^" tabindex="1"><input type="submit" value="OK" name="OK" style="color: #FFFFFF; background-color: #FF0000"></td>
+      </tr>
+      <tr>
+        <td width="78%">&nbsp;</td>
+      </tr>
+      <tr>
+        <td width="78%">
+		<p align="center">
+		<input type="submit" value="Main Menu" name="MENU" tabindex="2" style="font-family: Verdana; font-size: 8pt; background-color: #66FF99"></td>
+      </tr>
+    </table>
+    </td>
+    </form>
+  </tr>
+</table>
+
+  </center>
+</div>
+<pre>PicLan-IP/BASIC ^ ^
+*
+ PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+    ERR = '' ; INITIALS=  ''
+    CALL PLW.PAGE('LOGINWH.HTM','',ERR)
+    RETURN
+ END
+*
+PL_GETVAR LOCTN FROM 'LOCTN' ELSE LOCTN = ''
+PL_GETVAR MENU FROM 'MENU' ELSE MENU = ''
+*
+MSG=''
+IF MENU NE &quot;&quot; THEN 
+      ERR = ''
+      CALL PLW.PAGE('STOCKCHECK.HTM','',ERR)
+      RETURN
+END
+IF LOCTN NE &quot;&quot; AND LEN(LOCTN) &gt; 6 THEN
+   MSG = &quot;INVALID LOCATION&quot;
+   LOCTN=''
+   PL_PUTVAR MSG IN 'MSG' ELSE NULL
+   ERR=''
+   CALL PLW.PAGE('PALMERROR2.HTM','',ERR)
+   RETURN
+END
+    
+*
+IF LOCTN NE &quot;&quot; THEN
+      PL_PUTVAR LOCTN IN 'LOCTN' ELSE LOCTN = ''
+      ERR = ''
+      CALL PLW.PAGE('IAP2.HTM','',ERR)
+      RETURN
+END
+
+
+</pre>
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,651 @@
+
+<pre>       
+
+PicLan-IP/BASIC ^ ^
+
+INCLUDE PLBASIC BP.INCLUDES PLW.INCLUDES
+
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'PO' TO POF ELSE STOP 201,'PO'
+OPEN 'TMP' TO TMPF ELSE TMPF = ''
+
+* IMMEDIATE DEBUG - NO XML.RESPONSE YET
+WRITE '<EARLY_DEBUG>UPDATE_PO.XML STARTED</EARLY_DEBUG>' ON XMLDATAF,'DEBUG_EARLY.XML'
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+
+* Initialize multivalue separators at global scope
+XVM = CHAR(253)
+XSM = CHAR(252)
+
+PL_GETVAR SAVE_MODE FROM 'save_mode' ELSE SAVE_MODE = 'UPDATE'
+PL_GETVAR DRAFT_ID FROM 'draft_id' ELSE DRAFT_ID = ''
+PL_GETVAR PO_NUMBER FROM 'po_number' ELSE PO_NUMBER = ''
+PL_GETVAR PO_DATE FROM 'po_date' ELSE PO_DATE = ''
+PL_GETVAR BUYER_CODE FROM 'buyer_code' ELSE BUYER_CODE = ''
+PL_GETVAR VENDOR_CODE FROM 'vendor_code' ELSE VENDOR_CODE = ''
+PL_GETVAR SHIPTO_CODE FROM 'shipto_code' ELSE SHIPTO_CODE = ''
+PL_GETVAR SHIP_VIA FROM 'ship_via' ELSE SHIP_VIA = ''
+PL_GETVAR TERMS FROM 'terms' ELSE TERMS = ''
+PL_GETVAR PO_STATUS FROM 'po_status' ELSE PO_STATUS = ''
+PL_GETVAR EMAIL FROM 'email' ELSE EMAIL = ''
+PL_GETVAR LINE_ITEMS FROM 'line_items' ELSE LINE_ITEMS = ''
+PL_GETVAR LINE_POSITIONS FROM 'line_positions' ELSE LINE_POSITIONS = ''
+PL_GETVAR PART_NUMBERS FROM 'part_numbers' ELSE PART_NUMBERS = ''
+PL_GETVAR LINE_DESCRIPTIONS FROM 'descriptions' ELSE LINE_DESCRIPTIONS = ''
+PL_GETVAR LINE_QUANTITIES FROM 'line_quantities' ELSE LINE_QUANTITIES = ''
+PL_GETVAR LINE_PRICES FROM 'line_prices' ELSE LINE_PRICES = ''
+PL_GETVAR LINE_UOMS FROM 'line_uoms' ELSE LINE_UOMS = ''
+PL_GETVAR SCHEDULE_DATA FROM 'schedule_data' ELSE SCHEDULE_DATA = ''
+PL_GETVAR NEEDS_DATA FROM 'needs_data' ELSE NEEDS_DATA = ''
+PL_GETVAR ACK_DATA FROM 'ack_data' ELSE ACK_DATA = ''
+PL_GETVAR HEADER_NOTES FROM 'header_notes' ELSE HEADER_NOTES = ''
+PL_GETVAR LINE_NOTES_DATA FROM 'field_40' ELSE LINE_NOTES_DATA = ''
+PL_GETVAR PRODUCTION_NOTES FROM 'field_73' ELSE PRODUCTION_NOTES = ''
+PL_GETVAR NOTED_STAMP FROM 'noted_stamp' ELSE NOTED_STAMP = ''
+
+* Initialize variables
+UPDATED_FIELD = ''
+
+XML.RESPONSE = '<?xml version="1.0"?><update_response>'
+XML.RESPONSE = XML.RESPONSE : '<debug_start>UPDATE_PO_EXECUTING</debug_start>'
+XML.RESPONSE = XML.RESPONSE : '<debug_save_mode>' : SAVE_MODE : '</debug_save_mode>'
+XML.RESPONSE = XML.RESPONSE : '<debug_draft_id>' : DRAFT_ID : '</debug_draft_id>'
+
+IF PO_NUMBER = "" THEN
+    XML.RESPONSE = XML.RESPONSE : '<error>PO Number is required</error></update_response>'
+    WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_PO.XML'
+    ERR = ''
+    CALL PLW.PAGE('/XMLDATA/UPDATE_PO.XML','',ERR)
+    RETURN
+END
+
+* Handle CREATE vs UPDATE mode
+IF SAVE_MODE = 'CREATE' THEN
+    XML.RESPONSE = XML.RESPONSE : '<debug_create_mode>Creating new PO ' : PO_NUMBER : '</debug_create_mode>'
+    * Create new blank record
+    PO.RECORD = ''
+    * If converting from draft, delete draft from TMP
+    IF DRAFT_ID <> '' THEN
+        XML.RESPONSE = XML.RESPONSE : '<debug_draft_id_received>' : DRAFT_ID : '</debug_draft_id_received>'
+        IF TMPF <> '' THEN
+            * Check if draft exists before deleting
+            READ DRAFT.RECORD FROM TMPF, DRAFT_ID THEN
+                XML.RESPONSE = XML.RESPONSE : '<debug_draft_found>Draft ' : DRAFT_ID : ' found in TMP, attempting DELETE</debug_draft_found>'
+                * Attempt to delete with error handling
+                DELETE TMPF, DRAFT_ID ON ERROR
+                    XML.RESPONSE = XML.RESPONSE : '<debug_delete_error>Error deleting draft ' : DRAFT_ID : ' - Error code: ' : STATUS() : '</debug_delete_error>'
+                    GOTO SKIP_DELETE_SUCCESS
+                END
+                * If we get here, delete succeeded
+                XML.RESPONSE = XML.RESPONSE : '<debug_draft_deleted>✅ Draft ' : DRAFT_ID : ' DELETED from TMP successfully</debug_draft_deleted>'
+                * Verify deletion by trying to read again
+                READ VERIFY.RECORD FROM TMPF, DRAFT_ID THEN
+                    XML.RESPONSE = XML.RESPONSE : '<debug_delete_verification_failed>❌ WARNING: Draft still exists after DELETE!</debug_delete_verification_failed>'
+                END ELSE
+                    XML.RESPONSE = XML.RESPONSE : '<debug_delete_verified>✅ VERIFIED: Draft ' : DRAFT_ID : ' no longer in TMP</debug_delete_verified>'
+                END
+SKIP_DELETE_SUCCESS:
+            END ELSE
+                XML.RESPONSE = XML.RESPONSE : '<debug_draft_not_found>Draft ' : DRAFT_ID : ' not found in TMP (may have been already deleted)</debug_draft_not_found>'
+            END
+        END ELSE
+            XML.RESPONSE = XML.RESPONSE : '<debug_tmp_file_not_open>TMP file could not be opened</debug_tmp_file_not_open>'
+        END
+    END ELSE
+        XML.RESPONSE = XML.RESPONSE : '<debug_no_draft_id>No draft_id provided - not deleting from TMP</debug_no_draft_id>'
+    END
+END ELSE
+    * UPDATE mode - Read existing record
+    XML.RESPONSE = XML.RESPONSE : '<debug_update_mode>Updating existing PO ' : PO_NUMBER : '</debug_update_mode>'
+    READ PO.RECORD FROM POF, PO_NUMBER ELSE GOTO PO_NOT_FOUND
+END
+
+* Update basic fields using same positions as GET_PO_PRODUCTION.XML
+IF PO_DATE <> "" THEN PO.RECORD<1> = PO_DATE
+IF VENDOR_CODE <> "" THEN PO.RECORD<2> = VENDOR_CODE
+IF SHIPTO_CODE <> "" THEN PO.RECORD<4> = SHIPTO_CODE
+IF BUYER_CODE <> "" THEN PO.RECORD<8> = BUYER_CODE
+IF SHIP_VIA <> "" THEN PO.RECORD<11> = SHIP_VIA
+IF TERMS <> "" THEN PO.RECORD<12> = TERMS
+IF PO_STATUS <> "" THEN PO.RECORD<15> = PO_STATUS 
+IF EMAIL <> "" THEN PO.RECORD<80> = EMAIL
+
+* Process line items data - convert from pipe format to multivalues
+IF LINE_ITEMS <> "" THEN
+    * Debug: Log received line items data
+    XML.RESPONSE = XML.RESPONSE : '<debug_line_items>' : LINE_ITEMS : '</debug_line_items>'
+    * LINE_ITEMS format: "part1*qty1*price1|part2*qty2*price2"
+    * Convert to multivalues using CORRECT separators XVM (CHAR 253) and XSM (CHAR 252)
+    CONVERT "|" TO XVM IN LINE_ITEMS
+    PART_NUMBERS = ""
+    QUANTITIES = ""
+    UNIT_PRICES = ""
+    
+    NUM_ITEMS = DCOUNT(LINE_ITEMS, XVM)
+    FOR I = 1 TO NUM_ITEMS
+        ITEM_DATA = LINE_ITEMS<1,I>
+        IF ITEM_DATA <> "" THEN
+            * Extract part_number*quantity*price using FIELD() with "*" separator
+            PART_NUMBER = FIELD(ITEM_DATA, '*', 1)
+            QUANTITY = FIELD(ITEM_DATA, '*', 2)
+            UNIT_PRICE_DISPLAY = FIELD(ITEM_DATA, '*', 3)
+            
+            * MR4 CONVERSION: Convert display format to internal format (4 decimal places)
+            * Display: 4, Internal: 40000 (entero seguido de 4 ceros)
+            * Formula: internal = display * 10000 (10^4 para 4 decimales)
+            IF UNIT_PRICE_DISPLAY <> '' AND NUM(UNIT_PRICE_DISPLAY) THEN
+                UNIT_PRICE = UNIT_PRICE_DISPLAY * 10000
+            END ELSE
+                UNIT_PRICE = UNIT_PRICE_DISPLAY
+            END
+            
+            IF I = 1 THEN
+                PART_NUMBERS = PART_NUMBER
+                QUANTITIES = QUANTITY
+                UNIT_PRICES = UNIT_PRICE
+            END ELSE
+                PART_NUMBERS = PART_NUMBERS : XVM : PART_NUMBER
+                QUANTITIES = QUANTITIES : XVM : QUANTITY
+                UNIT_PRICES = UNIT_PRICES : XVM : UNIT_PRICE
+            END
+        END
+    NEXT I
+    
+    * Update PO record with line item data using correct field assignments
+    IF LINE_POSITIONS <> '' THEN
+        CONVERT '|' TO XVM IN LINE_POSITIONS
+        PO.RECORD<31> = LINE_POSITIONS   ; * Field 31: Line positions (1]2]3)
+    END
+    
+    IF PART_NUMBERS <> '' THEN
+        * Clean PART_NUMBERS: Extract only part number (first field before "*")
+        CONVERT '|' TO XVM IN PART_NUMBERS
+        CLEANED_PARTS = ''
+        NUM_PARTS = DCOUNT(PART_NUMBERS, XVM)
+        FOR K = 1 TO NUM_PARTS
+            PART_DATA = PART_NUMBERS<1,K>
+            * Extract only the part number (before any "*")
+            CLEAN_PART = FIELD(PART_DATA, '*', 1)
+            IF K = 1 THEN
+                CLEANED_PARTS = CLEAN_PART
+            END ELSE
+                CLEANED_PARTS = CLEANED_PARTS : XVM : CLEAN_PART
+            END
+        NEXT K
+        PO.RECORD<32> = CLEANED_PARTS    ; * Field 32: Part numbers (cleaned)
+    END
+    
+    IF LINE_DESCRIPTIONS <> '' THEN
+        CONVERT '|' TO XVM IN LINE_DESCRIPTIONS
+        PO.RECORD<33> = LINE_DESCRIPTIONS ; * Field 33: Descriptions
+    END
+    
+    IF LINE_QUANTITIES <> '' THEN
+        PO.RECORD<35> = QUANTITIES  ; * Field 35: Quantities (already XVM converted)
+    END
+    
+    IF LINE_PRICES <> '' THEN
+        * Convert LINE_PRICES from pipe format to multivalue format
+        CONVERT '|' TO XVM IN LINE_PRICES
+        
+        * MR4 CONVERSION: Convert each price from display to internal format (4 decimal places)
+        CONVERTED_PRICES = ''
+        NUM_PRICES = DCOUNT(LINE_PRICES, XVM)
+        FOR J = 1 TO NUM_PRICES
+            DISPLAY_PRICE = FIELD(LINE_PRICES, XVM, J)
+            IF DISPLAY_PRICE <> '' AND NUM(DISPLAY_PRICE) THEN
+                INTERNAL_PRICE = DISPLAY_PRICE * 10000
+            END ELSE
+                INTERNAL_PRICE = DISPLAY_PRICE
+            END
+            
+            IF J = 1 THEN
+                CONVERTED_PRICES = INTERNAL_PRICE
+            END ELSE
+                CONVERTED_PRICES = CONVERTED_PRICES : XVM : INTERNAL_PRICE
+            END
+        NEXT J
+        
+        PO.RECORD<36> = CONVERTED_PRICES  ; * Field 36: Prices (converted to internal format)
+    END ELSE IF UNIT_PRICES <> '' THEN
+        PO.RECORD<36> = UNIT_PRICES      ; * Field 36: Prices (from LINE_ITEMS processing)
+    END
+    
+    * Process UOMs (Unit of Measure) - Field 37
+    IF LINE_UOMS <> '' THEN
+        CONVERT '|' TO XVM IN LINE_UOMS
+        PO.RECORD<37> = LINE_UOMS
+        UOM_COUNT = DCOUNT(LINE_UOMS, XVM)
+        XML.RESPONSE = XML.RESPONSE : '<debug_line_uoms_count>' : UOM_COUNT : '</debug_line_uoms_count>'
+        XML.RESPONSE = XML.RESPONSE : '<debug_field37_saved>UOMs saved to field 37: ' : LINE_UOMS : '</debug_field37_saved>'
+    END
+    
+    * Debug: Log what was saved
+    XML.RESPONSE = XML.RESPONSE : '<debug_saved_parts>' : PART_NUMBERS : '</debug_saved_parts>'
+    XML.RESPONSE = XML.RESPONSE : '<debug_saved_qtys>' : QUANTITIES : '</debug_saved_qtys>'
+    XML.RESPONSE = XML.RESPONSE : '<debug_line_prices_received>' : LINE_PRICES : '</debug_line_prices_received>'
+    XML.RESPONSE = XML.RESPONSE : '<debug_unit_prices_from_items>' : UNIT_PRICES : '</debug_unit_prices_from_items>'
+    XML.RESPONSE = XML.RESPONSE : '<debug_final_field36>' : PO.RECORD<36> : '</debug_final_field36>'
+END
+
+* Process tracking data - preserve line alignment and subvalues
+CURRENT_FIELD_NUM = 34
+CURRENT_TRACKING_DATA = SCHEDULE_DATA
+GOSUB UPDATE_TRACKING_FIELD
+XML.RESPONSE = XML.RESPONSE : '<debug_final_field34>' : PO.RECORD<34> : '</debug_final_field34>'
+
+CURRENT_FIELD_NUM = 38
+CURRENT_TRACKING_DATA = NEEDS_DATA
+GOSUB UPDATE_TRACKING_FIELD
+
+* FIELD 40: Line Item Notes - SPECIAL PROCESSING (not tracking data)
+IF LINE_NOTES_DATA <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<debug_line_notes_data_received>' : LINE_NOTES_DATA : '</debug_line_notes_data_received>'
+    XML.RESPONSE = XML.RESPONSE : '<debug_line_notes_before_update>' : PO.RECORD<40> : '</debug_line_notes_before_update>'
+    
+    * Convert | separator from frontend to CHAR(253) for database
+    CONVERTED.LINE.NOTES = LINE_NOTES_DATA
+    CONVERTED.LINE.NOTES = CHANGE(CONVERTED.LINE.NOTES, '|', CHAR(253))
+    XML.RESPONSE = XML.RESPONSE : '<debug_line_notes_converted>Converted | to CHAR(253): ' : CONVERTED.LINE.NOTES : '</debug_line_notes_converted>'
+    
+    * Assign to field 40
+    PO.RECORD<40> = CONVERTED.LINE.NOTES
+    XML.RESPONSE = XML.RESPONSE : '<debug_line_notes_direct_assignment>Field 40 set to: ' : CONVERTED.LINE.NOTES : '</debug_line_notes_direct_assignment>'
+    
+    XML.RESPONSE = XML.RESPONSE : '<debug_final_field40>' : PO.RECORD<40> : '</debug_final_field40>'
+END ELSE
+    * Clear field if no data provided
+    PO.RECORD<40> = ''
+    XML.RESPONSE = XML.RESPONSE : '<debug_line_notes_cleared>Field 40 cleared - no data provided</debug_line_notes_cleared>'
+END
+
+* FIELD 73: Production Notes - GLOBAL for entire PO (not per line item)
+IF PRODUCTION_NOTES <> '' THEN
+    XML.RESPONSE = XML.RESPONSE : '<debug_production_notes_received>' : PRODUCTION_NOTES : '</debug_production_notes_received>'
+    XML.RESPONSE = XML.RESPONSE : '<debug_production_notes_before_update>' : PO.RECORD<73> : '</debug_production_notes_before_update>'
+    
+    * Direct assignment - production notes are simple text, not multivalue
+    PO.RECORD<73> = PRODUCTION_NOTES
+    XML.RESPONSE = XML.RESPONSE : '<debug_production_notes_saved>Field 73 set to: ' : PRODUCTION_NOTES : '</debug_production_notes_saved>'
+    
+    XML.RESPONSE = XML.RESPONSE : '<debug_final_field73>' : PO.RECORD<73> : '</debug_final_field73>'
+END ELSE
+    * Clear field if no data provided
+    PO.RECORD<73> = ''
+    XML.RESPONSE = XML.RESPONSE : '<debug_production_notes_cleared>Field 73 cleared - no data provided</debug_production_notes_cleared>'
+END
+
+CURRENT_FIELD_NUM = 49
+CURRENT_TRACKING_DATA = ACK_DATA
+XML.RESPONSE = XML.RESPONSE : '<debug_ack_data_received>' : ACK_DATA : '</debug_ack_data_received>'
+XML.RESPONSE = XML.RESPONSE : '<debug_ack_before_update>' : PO.RECORD<49> : '</debug_ack_before_update>'
+GOSUB UPDATE_TRACKING_FIELD
+XML.RESPONSE = XML.RESPONSE : '<debug_ack_after_update>' : PO.RECORD<49> : '</debug_ack_after_update>'
+
+* Process header notes
+IF HEADER_NOTES <> "" THEN
+    * Convert newlines to multivalue separator
+    CRLF_CHAR = CHAR(13):CHAR(10)
+    LF_CHAR = CHAR(10)
+    CR_CHAR = CHAR(13)
+    * First convert CRLF pairs to @VM
+    CONVERT CRLF_CHAR TO @VM IN HEADER_NOTES
+    * Then convert any remaining LF to @VM
+    CONVERT LF_CHAR TO @VM IN HEADER_NOTES
+    * Then convert any remaining CR to @VM
+    CONVERT CR_CHAR TO @VM IN HEADER_NOTES
+    * Also handle pipe separator from frontend
+    CONVERT "|" TO @VM IN HEADER_NOTES
+    PO.RECORD<25> = HEADER_NOTES
+END
+
+* FIELD 30: Noted Stamp - Format: initials*hour (multivalue)
+IF NOTED_STAMP <> "" THEN
+    XML.RESPONSE = XML.RESPONSE : '<debug_noted_stamp_received>' : NOTED_STAMP : '</debug_noted_stamp_received>'
+    * Append to existing stamps (multivalue)
+    IF PO.RECORD<30> <> '' THEN
+        PO.RECORD<30> = PO.RECORD<30> : CHAR(253) : NOTED_STAMP
+    END ELSE
+        PO.RECORD<30> = NOTED_STAMP
+    END
+    XML.RESPONSE = XML.RESPONSE : '<debug_noted_stamp_saved>Field 30 updated: ' : PO.RECORD<30> : '</debug_noted_stamp_saved>'
+END
+
+* Write to PO database - should bypass cornell,bp,snappoupd
+XML.RESPONSE = XML.RESPONSE : '<debug_before_write>About to write PO.RECORD to POF</debug_before_write>'
+WRITE PO.RECORD ON POF, PO_NUMBER
+XML.RESPONSE = XML.RESPONSE : '<debug_final_field49>' : PO.RECORD<49> : '</debug_final_field49>'
+
+XML.RESPONSE = XML.RESPONSE : '<debug_after_write>PO.RECORD successfully written to POF</debug_after_write>'
+XML.RESPONSE = XML.RESPONSE : '<status>SUCCESS</status>'
+XML.RESPONSE = XML.RESPONSE : '<message>PO ' : PO_NUMBER : ' updated successfully in PO database</message>'
+XML.RESPONSE = XML.RESPONSE : '<database>PO</database>'
+XML.RESPONSE = XML.RESPONSE : '<updated_fields>'
+XML.RESPONSE = XML.RESPONSE : '<po_date>' : PO_DATE : '</po_date>'
+XML.RESPONSE = XML.RESPONSE : '<vendor>' : VENDOR_CODE : '</vendor>'
+XML.RESPONSE = XML.RESPONSE : '<shipto>' : SHIPTO_CODE : '</shipto>'
+XML.RESPONSE = XML.RESPONSE : '<buyer>' : BUYER_CODE : '</buyer>'
+XML.RESPONSE = XML.RESPONSE : '<status>' : PO_STATUS : '</status>'
+XML.RESPONSE = XML.RESPONSE : '<email>' : EMAIL : '</email>'
+XML.RESPONSE = XML.RESPONSE : '</updated_fields>'
+XML.RESPONSE = XML.RESPONSE : '</update_response>'
+
+* Clean XML response before writing
+CONVERT CHAR(0) TO '' IN XML.RESPONSE
+CONVERT CHAR(1) TO '' IN XML.RESPONSE  
+CONVERT CHAR(2) TO '' IN XML.RESPONSE
+CONVERT CHAR(255) TO '' IN XML.RESPONSE
+
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_PO2.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_PO2.XML','',ERR)
+RETURN
+
+UPDATE_TRACKING_FIELD:
+    TRACKING_DATA = CURRENT_TRACKING_DATA
+    FIELD_NUM = CURRENT_FIELD_NUM
+    
+    * CRITICAL: Field 31 contains line item positions, NOT tracking data - skip processing
+    IF FIELD_NUM = 31 THEN
+        XML.RESPONSE = XML.RESPONSE : '<debug_field_31_skip>Field 31 contains line item positions, not tracking data - skipping</debug_field_31_skip>'
+        RETURN
+    END
+    
+    XML.RESPONSE = XML.RESPONSE : '<debug_field_' : FIELD_NUM : '_start>REWRITTEN: Processing field ' : FIELD_NUM : ' with data: ' : TRACKING_DATA : '</debug_field_' : FIELD_NUM : '_start>'
+    
+    * CRITICAL CHANGE: NO MORE PRESERVING CORRUPTED DATA - START FRESH
+    IF TRACKING_DATA = '' THEN
+        XML.RESPONSE = XML.RESPONSE : '<debug_field_' : FIELD_NUM : '_empty>No data provided, clearing field completely</debug_field_' : FIELD_NUM : '_empty>'
+        PO.RECORD<FIELD_NUM> = ''
+        RETURN
+    END
+
+    * REWRITTEN LOGIC: Build field from scratch using ONLY new data
+    * Create clean array to hold line data
+    DIM CLEAN_LINE_BUFFERS(20)
+    MAT CLEAN_LINE_BUFFERS = ''
+    MAX_LINE_IDX = 0
+    
+    * Parse tracking data format: "lineIdx:entry1\entry2\entry3|lineIdx:entry1\entry2" (\ = CHAR(252))
+    IF INDEX(TRACKING_DATA, ':', 1) > 0 THEN
+        XML.RESPONSE = XML.RESPONSE : '<debug_new_format>Using NEW indexed format - preserving existing data</debug_new_format>'
+        
+        * CRITICAL: Parse existing field to preserve other line items  
+        * BUT ONLY if we're doing a partial update (not a full field replacement)
+        EXISTING_FIELD = PO.RECORD<FIELD_NUM>
+        XML.RESPONSE = XML.RESPONSE : '<debug_existing_field>Field ' : FIELD_NUM : ' existing: ' : EXISTING_FIELD : '</debug_existing_field>'
+        
+        * CRITICAL FIX: Check if existing field has data contamination from other fields
+        IF EXISTING_FIELD <> '' THEN
+            CONTAMINATED = 0
+            
+            * Check for acknowledgment contamination (^ separators in non-ack fields)
+            IF INDEX(EXISTING_FIELD, '^', 1) > 0 AND FIELD_NUM <> 49 THEN
+                XML.RESPONSE = XML.RESPONSE : '<debug_contamination_detected>Field ' : FIELD_NUM : ' has ^ separators (ack contamination) - starting fresh</debug_contamination_detected>'
+                CONTAMINATED = 1
+            END
+            
+            * Check for needs/schedule cross-contamination - different field types shouldn't have same exact data
+            IF FIELD_NUM = 38 AND EXISTING_FIELD = PO.RECORD<34> THEN
+                XML.RESPONSE = XML.RESPONSE : '<debug_contamination_detected>Field 38 (needs) identical to field 34 (schedule) - contaminated - starting fresh</debug_contamination_detected>'
+                CONTAMINATED = 1
+            END
+            
+            IF FIELD_NUM = 34 AND EXISTING_FIELD = PO.RECORD<38> THEN
+                XML.RESPONSE = XML.RESPONSE : '<debug_contamination_detected>Field 34 (schedule) identical to field 38 (needs) - contaminated - starting fresh</debug_contamination_detected>'
+                CONTAMINATED = 1
+            END
+            
+            * If contamination detected, start with clean slate
+            IF CONTAMINATED = 1 THEN
+                EXISTING_FIELD = ''
+                XML.RESPONSE = XML.RESPONSE : '<debug_clean_slate>Starting with clean slate for field ' : FIELD_NUM : '</debug_clean_slate>'
+            END
+        END
+        
+        * Initialize line arrays to preserve existing data
+        DIM LINE_ARRAYS(10)
+        
+        * Parse existing field into line arrays
+        IF EXISTING_FIELD <> '' THEN
+            EXISTING_LINE_COUNT = DCOUNT(EXISTING_FIELD, XVM)
+            FOR EXISTING_IDX = 1 TO EXISTING_LINE_COUNT
+                EXISTING_LINE_DATA = FIELD(EXISTING_FIELD, XVM, EXISTING_IDX)
+                
+                * CLEAN existing data - convert any ^ separators to CHAR(252)
+                IF INDEX(EXISTING_LINE_DATA, '^', 1) > 0 THEN
+                    CONVERT '^' TO CHAR(252) IN EXISTING_LINE_DATA
+                    XML.RESPONSE = XML.RESPONSE : '<debug_cleaned_existing>Cleaned ^ to CHAR(252) in line ' : EXISTING_IDX : '</debug_cleaned_existing>'
+                END
+                
+                LINE_ARRAYS(EXISTING_IDX) = EXISTING_LINE_DATA
+                XML.RESPONSE = XML.RESPONSE : '<debug_preserved_line>Preserved line ' : EXISTING_IDX : ': ' : EXISTING_LINE_DATA : '</debug_preserved_line>'
+            NEXT EXISTING_IDX
+        END
+        
+        * Process new tracking data to update specific lines
+        LINE_COUNT = DCOUNT(TRACKING_DATA, '|')
+        FOR LINE_PARSE_IDX = 1 TO LINE_COUNT
+            LINE_DATA = FIELD(TRACKING_DATA, '|', LINE_PARSE_IDX)
+            LINE_DATA = TRIM(LINE_DATA)
+            
+            IF LINE_DATA <> '' THEN
+                * Extract line index and data
+                TARGET_LINE_IDX = FIELD(LINE_DATA, ':', 1)
+                LINE_STRING = FIELD(LINE_DATA, ':', 2)
+                XML.RESPONSE = XML.RESPONSE : '<debug_parsing_line>Updating line ' : TARGET_LINE_IDX : ' data: ' : LINE_STRING : '</debug_parsing_line>'
+                
+                * CRITICAL FIX FOR ROW 5 LINE ITEM 3 ISSUE
+                * Debug TARGET_LINE_IDX to track the mapping
+                IF TARGET_LINE_IDX = '3' THEN
+                    XML.RESPONSE = XML.RESPONSE : '<debug_row5_lineitem3>CRITICAL: Processing line item 3 - checking for row 5 data</debug_row5_lineitem3>'
+                    XML.RESPONSE = XML.RESPONSE : '<debug_row5_data>Line 3 data being processed: ' : LINE_STRING : '</debug_row5_data>'
+                END
+                
+                * Frontend sends entries separated by literal backslashes
+                
+                * CLEAN BUILD: Parse entries and build with CHAR(252) directly
+                LINE_BUFFER = ''
+                IF LINE_STRING <> '' THEN
+                    * Split by literal backslashes to get individual entries
+                    ENTRY_COUNT = DCOUNT(LINE_STRING, '\')
+                    FOR ENTRY_IDX = 1 TO ENTRY_COUNT
+                        ENTRY = TRIM(FIELD(LINE_STRING, '\', ENTRY_IDX))
+                        IF ENTRY <> '' THEN
+                            * CRITICAL DEBUG FOR ROW 5 LINE ITEM 3
+                            IF TARGET_LINE_IDX = '3' AND ENTRY_IDX = 5 THEN
+                                XML.RESPONSE = XML.RESPONSE : '<debug_row5_processing>CRITICAL ROW 5: Processing entry ' : ENTRY_IDX : ' for line item 3: [' : ENTRY : ']</debug_row5_processing>'
+                            END
+                            
+                            * CRITICAL FIX: Convert YYYY-MM-DD dates to Julian and validate date*qty format
+                            PROCESSED_ENTRY = ENTRY
+                            IF INDEX(ENTRY, '*', 1) > 0 THEN
+                                ENTRY_DATE = FIELD(ENTRY, '*', 1)
+                                ENTRY_QTY = FIELD(ENTRY, '*', 2)
+                                
+                                * CRITICAL FIX: Always convert YYYY-MM-DD dates to Julian format
+                                IF LEN(ENTRY_DATE) = 10 AND INDEX(ENTRY_DATE, '-', 1) > 0 THEN
+                                    * Enhanced YYYY-MM-DD to Julian conversion
+                                    DATE_YEAR = FIELD(ENTRY_DATE, '-', 1)
+                                    DATE_MONTH = FIELD(ENTRY_DATE, '-', 2)
+                                    DATE_DAY = FIELD(ENTRY_DATE, '-', 3)
+                                    
+                                    * Improved Julian calculation for Pick systems
+                                    IF NUM(DATE_YEAR) AND NUM(DATE_MONTH) AND NUM(DATE_DAY) THEN
+                                        * More accurate conversion: Days since Jan 1, 1968
+                                        DAYS_FROM_1968 = (DATE_YEAR - 1968) * 365
+                                        * Add leap years
+                                        DAYS_FROM_1968 = DAYS_FROM_1968 + INT((DATE_YEAR - 1968) / 4)
+                                        * Add days for months (approximation)
+                                        MONTH_DAYS = 0
+                                        IF DATE_MONTH > 1 THEN MONTH_DAYS = MONTH_DAYS + 31
+                                        IF DATE_MONTH > 2 THEN MONTH_DAYS = MONTH_DAYS + 28
+                                        IF DATE_MONTH > 3 THEN MONTH_DAYS = MONTH_DAYS + 31
+                                        IF DATE_MONTH > 4 THEN MONTH_DAYS = MONTH_DAYS + 30
+                                        IF DATE_MONTH > 5 THEN MONTH_DAYS = MONTH_DAYS + 31
+                                        IF DATE_MONTH > 6 THEN MONTH_DAYS = MONTH_DAYS + 30
+                                        IF DATE_MONTH > 7 THEN MONTH_DAYS = MONTH_DAYS + 31
+                                        IF DATE_MONTH > 8 THEN MONTH_DAYS = MONTH_DAYS + 31
+                                        IF DATE_MONTH > 9 THEN MONTH_DAYS = MONTH_DAYS + 30
+                                        IF DATE_MONTH > 10 THEN MONTH_DAYS = MONTH_DAYS + 31
+                                        IF DATE_MONTH > 11 THEN MONTH_DAYS = MONTH_DAYS + 30
+                                        JULIAN_DATE = DAYS_FROM_1968 + MONTH_DAYS + DATE_DAY
+                                        PROCESSED_ENTRY = JULIAN_DATE : '*' : ENTRY_QTY
+                                        XML.RESPONSE = XML.RESPONSE : '<debug_date_conversion>FIXED: Converted ' : ENTRY_DATE : ' to Julian ' : JULIAN_DATE : ' with qty ' : ENTRY_QTY : '</debug_date_conversion>'
+                                    END
+                                END
+                                
+                                * VALIDATION: Never save date without quantity
+                                IF ENTRY_QTY = '' OR ENTRY_QTY = '0' THEN
+                                    XML.RESPONSE = XML.RESPONSE : '<debug_validation_failed>BLOCKED: Entry "' : ENTRY : '" has no quantity - NOT SAVED</debug_validation_failed>'
+                                    PROCESSED_ENTRY = ''
+                                END
+                            END ELSE
+                                * CRITICAL FIX: Entry without asterisk - could be naked date like "2025-10-01"
+                                IF LEN(ENTRY) = 10 AND INDEX(ENTRY, '-', 1) > 0 THEN
+                                    * AUTO-FIX: Convert naked date to Julian*1 format
+                                    NAKED_DATE_YEAR = FIELD(ENTRY, '-', 1)
+                                    NAKED_DATE_MONTH = FIELD(ENTRY, '-', 2)
+                                    NAKED_DATE_DAY = FIELD(ENTRY, '-', 3)
+                                    
+                                    IF NUM(NAKED_DATE_YEAR) AND NUM(NAKED_DATE_MONTH) AND NUM(NAKED_DATE_DAY) THEN
+                                        * Convert naked date using same logic as above
+                                        NAKED_DAYS_FROM_1968 = (NAKED_DATE_YEAR - 1968) * 365
+                                        NAKED_DAYS_FROM_1968 = NAKED_DAYS_FROM_1968 + INT((NAKED_DATE_YEAR - 1968) / 4)
+                                        NAKED_MONTH_DAYS = 0
+                                        IF NAKED_DATE_MONTH > 1 THEN NAKED_MONTH_DAYS = NAKED_MONTH_DAYS + 31
+                                        IF NAKED_DATE_MONTH > 2 THEN NAKED_MONTH_DAYS = NAKED_MONTH_DAYS + 28
+                                        IF NAKED_DATE_MONTH > 3 THEN NAKED_MONTH_DAYS = NAKED_MONTH_DAYS + 31
+                                        IF NAKED_DATE_MONTH > 4 THEN NAKED_MONTH_DAYS = NAKED_MONTH_DAYS + 30
+                                        IF NAKED_DATE_MONTH > 5 THEN NAKED_MONTH_DAYS = NAKED_MONTH_DAYS + 31
+                                        IF NAKED_DATE_MONTH > 6 THEN NAKED_MONTH_DAYS = NAKED_MONTH_DAYS + 30
+                                        IF NAKED_DATE_MONTH > 7 THEN NAKED_MONTH_DAYS = NAKED_MONTH_DAYS + 31
+                                        IF NAKED_DATE_MONTH > 8 THEN NAKED_MONTH_DAYS = NAKED_MONTH_DAYS + 31
+                                        IF NAKED_DATE_MONTH > 9 THEN NAKED_MONTH_DAYS = NAKED_MONTH_DAYS + 30
+                                        IF NAKED_DATE_MONTH > 10 THEN NAKED_MONTH_DAYS = NAKED_MONTH_DAYS + 31
+                                        IF NAKED_DATE_MONTH > 11 THEN NAKED_MONTH_DAYS = NAKED_MONTH_DAYS + 30
+                                        NAKED_JULIAN_DATE = NAKED_DAYS_FROM_1968 + NAKED_MONTH_DAYS + NAKED_DATE_DAY
+                                        PROCESSED_ENTRY = NAKED_JULIAN_DATE : '*1'
+                                        XML.RESPONSE = XML.RESPONSE : '<debug_naked_date_fixed>AUTO-FIXED: Naked date "' : ENTRY : '" converted to "' : PROCESSED_ENTRY : '" (qty=1)</debug_naked_date_fixed>'
+                                    END ELSE
+                                        XML.RESPONSE = XML.RESPONSE : '<debug_naked_date_invalid>BLOCKED: Invalid naked date "' : ENTRY : '" - NOT SAVED</debug_naked_date_invalid>'
+                                        PROCESSED_ENTRY = ''
+                                    END
+                                END ELSE
+                                    * Keep non-date entries as-is (could be other formats)
+                                    PROCESSED_ENTRY = ENTRY
+                                END
+                            END
+                            
+                            IF PROCESSED_ENTRY <> '' THEN
+                                * CRITICAL DEBUG FOR ROW 5 LINE ITEM 3
+                                IF TARGET_LINE_IDX = '3' AND ENTRY_IDX = 5 THEN
+                                    XML.RESPONSE = XML.RESPONSE : '<debug_row5_saving>CRITICAL ROW 5: About to save processed entry: [' : PROCESSED_ENTRY : '] to line item 3</debug_row5_saving>'
+                                END
+                                
+                                * Build line buffer using CHAR(252) as subvalue separator
+                                IF LINE_BUFFER <> '' THEN
+                                    LINE_BUFFER = LINE_BUFFER : CHAR(252) : PROCESSED_ENTRY
+                                END ELSE
+                                    LINE_BUFFER = PROCESSED_ENTRY
+                                END
+                                XML.RESPONSE = XML.RESPONSE : '<debug_entry_added>Added entry: ' : PROCESSED_ENTRY : '</debug_entry_added>'
+                                
+                                * CRITICAL DEBUG FOR ROW 5 LINE ITEM 3
+                                IF TARGET_LINE_IDX = '3' AND ENTRY_IDX = 5 THEN
+                                    XML.RESPONSE = XML.RESPONSE : '<debug_row5_buffer_after>CRITICAL ROW 5: LINE_BUFFER after adding: [' : LINE_BUFFER : ']</debug_row5_buffer_after>'
+                                END
+                            END
+                        END
+                    NEXT ENTRY_IDX
+                END
+                
+                * Update specific line in preserved array
+                IF LINE_BUFFER <> '' THEN
+                    LINE_ARRAYS(TARGET_LINE_IDX) = LINE_BUFFER
+                    IF TARGET_LINE_IDX > MAX_LINE_IDX THEN MAX_LINE_IDX = TARGET_LINE_IDX
+                    XML.RESPONSE = XML.RESPONSE : '<debug_line_updated>Updated line ' : TARGET_LINE_IDX : ': ' : LINE_BUFFER : '</debug_line_updated>'
+                    
+                    * CRITICAL DEBUG FOR ROW 5 LINE ITEM 3 - FINAL CHECK
+                    IF TARGET_LINE_IDX = '3' THEN
+                        XML.RESPONSE = XML.RESPONSE : '<debug_row5_final_array>CRITICAL ROW 5: LINE_ARRAYS(3) set to: [' : LINE_ARRAYS(3) : ']</debug_row5_final_array>'
+                    END
+                END
+            END
+        NEXT LINE_PARSE_IDX
+        
+        * Determine maximum line count from existing or new data
+        IF EXISTING_LINE_COUNT > MAX_LINE_IDX THEN MAX_LINE_IDX = EXISTING_LINE_COUNT
+        
+        * Build final field from preserved arrays (includes existing + updated data)
+        FINAL_FIELD = ''
+        FINAL_LINES_ADDED = 0
+        FOR BUFFER_IDX = 1 TO MAX_LINE_IDX
+            LINE_DATA = LINE_ARRAYS(BUFFER_IDX)
+            XML.RESPONSE = XML.RESPONSE : '<debug_checking_line>Checking line ' : BUFFER_IDX : ': [' : LINE_DATA : ']</debug_checking_line>'
+            
+            IF LINE_DATA <> '' THEN
+                IF FINAL_LINES_ADDED > 0 THEN
+                    FINAL_FIELD = FINAL_FIELD : XVM : LINE_DATA
+                END ELSE
+                    FINAL_FIELD = LINE_DATA
+                END
+                FINAL_LINES_ADDED = FINAL_LINES_ADDED + 1
+                XML.RESPONSE = XML.RESPONSE : '<debug_final_build>Added line ' : BUFFER_IDX : ' (' : FINAL_LINES_ADDED : ' total): ' : LINE_DATA : '</debug_final_build>'
+            END ELSE
+                XML.RESPONSE = XML.RESPONSE : '<debug_skip_empty>Skipping empty line ' : BUFFER_IDX : '</debug_skip_empty>'
+            END
+        NEXT BUFFER_IDX
+        
+        XML.RESPONSE = XML.RESPONSE : '<debug_final_summary>Total lines added: ' : FINAL_LINES_ADDED : '</debug_final_summary>'
+        
+        * FINAL DEBUG: Check for any ^ before writing
+        IF INDEX(FINAL_FIELD, '^', 1) > 0 THEN
+            XML.RESPONSE = XML.RESPONSE : '<debug_error_caret_detected>ERROR: ^ still found in FINAL_FIELD before write!</debug_error_caret_detected>'
+            * Emergency clean
+            CONVERT '^' TO CHAR(252) IN FINAL_FIELD
+            XML.RESPONSE = XML.RESPONSE : '<debug_emergency_clean>Emergency cleaned ^ in FINAL_FIELD</debug_emergency_clean>'
+        END
+        
+        * CRITICAL DEBUG FOR ROW 5 LINE ITEM 3 - BEFORE FINAL SET
+        IF FIELD_NUM = 34 OR FIELD_NUM = 38 OR FIELD_NUM = 49 THEN
+            XML.RESPONSE = XML.RESPONSE : '<debug_row5_check_before_write>CRITICAL: Checking if line item 3 data exists in FINAL_FIELD before write</debug_row5_check_before_write>'
+            LINE3_DATA = FIELD(FINAL_FIELD, XVM, 3)
+            XML.RESPONSE = XML.RESPONSE : '<debug_row5_line3_extracted>Line item 3 extracted from FINAL_FIELD: [' : LINE3_DATA : ']</debug_row5_line3_extracted>'
+        END
+        
+        * CLEAN SET: Replace field completely with new clean data
+        PO.RECORD<FIELD_NUM> = FINAL_FIELD
+        XML.RESPONSE = XML.RESPONSE : '<debug_field_' : FIELD_NUM : '_final>CLEAN FINAL FIELD: ' : FINAL_FIELD : '</debug_field_' : FIELD_NUM : '_final>'
+    
+    END ELSE
+        * Old format fallback - treat as single line item data
+        XML.RESPONSE = XML.RESPONSE : '<debug_old_format>Using old format - single line item</debug_old_format>'
+        PO.RECORD<FIELD_NUM> = TRACKING_DATA
+    END
+
+RETURN
+
+WRITE_FAILED:
+XML.RESPONSE = XML.RESPONSE : '<status>ERROR</status>'
+XML.RESPONSE = XML.RESPONSE : '<message>WRITE operation failed on PO database</message>'
+XML.RESPONSE = XML.RESPONSE : '</update_response>'
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_PO.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_PO.XML','',ERR)
+RETURN
+
+PO_NOT_FOUND:
+* PO not found in POF - this should not happen for existing POs
+XML.RESPONSE = XML.RESPONSE : '<debug_po_not_found>PO ' : PO_NUMBER : ' not found in POF</debug_po_not_found>'
+XML.RESPONSE = XML.RESPONSE : '<status>ERROR</status>'
+XML.RESPONSE = XML.RESPONSE : '<message>PO ' : PO_NUMBER : ' not found in PO database</message> '
+XML.RESPONSE = XML.RESPONSE : '<po_number>' : PO_NUMBER : '</po_number>'
+XML.RESPONSE = XML.RESPONSE : '</update_response>'
+WRITE XML.RESPONSE ON XMLDATAF,'UPDATE_PO.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/UPDATE_PO.XML','',ERR)
+RETURN
+</pre>
+

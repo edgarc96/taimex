@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TAIMEX - WIP MENU</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100vh;
+      width: 100%;
+    }
+
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: #334155;
+      width: 100%;
+    }
+
+    .container {
+      width: 100%;
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(30, 41, 59, 0.25);
+      position: relative;
+      z-index: 100;
+      width: 100%;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo-section img {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+
+    .title-section {
+      text-align: right;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 15px;
+    }
+
+    .welcome-user span {
+      color: #cbd5e1;
+      font-size: 0.8em;
+      font-weight: 400;
+    }
+
+    .welcome-user strong {
+      color: #3b82f6;
+      margin-left: 4px;
+      font-weight: 600;
+    }
+
+    .title-section h2 {
+      font-size: 0.95em;
+      margin: 0;
+      font-weight: 500;
+      color: #cbd5e1;
+      letter-spacing: 0.3px;
+    }
+
+    .title-section p {
+      font-size: 0.75em;
+      margin: 2px 0 0 0;
+      color: #a2a8ba;
+      font-weight: 400;
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.2em;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .hamburger-menu svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    /* Sidebar */
+    #sb-toggle {
+      display: none;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 300px;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(1px);
+      color: #fff;
+      transition: left 0.2s ease;
+      z-index: 2000;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.35);
+    }
+
+    #sb-toggle:checked ~ .sidebar {
+      left: 0;
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.55);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+      z-index: 1500;
+      pointer-events: none;
+    }
+
+    #sb-toggle:checked ~ .sidebar-overlay {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar-header h3 {
+      font-size: 1.2em;
+      color: #fff;
+      margin: 0;
+    }
+
+    .sidebar-content {
+      padding: 24px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-menu li {
+      margin-bottom: 8px;
+    }
+
+    .sidebar-menu label {
+      display: block;
+      padding: 12px 16px;
+      color: #f3f4f6;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .sidebar-menu label:hover {
+      background-color: rgba(30, 64, 175, 0.1);
+      color: #fff;
+    }
+
+    .sidebar-menu label.active {
+      background-color: rgba(30, 64, 175, 0.2);
+      color: #93c5fd;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      width: 100%;
+      background: #f8fafc;
+      padding: 40px 20px;
+    }
+
+    .menu-container {
+      max-width: 700px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .welcome-card {
+      background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%);
+      border: 2px solid #93c5fd;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    .welcome-card h1 {
+      font-size: 28px;
+      color: #1e293b;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .welcome-card p {
+      font-size: 16px;
+      color: #475569;
+      font-weight: 500;
+    }
+
+    .welcome-card .user-name {
+      color: #ef4444;
+      font-weight: 700;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .menu-button {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 24px;
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      text-align: left;
+    }
+
+    .menu-button:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      border-color: #2a5298;
+    }
+
+    .menu-button.green {
+      border-color: #86efac;
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    }
+
+    .menu-button.green:hover {
+      border-color: #10b981;
+      box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);
+    }
+
+    .menu-button.blue {
+      border-color: #93c5fd;
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    }
+
+    .menu-button.blue:hover {
+      border-color: #2563eb;
+      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2);
+    }
+
+    .menu-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .menu-button.green .menu-icon {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+
+    .menu-button.blue .menu-icon {
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      color: white;
+    }
+
+    .menu-text {
+      flex: 1;
+    }
+
+    .menu-text h3 {
+      font-size: 16px;
+      color: #1e293b;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .menu-text p {
+      font-size: 12px;
+      color: #64748b;
+      margin: 0;
+    }
+
+    .logout-section {
+      margin-top: 24px;
+      text-align: center;
+    }
+
+    .logout-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+    }
+
+    .logout-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+    }
+
+    .footer-link {
+      text-align: center;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 2px solid #e2e8f0;
+    }
+
+    .footer-link a {
+      color: #2563eb;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+
+    .footer-link a:hover {
+      color: #1e40af;
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .menu-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <input type="checkbox" id="sb-toggle">
+  <label for="sb-toggle" class="sidebar-overlay" aria-hidden="true"></label>
+
+  <aside class="sidebar" aria-label="Main menu">
+    <div class="sidebar-header">
+      <h3>Menu</h3>
+    </div>
+    <div class="sidebar-content">
+      <ul class="sidebar-menu">
+        <li><label for="sb-toggle">Main Menu</label></li>
+        <li><label for="sb-toggle">Parts Management</label></li>
+        <li><label for="sb-toggle">Work Orders</label></li>
+        <li><label for="sb-toggle">Sales Orders</label></li>
+        <li><label for="sb-toggle">Stock Transactions</label></li>
+        <li><label for="sb-toggle" class="active">WIP Menu</label></li>
+      </ul>
+    </div>
+  </aside>
+
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">
+          <svg viewBox="0 0 448 512" role="img" aria-hidden="true" focusable="false" width="20" height="20">
+            <path d="M0 96C0 78.3 14.3 64 32 64H416C433.7 64 448 78.3 448 96C448 113.7 433.7 128 416 128H32C14.3 128 0 113.7 0 96zM0 256C0 238.3 14.3 224 32 224H416C433.7 224 448 238.3 448 256C448 273.7 433.7 288 416 288H32C14.3 288 0 273.7 0 256zM448 416C448 433.7 433.7 448 416 448H32C14.3 448 0 433.7 0 416C0 398.3 14.3 384 32 384H416C433.7 384 448 398.3 448 416z"></path>
+          </svg>
+        </label>
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL">
+        </div>
+      </div>
+      <div class="title-section">
+        <div class="title-row">
+          <div class="welcome-user">
+            <span>Welcome,</span>
+            <strong>^USER^</strong>
+          </div>
+          <div>
+            <h2>TAIMEX - WIP MENU</h2>
+            <p>TAIMEX - MANAGEMENT</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="menu-container">
+        
+        <!-- Welcome Card -->
+        <div class="welcome-card">
+          <h1>Welcome <span class="user-name">^USER^</span></h1>
+          <p>Select an option from the WIP menu below</p>
+        </div>
+
+        <!-- Form -->
+        <form method="post" name="MAINMENU" action="/WIPMENU.HTM">
+          
+          <!-- Menu Grid -->
+          <div class="menu-grid">
+            
+            <!-- WIP TRACKING -->
+            <button type="submit" name="MENU2" class="menu-button blue">
+              <div class="menu-icon">
+                <i class="fas fa-clipboard-list"></i>
+              </div>
+              <div class="menu-text">
+                <h3>WIP TRACKING</h3>
+                <p>Track Work in Progress</p>
+              </div>
+            </button>
+
+          </div>
+
+          <!-- Logout Section -->
+          <div class="logout-section">
+            <button type="submit" name="MENU3" class="logout-button">
+              <i class="fas fa-sign-out-alt"></i>
+              LOGOUT
+            </button>
+          </div>
+
+          <!-- Footer Link -->
+          <div class="footer-link">
+            <a href="NBMM.HTM">
+              <i class="fas fa-home"></i> Main Menu
+            </a>
+          </div>
+
+          <!-- Hidden Field -->
+          <input type="hidden" name="INITIALS" value="^INITIALS^">
+        </form>
+
+      </div>
+    </main>
+  </div>
+
+  <PRE>
+PicLan-IP/BASIC ^ ^
+*
+    PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+        ERR = '' ; INITIALS=  ''
+         CALL PLW.PAGE('LOGIN.HTM','',ERR)
+        RETURN
+
+    END
+PL_SET_COOKIE 'SONO' TO '' 
+PL_SET_COOKIE 'QTNO' TO ''
+    OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+    OPEN 'SOCHG' TO SOCHGF ELSE STOP 201,'SOCHG'
+    OPEN 'SOCART' TO SOCARTF ELSE STOP 201,'SOCART'
+    OPEN 'WSOACK' TO WSOACKF ELSE STOP 201,'WSOACK'
+*
+   READ OPER FROM OPERSF,INITIALS<1> ELSE 
+        ERR = ''
+        CALL PLW.PAGE('LOGIN.HTM','',ERR)
+        RETURN
+   END
+*
+   IF OPER<18> NE '' THEN
+      LOCATE('SCHEDMENU.HTM',OPER<18>,1;HIT) ELSE
+          ERRVAL = 'YOU ARE NOT ALLOWED TO ACCESS THIS MENU'
+          PL_PUTVAR ERRVAL IN 'ERRVAL' ELSE NULL
+          ERR = ''
+          CALL PLW.PAGE('ERRORMSG.HTM','',ERR)
+          RETURN
+       END
+   END  
+ 
+   USER = OPER<1>
+   PL_GETVAR OPTION FROM 'OPTION' ELSE OPTION = ''
+   PL_GETVAR CONTINUE FROM 'CONTINUE' ELSE CONTINUE = ''
+   PL_GETVAR MENU1 FROM 'MENU1' ELSE MENU1 = ''
+   PL_GETVAR MENU2 FROM 'MENU2' ELSE MENU2 = ''
+   PL_GETVAR MENU3 FROM 'MENU3' ELSE MENU3 = ''
+   PL_GETVAR MENU4 FROM 'MENU4' ELSE MENU4 = ''
+   PL_GETVAR MENU5 FROM 'MENU5' ELSE MENU5 = ''
+   PL_GETVAR MENU6 FROM 'MENU6' ELSE MENU6 = ''
+   PL_GETVAR MENU7 FROM 'MENU7' ELSE MENU7 = ''
+   PL_GETVAR VWHSE.MENU FROM 'VWHSE.MENU' ELSE VWHSE.MENU = ''
+   PL_GETVAR RMA.MENU FROM 'RMA.MENU' ELSE RMA.MENU=''
+   PL_SET_COOKIE 'SESSIONID' TO ''
+   PL_SET_COOKIE 'VKEY' TO ''
+   
+*
+*
+  IF MENU1 NE '' OR MENU2 NE '' OR MENU3 NE '' OR MENU4 NE '' OR RMA.MENU NE '' OR MENU5 NE '' OR MENU6 NE '' THEN
+    BEGIN CASE
+          CASE OPTION = '1' OR MENU1 NE ''
+                ERR = ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                PL_PUTVAR '' IN 'OPTION' ELSE NULL
+                CALL PLW.PAGE('ACWLOAD.HTM','',ERR)
+                RETURN
+          CASE OPTION = '2' OR MENU2 NE '' 
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                 PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+
+
+                PL_PUTVAR '' IN 'OPTION' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('WIPTRACKING_EDIT.HTM','',ERR)
+                RETURN
+           CASE MENU3 NE ''
+
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                 PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+
+
+
+                ERR = ''
+                CALL PLW.PAGE('SCHEDULER.HTM','',ERR)
+                RETURN
+           CASE MENU4 NE ''
+
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                 PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('STOCKBF.HTM','',ERR)
+                RETURN
+          CASE MENU5 NE ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                 PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('PRINTWOCDA.HTM','',ERR)
+                RETURN
+          CASE MENU6 NE ''
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                 PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+                ERR = ''
+                CALL PLW.PAGE('ACWLOADSUB.HTM','',ERR)
+                RETURN
+          CASE MENU7 NE ''
+
+                PL_PUTVAR '' IN 'MENU1' ELSE NULL
+                PL_PUTVAR '' IN 'MENU2' ELSE NULL
+                PL_PUTVAR '' IN 'MENU3' ELSE NULL
+                 PL_PUTVAR '' IN 'MENU4' ELSE NULL
+                PL_PUTVAR '' IN 'MENU5' ELSE NULL
+                PL_PUTVAR '' IN 'MENU6' ELSE NULL
+
+                PL_PUTVAR '' IN 'MENU7' ELSE NULL
+                PL_PUTVAR '' IN 'MENU8' ELSE NULL
+
+
+                ERR = ''
+                CALL PLW.PAGE('YORKBOM2.HTM','',ERR)
+                RETURN
+
+
+
+
+          
+           CASE OPTION = '99' OR MENU3 NE '' 
+              ERR = ''
+              CALL PLW.PAGE('LOGIN.HTM','',ERR)
+              RETURN
+    END CASE
+  END
+*
+*
+  </PRE>
+</body>
+</html>

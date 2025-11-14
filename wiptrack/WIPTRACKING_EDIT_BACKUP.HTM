@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TAIMEX - WIP Tracking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-yhN8Iv2qxGNzcRCjSc5MiNmiY6L0H944VWI1XHlzTH0jzZMfjNV8iPBUFeCFGXFq8XiJHPsuacFZWxXHzdY2DQ==" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+    }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: #334155;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(30, 41, 59, 0.25);
+      position: relative;
+      z-index: 100;
+      width: 100%;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo-section img {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+
+    .title-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 16px;
+    }
+
+    .welcome-user {
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .welcome-user span {
+      color: #cbd5e1;
+      font-size: 0.8em;
+      font-weight: 400;
+    }
+
+    .welcome-user strong {
+      color: #3b82f6;
+      margin-left: 4px;
+      font-weight: 600;
+      font-size: 0.9em;
+    }
+
+    .title-section h2 {
+      font-size: 1em;
+      margin: 0;
+      font-weight: 600;
+      color: #f1f5f9;
+      letter-spacing: 0.3px;
+    }
+
+    .title-section p {
+      font-size: 0.8em;
+      margin: 0;
+      color: #a2a8ba;
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.2em;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .hamburger-menu svg {
+      width: 24px;
+      height: 24px;
+      fill: #fff;
+    }
+
+    .hamburger-menu svg path {
+      fill: #fff;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      width: 100%;
+      background: #f8fafc;
+    }
+
+    /* Steps Navigation - SO_EDIT Style */
+    .steps-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: #fff;
+      border-bottom: 2px solid #e2e8f0;
+      gap: 8px;
+    }
+
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      padding: 12px 20px;
+      border-radius: 12px;
+    }
+
+    .step:hover {
+      background: #f1f5f9;
+    }
+
+    .step.active {
+      background: rgba(29, 78, 216, 0.08);
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #cbd5e1;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1em;
+      transition: all 0.3s ease;
+    }
+
+    .step.active .step-number {
+      background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3);
+      transform: scale(1.1);
+    }
+
+    .step.completed .step-number {
+      background: #10b981;
+      color: #fff;
+    }
+
+    .step-label {
+      font-size: 0.85em;
+      font-weight: 600;
+      color: #64748b;
+      transition: color 0.3s ease;
+    }
+
+    .step.active .step-label {
+      color: #1d4ed8;
+    }
+
+    .step.completed .step-label {
+      color: #10b981;
+    }
+
+    .step-divider {
+      width: 60px;
+      height: 2px;
+      background: #e2e8f0;
+      margin: 0 8px;
+    }
+
+    .step.active ~ .step-divider,
+    .step.completed ~ .step-divider {
+      background: #1d4ed8;
+    }
+
+    /* Step Content Areas */
+    .step-content {
+      display: none;
+    }
+
+    .step-content.active {
+      display: block;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 300px;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(1px);
+      -webkit-backdrop-filter: blur(1px);
+      color: #fff;
+      transition: left 0.2s ease;
+      z-index: 2000;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar-header h3 {
+      font-size: 1.1em;
+      color: #fff;
+      margin: 0;
+    }
+
+    .sidebar-content {
+      padding: 24px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-menu li {
+      margin-bottom: 10px;
+    }
+
+    .sidebar-menu label {
+      display: block;
+      padding: 12px 16px;
+      color: #f3f4f6;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .sidebar-menu label:hover {
+      background-color: rgba(30, 64, 175, 0.12);
+      color: #fff;
+    }
+
+    .sidebar-menu label.active {
+      background-color: rgba(30, 64, 175, 0.25);
+      color: #93c5fd;
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.55);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+      z-index: 1500;
+      pointer-events: none;
+    }
+
+    #sb-toggle:checked ~ .sidebar {
+      left: 0;
+    }
+
+    #sb-toggle:checked ~ .sidebar-overlay {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    #sb-toggle {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .wip-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .wip-top-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .summary-card {
+      background: #1e40af;
+      color: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(30, 64, 175, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .summary-card.secondary {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.25);
+    }
+
+    .summary-card .label {
+      font-size: 0.9em;
+      opacity: 0.85;
+    }
+
+    .summary-card .value {
+      font-size: 2.1em;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .wip-grid {
+      display: grid;
+      grid-template-columns: 1.8fr 1fr;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    .wip-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .section-title h3 {
+      font-size: 1.2em;
+      color: #0f172a;
+      font-weight: 600;
+    }
+
+    .section-title p {
+      font-size: 0.9em;
+      color: #64748b;
+    }
+
+    .badge-info {
+      background: #f1f5f9;
+      border-left: 4px solid #1e40af;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 0.9em;
+      color: #1e293b;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .badge-info span {
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-size: 0.85em;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 10px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 0.95em;
+      transition: all 0.2s ease;
+      background: #f9fafb;
+      color: #0f172a;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+      background: #fff;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.95em;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(29, 78, 216, 0.28);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 30px rgba(29, 78, 216, 0.35);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(71, 85, 105, 0.25);
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 26px rgba(71, 85, 105, 0.32);
+    }
+
+    .btn-ghost {
+      background: #f1f5f9;
+      color: #0f172a;
+      border: 1px solid #cbd5f5;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .quick-actions button {
+      background: rgba(29, 78, 216, 0.08);
+      color: #1d4ed8;
+      border: 1px solid rgba(37, 99, 235, 0.15);
+      border-radius: 10px;
+      padding: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .quick-actions button:hover {
+      background: rgba(29, 78, 216, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .active-jobs {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .job-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #f8fafc;
+    }
+
+    .job-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .job-card-header h4 {
+      font-size: 1em;
+      color: #1e293b;
+      font-weight: 600;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.8em;
+      font-weight: 600;
+    }
+
+    .status-chip.in-progress {
+      background: rgba(34, 197, 94, 0.12);
+      color: #15803d;
+      border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+
+    .status-chip.paused {
+      background: rgba(250, 204, 21, 0.14);
+      color: #b45309;
+      border: 1px solid rgba(250, 204, 21, 0.4);
+    }
+
+    .job-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      font-size: 0.85em;
+      color: #475569;
+    }
+
+    .job-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .job-actions button {
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85em;
+      background: #1e293b;
+      color: #fff;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .job-actions button.secondary {
+      background: #475569;
+    }
+
+    .job-actions button.warning {
+      background: #b91c1c;
+    }
+
+    .job-actions button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 18px rgba(15, 23, 42, 0.25);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9em;
+    }
+
+    thead {
+      background: #0f172a;
+      color: #fff;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    tbody tr:hover {
+      background: #f1f5f9;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #64748b;
+      font-size: 0.9em;
+      padding: 16px 0;
+    }
+
+    .feedback {
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 0.9em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .feedback.success {
+      background: rgba(34, 197, 94, 0.12);
+      color: #15803d;
+      border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+
+    .feedback.warning {
+      background: rgba(250, 204, 21, 0.14);
+      color: #92400e;
+      border: 1px solid rgba(250, 204, 21, 0.4);
+    }
+
+    @media (max-width: 1200px) {
+      .wip-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .title-section {
+        text-align: left;
+        align-items: flex-start;
+      }
+
+      .title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .steps-container {
+        padding: 16px 12px;
+        gap: 4px;
+      }
+
+      .step {
+        padding: 8px 12px;
+      }
+
+      .step-number {
+        width: 32px;
+        height: 32px;
+        font-size: 0.95em;
+      }
+
+      .step-label {
+        font-size: 0.7em;
+      }
+
+      .step-divider {
+        width: 30px;
+      }
+
+      .wip-top-bar {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <input type="checkbox" id="sb-toggle">
+  <label for="sb-toggle" class="sidebar-overlay" aria-hidden="true"></label>
+
+  <aside class="sidebar" aria-label="Menú principal">
+    <div class="sidebar-header">
+      <h3>Menu</h3>
+    </div>
+    <div class="sidebar-content">
+      <ul class="sidebar-menu">
+        <li><label for="sb-toggle">Main Menu</label></li>
+        <li><label for="sb-toggle">Parts Management</label></li>
+        <li><label for="sb-toggle">Work Orders</label></li>
+        <li><label for="sb-toggle">Sales Orders</label></li>
+        <li><label for="sb-toggle">Stock Transactions</label></li>
+        <li><label for="sb-toggle">Commodities</label></li>
+        <li><label class="active" for="sb-toggle">WIP Tracking</label></li>
+      </ul>
+    </div>
+  </aside>
+
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <label class="hamburger-menu" for="sb-toggle" aria-label="Abrir menú">
+          <svg viewBox="0 0 448 512" role="img" aria-hidden="true" focusable="false" width="20" height="20">
+            <path d="M0 96C0 78.3 14.3 64 32 64H416C433.7 64 448 78.3 448 96C448 113.7 433.7 128 416 128H32C14.3 128 0 113.7 0 96zM0 256C0 238.3 14.3 224 32 224H416C433.7 224 448 238.3 448 256C448 273.7 433.7 288 416 288H32C14.3 288 0 273.7 0 256zM448 416C448 433.7 433.7 448 416 448H32C14.3 448 0 433.7 0 416C0 398.3 14.3 384 32 384H416C433.7 384 448 398.3 448 416z"></path>
+          </svg>
+        </label>
+        <div class="logo-section">
+          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL" onerror="this.onerror=null;this.src='http://54.189.226.145/uploads/assets/images/taimex_logo.png';">
+        </div>
+      </div>
+      <div class="title-section">
+        <div class="title-row">
+          <div class="welcome-user">
+            <span>Bienvenido,</span>
+            <strong id="currentUserDisplay">Operador</strong>
+          </div>
+          <div>
+            <h2>TAIMEX - WIP Tracking</h2>
+            <p>Control de producción en tiempo real</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <!-- Steps Navigation -->
+      <div class="steps-container">
+        <div class="step active" data-step="1">
+          <div class="step-number">1</div>
+          <div class="step-label">Captura</div>
+        </div>
+        <div class="step-divider"></div>
+        <div class="step" data-step="2">
+          <div class="step-number">2</div>
+          <div class="step-label">Sesiones Activas</div>
+        </div>
+        <div class="step-divider"></div>
+        <div class="step" data-step="3">
+          <div class="step-number">3</div>
+          <div class="step-label">Historial</div>
+        </div>
+      </div>
+
+      <section class="wip-wrapper">
+        <div class="wip-top-bar">
+          <div class="summary-card">
+            <div>
+              <div class="label">Operaciones activas</div>
+              <div class="value" id="activeCount">0</div>
+            </div>
+            <i class="fas fa-stopwatch fa-2x"></i>
+          </div>
+          <div class="summary-card secondary">
+            <div>
+              <div class="label">Completadas hoy</div>
+              <div class="value" id="completedCount">0</div>
+            </div>
+            <i class="fas fa-check-circle fa-2x"></i>
+          </div>
+          <div class="summary-card secondary">
+            <div>
+              <div class="label">Última captura</div>
+              <div class="value" id="lastCapture">--:--</div>
+            </div>
+            <i class="fas fa-clock fa-2x"></i>
+          </div>
+        </div>
+
+        <!-- Step 1: Captura de Producción -->
+        <div class="step-content active" id="step-1">
+          <div class="wip-card">
+            <div class="section-title">
+              <div>
+                <h3>Captura de producción</h3>
+                <p>Registra el avance de cada operador en segundos</p>
+              </div>
+              <div id="captureClock">Hora actual: <strong id="liveClock">--:--</strong></div>
+            </div>
+
+            <div class="badge-info">
+              Escanea el gafete del operador o escribe el código manualmente. Nosotros validamos el formato y conservamos la información para la siguiente captura.
+              <span id="badgeSummary"></span>
+            </div>
+
+            <form id="wipCaptureForm">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="badgeId">Badge del operador *</label>
+                  <input type="text" id="badgeId" name="badgeId" placeholder="Escanea o escribe el badge" autocomplete="off" required>
+                </div>
+                <div class="form-group">
+                  <label for="workOrder">Work Order *</label>
+                  <input type="text" id="workOrder" name="workOrder" placeholder="WO-1001" required>
+                </div>
+                <div class="form-group">
+                  <label for="operation">Operación *</label>
+                  <select id="operation" name="operation" required>
+                    <option value="">Selecciona una operación</option>
+                    <option value="Cutting">Cutting</option>
+                    <option value="Machining">Machining</option>
+                    <option value="Assembly">Assembly</option>
+                    <option value="Quality Check">Quality Check</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="workCenter">Centro de trabajo *</label>
+                  <select id="workCenter" name="workCenter" required>
+                    <option value="">Selecciona un centro</option>
+                    <option value="Laser-01">Laser-01</option>
+                    <option value="CNC-04">CNC-04</option>
+                    <option value="Assembly-A">Assembly-A</option>
+                    <option value="QA-Lab">QA-Lab</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="quantity">Cantidad procesada *</label>
+                  <input type="number" id="quantity" name="quantity" min="1" placeholder="Ej. 120" required>
+                </div>
+                <div class="form-group">
+                  <label for="sequence">Secuencia / Operación #</label>
+                  <input type="text" id="sequence" name="sequence" placeholder="Ej. 20">
+                </div>
+                <div class="form-group">
+                  <label for="status">Acción</label>
+                  <select id="status" name="status">
+                    <option value="start">Iniciar / Continuar</option>
+                    <option value="pause">Pausar</option>
+                    <option value="complete">Finalizar operación</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="notes">Notas</label>
+                  <textarea id="notes" name="notes" placeholder="Observaciones o incidencias relevantes"></textarea>
+                </div>
+              </div>
+
+              <div class="action-buttons">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i> Registrar captura
+                </button>
+                <button type="reset" class="btn btn-ghost">
+                  <i class="fas fa-eraser"></i> Limpiar
+                </button>
+              </div>
+            </form>
+
+            <div class="feedback success" id="feedbackMessage" style="display: none;">
+              <i class="fas fa-check-circle"></i>
+              <span>¡Captura guardada correctamente!</span>
+            </div>
+
+            <div class="quick-actions">
+              <button type="button" data-template="Assembly">
+                <i class="fas fa-bolt"></i> Assembly rápido
+              </button>
+              <button type="button" data-template="QA">
+                <i class="fas fa-clipboard-check"></i> QA express
+              </button>
+              <button type="button" data-template="Rework">
+                <i class="fas fa-tools"></i> Re-trabajo
+              </button>
+              <button type="button" data-template="Maintenance">
+                <i class="fas fa-wrench"></i> Mantenimiento
+              </button>
+            </div>
+
+            <div class="action-buttons" style="margin-top: 24px; justify-content: flex-end;">
+              <button type="button" class="btn btn-primary" onclick="switchStep(2)">
+                Siguiente: Sesiones Activas <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Sesiones Activas -->
+        <div class="step-content" id="step-2">
+          <div class="wip-card">
+            <div class="section-title">
+              <div>
+                <h3>Sesiones activas</h3>
+                <p>Da seguimiento a los operadores en proceso</p>
+              </div>
+            </div>
+            <div id="activeJobsList" class="active-jobs"></div>
+            <div id="activeEmptyState" class="empty-state" style="display: none;">
+              No hay sesiones activas en este momento. ¡Perfecto para iniciar un nuevo ciclo!
+            </div>
+
+            <div class="action-buttons" style="margin-top: 24px; justify-content: space-between;">
+              <button type="button" class="btn btn-ghost" onclick="switchStep(1)">
+                <i class="fas fa-arrow-left"></i> Anterior: Captura
+              </button>
+              <button type="button" class="btn btn-primary" onclick="switchStep(3)">
+                Siguiente: Historial <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Historial -->
+        <div class="step-content" id="step-3">
+          <div class="wip-card">
+            <div class="section-title">
+              <div>
+                <h3>Historial reciente</h3>
+                <p>Últimas capturas registradas en planta</p>
+              </div>
+              <div>
+                <button type="button" class="btn btn-secondary" id="exportHistory">
+                  <i class="fas fa-file-export"></i> Exportar
+                </button>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table aria-label="Historial de capturas">
+                <thead>
+                  <tr>
+                    <th>Hora</th>
+                    <th>Badge</th>
+                    <th>WO</th>
+                    <th>Operación</th>
+                    <th>Cantidad</th>
+                    <th>Estatus</th>
+                  </tr>
+                </thead>
+                <tbody id="historyTableBody"></tbody>
+              </table>
+            </div>
+
+            <div class="action-buttons" style="margin-top: 24px;">
+              <button type="button" class="btn btn-ghost" onclick="switchStep(2)">
+                <i class="fas fa-arrow-left"></i> Anterior: Sesiones Activas
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Step Navigation
+    const steps = document.querySelectorAll('.step');
+    const stepContents = document.querySelectorAll('.step-content');
+
+    function switchStep(stepNumber) {
+      // Remove active class from all steps and contents
+      steps.forEach(s => s.classList.remove('active', 'completed'));
+      stepContents.forEach(c => c.classList.remove('active'));
+
+      // Add active class to selected step and content
+      const selectedStep = document.querySelector(`.step[data-step="${stepNumber}"]`);
+      const selectedContent = document.getElementById(`step-${stepNumber}`);
+      
+      if (selectedStep && selectedContent) {
+        selectedStep.classList.add('active');
+        selectedContent.classList.add('active');
+        
+        // Mark previous steps as completed
+        steps.forEach(s => {
+          const stepNum = parseInt(s.dataset.step);
+          if (stepNum < stepNumber) {
+            s.classList.add('completed');
+          }
+        });
+      }
+    }
+
+    // Add click handlers to steps
+    steps.forEach(step => {
+      step.addEventListener('click', () => {
+        const stepNumber = parseInt(step.dataset.step);
+        switchStep(stepNumber);
+      });
+    });
+
+    // Form elements
+    const wipCaptureForm = document.getElementById('wipCaptureForm');
+    const feedbackMessage = document.getElementById('feedbackMessage');
+    const activeJobsList = document.getElementById('activeJobsList');
+    const activeEmptyState = document.getElementById('activeEmptyState');
+    const historyTableBody = document.getElementById('historyTableBody');
+    const activeCount = document.getElementById('activeCount');
+    const completedCount = document.getElementById('completedCount');
+    const lastCapture = document.getElementById('lastCapture');
+    const badgeSummary = document.getElementById('badgeSummary');
+    const liveClock = document.getElementById('liveClock');
+    const exportHistoryBtn = document.getElementById('exportHistory');
+    const quickButtons = document.querySelectorAll('.quick-actions button');
+
+    let activeJobs = [];
+    let history = [];
+    let completedToday = 0;
+
+    const formatter = new Intl.DateTimeFormat('es-MX', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    function updateClock() {
+      const now = new Date();
+      liveClock.textContent = formatter.format(now);
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function renderActiveJobs() {
+      activeJobsList.innerHTML = '';
+
+      if (activeJobs.length === 0) {
+        activeEmptyState.style.display = 'block';
+        return;
+      }
+
+      activeEmptyState.style.display = 'none';
+
+      activeJobs.forEach(job => {
+        const card = document.createElement('div');
+        card.className = 'job-card';
+        card.dataset.jobId = job.id;
+        card.innerHTML = `
+          <div class="job-card-header">
+            <h4>${job.workOrder} · ${job.operation}</h4>
+            <span class="status-chip ${job.status === 'Pausado' ? 'paused' : 'in-progress'}">
+              <i class="fas ${job.status === 'Pausado' ? 'fa-pause-circle' : 'fa-circle-notch'}"></i> ${job.status}
+            </span>
+          </div>
+          <div class="job-meta">
+            <div><strong>Badge:</strong> ${job.badgeId}</div>
+            <div><strong>Centro:</strong> ${job.workCenter}</div>
+            <div><strong>Inicio:</strong> ${job.startTime}</div>
+            <div><strong>Cantidad:</strong> ${job.quantity}</div>
+          </div>
+          <div class="job-actions">
+            <button type="button" data-action="complete" data-id="${job.id}">
+              <i class="fas fa-check"></i> Completar
+            </button>
+            <button type="button" class="secondary" data-action="toggle" data-id="${job.id}">
+              <i class="fas fa-pause"></i> ${job.status === 'Pausado' ? 'Reanudar' : 'Pausar'}
+            </button>
+            <button type="button" class="warning" data-action="cancel" data-id="${job.id}">
+              <i class="fas fa-times"></i> Cancelar
+            </button>
+          </div>
+        `;
+        activeJobsList.appendChild(card);
+      });
+    }
+
+    function renderHistory() {
+      historyTableBody.innerHTML = '';
+
+      if (history.length === 0) {
+        historyTableBody.innerHTML = '<tr><td colspan="6" class="empty-state">Aún no hay capturas registradas hoy.</td></tr>';
+        return;
+      }
+
+      history.slice(0, 10).forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${item.time}</td>
+          <td>${item.badgeId}</td>
+          <td>${item.workOrder}</td>
+          <td>${item.operation}</td>
+          <td>${item.quantity}</td>
+          <td>${item.status}</td>
+        `;
+        historyTableBody.appendChild(row);
+      });
+    }
+
+    function showFeedback(message, type = 'success') {
+      feedbackMessage.querySelector('span').textContent = message;
+      feedbackMessage.className = `feedback ${type}`;
+      feedbackMessage.style.display = 'flex';
+      setTimeout(() => {
+        feedbackMessage.style.display = 'none';
+      }, 3200);
+    }
+
+    function updateSummary() {
+      activeCount.textContent = activeJobs.length;
+      completedCount.textContent = completedToday;
+    }
+
+    function setLastCapture(time) {
+      lastCapture.textContent = time;
+    }
+
+    wipCaptureForm.addEventListener('submit', event => {
+      event.preventDefault();
+      const formData = new FormData(wipCaptureForm);
+      const now = new Date();
+      const badgeId = formData.get('badgeId').trim().toUpperCase();
+      const workOrder = formData.get('workOrder').trim().toUpperCase();
+      const operation = formData.get('operation');
+      const workCenter = formData.get('workCenter');
+      const quantity = parseInt(formData.get('quantity'), 10);
+      const sequence = formData.get('sequence').trim();
+      const status = formData.get('status');
+      const notes = formData.get('notes').trim();
+      const timeStamp = formatter.format(now);
+
+      if (!badgeId || !workOrder || !operation || !workCenter || !quantity) {
+        showFeedback('Verifica los campos obligatorios antes de guardar.', 'warning');
+        return;
+      }
+
+      badgeSummary.textContent = `Último badge capturado: ${badgeId}`;
+
+      const baseRecord = {
+        id: Date.now().toString(),
+        badgeId,
+        workOrder,
+        operation,
+        workCenter,
+        quantity,
+        sequence,
+        notes,
+        startTime: timeStamp,
+        status: 'En progreso'
+      };
+
+      if (status === 'complete') {
+        history.unshift({
+          time: timeStamp,
+          badgeId,
+          workOrder,
+          operation,
+          quantity,
+          status: 'Finalizado'
+        });
+        completedToday += 1;
+        showFeedback('Operación finalizada y registrada en historial.');
+      } else {
+        baseRecord.status = status === 'pause' ? 'Pausado' : 'En progreso';
+        activeJobs.unshift(baseRecord);
+        showFeedback('Sesión de producción activa.');
+      }
+
+      history = history.slice(0, 25);
+      setLastCapture(timeStamp);
+      renderActiveJobs();
+      renderHistory();
+      updateSummary();
+
+      wipCaptureForm.reset();
+      document.getElementById('badgeId').focus();
+    });
+
+    activeJobsList.addEventListener('click', event => {
+      if (!(event.target instanceof HTMLElement)) return;
+
+      const actionButton = event.target.closest('button[data-action]');
+      if (!actionButton) return;
+
+      const { action, id } = actionButton.dataset;
+      const jobIndex = activeJobs.findIndex(job => job.id === id);
+      if (jobIndex === -1) return;
+
+      const job = activeJobs[jobIndex];
+      const now = formatter.format(new Date());
+
+      if (action === 'complete') {
+        activeJobs.splice(jobIndex, 1);
+        history.unshift({
+          time: now,
+          badgeId: job.badgeId,
+          workOrder: job.workOrder,
+          operation: job.operation,
+          quantity: job.quantity,
+          status: 'Finalizado'
+        });
+        completedToday += 1;
+        showFeedback('Operación cerrada correctamente.');
+      }
+
+      if (action === 'toggle') {
+        job.status = job.status === 'Pausado' ? 'En progreso' : 'Pausado';
+      }
+
+      if (action === 'cancel') {
+        activeJobs.splice(jobIndex, 1);
+        showFeedback('Sesión cancelada.', 'warning');
+      }
+
+      history = history.slice(0, 25);
+      renderActiveJobs();
+      renderHistory();
+      updateSummary();
+    });
+
+    quickButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const badgeInput = document.getElementById('badgeId');
+        const operationSelect = document.getElementById('operation');
+        const workCenterSelect = document.getElementById('workCenter');
+        const notesArea = document.getElementById('notes');
+
+        const template = button.dataset.template;
+        if (template === 'Assembly') {
+          operationSelect.value = 'Assembly';
+          workCenterSelect.value = 'Assembly-A';
+          notesArea.value = 'Hook de ensamble rápido aplicado.';
+        } else if (template === 'QA') {
+          operationSelect.value = 'Quality Check';
+          workCenterSelect.value = 'QA-Lab';
+          notesArea.value = 'Checklist estándar aplicado.';
+        } else if (template === 'Rework') {
+          operationSelect.value = 'Machining';
+          workCenterSelect.value = 'CNC-04';
+          notesArea.value = 'Retrabajo autorizado por supervisor.';
+        } else if (template === 'Maintenance') {
+          operationSelect.value = 'Machining';
+          workCenterSelect.value = 'CNC-04';
+          notesArea.value = 'Tiempo productivo dedicado a mantenimiento preventivo.';
+        }
+
+        badgeInput.focus();
+        showFeedback('Plantilla aplicada, listo para capturar.', 'success');
+      });
+    });
+
+    exportHistoryBtn.addEventListener('click', () => {
+      if (history.length === 0) {
+        showFeedback('No hay registros para exportar.', 'warning');
+        return;
+      }
+
+      const header = ['Hora', 'Badge', 'WO', 'Operación', 'Cantidad', 'Estatus'];
+      const rows = history.map(item => [
+        item.time,
+        item.badgeId,
+        item.workOrder,
+        item.operation,
+        item.quantity,
+        item.status
+      ]);
+
+      const csvContent = [header, ...rows]
+        .map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `wip_tracking_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showFeedback('Historial exportado correctamente.');
+    });
+
+    // Inicializar datos vacíos - se llenarán con datos reales de Peak
+    renderActiveJobs();
+    renderHistory();
+    updateSummary();
+  </script>
+
+  <PRE>
+PicLan-IP/BASIC ^ ^
+*
+      PL_GETVAR BADGEID FROM 'BADGEID' ELSE BADGEID = ''
+      PL_GETVAR UPDATE FROM 'UPDATE' ELSE UPDATE = ''
+      OPEN 'OPERS' TO OPERSF ELSE STOP 201,'OPERS'
+      OPEN 'BADGES' TO BADGEF ELSE STOP 201,'BADGES'
+ *
+      MSG = ''
+      BREC = '' ; OPER = ''
+*
+      BADGEID = TRIM(BADGEID)
+      BADGEID = OCONV(BADGEID,'MCU')
+      PRINT 'BADGEID = ':BADGEID
+      IF UPDATE NE '' THEN
+   
+           READ OPER FROM OPERSF,BADGEID ELSE 
+              READ BREC FROM BADGEF,BADGEID ELSE
+                 MSG = 'INVALID OPERATOR BADGEID OR SYSTEM OPER ID'
+                 BADGEID = ''
+                 GOTO 99
+              END
+           END
+*
+           IF OPER NE '' THEN
+                BADGEID = BADGEID:'|':OPER<9>
+           END
+           IF BREC NE '' THEN
+                BADGEID = BREC<4>:'|':BADGEID
+           END
+           ERR = ''
+           PL_PUTVAR BADGEID IN 'BADGEID' ELSE NULL
+           PL_PUTVAR '' IN 'UPDATE' ELSE NULL
+           CALL PLW.PAGE('CDA_WIPTRACK2.HTM','',ERR)
+           RETURN
+       END
+*
+99 *
+*
+*
+    </PRE>
+</body>
+</html>
