@@ -286,7 +286,7 @@
       <button class="sidebar-close" onclick="toggleSidebar()">×</button>
       <h2>Navigation</h2>
       <ul>
-        <li><a href="/STOCKMENU.HTM">Stock Menu</a></li>
+        <li><a href="/NBMMEDIT.HTM">Stock Menu</a></li>
         <li><a href="/LOGINWH.HTM">Logout</a></li>
       </ul>
     </aside>
@@ -387,7 +387,7 @@ PL_GETVAR MANNUM FROM 'MANNUM' ELSE MANNUM = ''
 *
 IF CANCEL7 NE &quot;&quot; THEN
    ERR = ''
-   CALL PLW.PAGE('STOCKMENU.HTM','',ERR)
+   CALL PLW.PAGE('NBMMEDIT.HTM','',ERR)
    RETURN
 END
 *
