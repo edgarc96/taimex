@@ -62,6 +62,7 @@ inventory/ (VERSIONES MODERNIZADAS)
 - Shipping Labels Local → `SHIPLCLABELP1EDIT.HTM`
 - Shipping Labels Inner Box → `SHIPILABEL1EDIT.HTM`
 - Ship Check → `SHIPCHECKEDIT.HTM`
+- Inventory Part Inquiry → `INVPINEDIT.HTM`
 - Raw Material Inquiry → `INVIRMEDIT.HTM`
 - Inventory Audit → `IAPEDIT1.HTM`
 - Stock Transactions → `STOCKTRANS_EDIT.HTM`
@@ -325,9 +326,32 @@ Sistema de verificación de embarques mediante escaneo de códigos de barras de 
 ### **Descripción**
 Consultas de inventario para partes y materias primas.
 
-### **Flujo INVPIN (Inventory Part Inquiry) - NOTA: Versión legacy, usar INVIRMEDIT**
+### **Flujo INVPINEDIT (Inventory Part Inquiry)**
 
-**Se recomienda usar INVIRMEDIT.HTM en su lugar (versión modernizada)**
+```
+┌─────────────────────────────────────────────────────────────┐
+│  INVPINEDIT.HTM                                             │
+│  ┌───────────────────────────────────────┐                 │
+│  │ Consulta de Inventario                 │                 │
+│  │ Input: PARTNUM                        │                 │
+│  └───────────────────────────────────────┘                 │
+│           │                                                 │
+│           ├─ [Error] → PALMERROR2EDIT.HTM                  │
+│           └─ [Valid] ↓                                      │
+└─────────────────────────────────────────────────────────────┘
+                        │
+                        ↓
+┌─────────────────────────────────────────────────────────────┐
+│  INVPIN2EDIT.HTM                                            │
+│  ┌───────────────────────────────────────┐                 │
+│  │ Resultados de Inventario               │                 │
+│  │ Action: INVINQ subroutine             │                 │
+│  │ Display: Niveles de inventario        │                 │
+│  └───────────────────────────────────────┘                 │
+│           │                                                 │
+│           └─ [MENU] → NBMMEDIT.HTM                        │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ### **Flujo INVIRMEDIT (Raw Material Inquiry)**
 
@@ -394,8 +418,8 @@ Consultas de inventario para partes y materias primas.
 
 | Archivo | URL | Propósito |
 |---------|-----|-----------|
-| INVPIN.HTM | /INVPIN.HTM | Consulta de parte |
-| INVPIN2.HTM | /INVPIN2.HTM | Resultados parte |
+| INVPINEDIT.HTM | /INVPINEDIT.HTM | Consulta de parte |
+| INVPIN2EDIT.HTM | /INVPIN2EDIT.HTM | Resultados parte |
 | INVIRMEDIT.HTM | /INVIRMEDIT.HTM | Consulta materia prima |
 | INVIP2RMEDIT.HTM | /INVIP2RMEDIT.HTM | Resultados RM + IQC |
 | IQEDIT.HTM | /IQEDIT.HTM | Búsqueda por ubicación |
