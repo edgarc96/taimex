@@ -2,8 +2,11 @@
 
 **Sistema**: TAIMEX ERP
 **Módulo**: Inventory Management
-**Versión**: 1.0
-**Fecha**: 2025-11-16
+**Versión**: 2.0
+**Fecha**: 2025-11-17
+**Menú Principal**: NBMMEDIT.HTM
+
+> **NOTA IMPORTANTE**: Este manual documenta únicamente las versiones **modernizadas** (archivos con sufijo EDIT.HTM) del sistema de inventario. Las versiones legacy (sin EDIT) están deprecadas y no se deben utilizar.
 
 ---
 
@@ -41,33 +44,29 @@ El módulo **Inventory** de TAIMEX gestiona todas las operaciones relacionadas c
 ### 1.2 Estructura General
 
 ```
-inventory/
-├── Shipping Labels (Local)      → 8 archivos (P1-P8)
-├── Shipping Labels (Inner Box)  → 6 archivos
-├── Stock Checks                 → 8 archivos
-├── Inventory Adjustments        → 8 archivos
-├── Inventory Audit Process      → 10 archivos (legacy + modern)
-├── Ship Out                     → 6 archivos
-├── Stock Transactions           → 3 archivos
+inventory/ (VERSIONES MODERNIZADAS)
+├── Shipping Labels (Local)      → 8 archivos EDIT (P1-P8)
+├── Shipping Labels (Inner Box)  → 2 archivos EDIT principales
+├── Stock Checks                 → 2 archivos EDIT + 1 legacy (SHIPCHECK3)
+├── Inventory Adjustments        → INVIRMEDIT, INVIP2RMEDIT, IQEDIT
+├── Inventory Audit Process      → 5 archivos IAPEDIT (1-5)
+├── Ship Out                     → Archivos EDIT
+├── Stock Transactions           → 3 archivos principales
 ├── Stock Locations              → 1 archivo
-└── XML Services                 → 7 archivos
+└── XML Services                 → 7 servicios API
 ```
 
 ### 1.3 Puntos de Acceso Principales
 
-**Desde MAIN_MENU.HTM:**
-- Stock Transfers → `STOCKTRANS_EDIT.HTM`
-- Create Stock Transaction → `STOCKTRANS_CREATE.HTM`
-- Stock Locations → `stockloc_edit.htm`
-- Part Inquiry → `NBPART.HTM`
-
-**Desde NBMMEDIT.HTM** (menú no encontrado físicamente, referenciado en archivos):
+**Desde NBMMEDIT.HTM** (Menú Principal de Inventario):
 - Shipping Labels Local → `SHIPLCLABELP1EDIT.HTM`
-- Shipping Labels Inner Box → `SHIPILABELP1.HTM`
+- Shipping Labels Inner Box → `SHIPILABEL1EDIT.HTM`
 - Ship Check → `SHIPCHECKEDIT.HTM`
-- Inventory Inquiry → `INVPIN.HTM`
 - Raw Material Inquiry → `INVIRMEDIT.HTM`
 - Inventory Audit → `IAPEDIT1.HTM`
+- Stock Transactions → `STOCKTRANS_EDIT.HTM`
+- Create Stock Transaction → `STOCKTRANS_CREATE.HTM`
+- Stock Locations → `stockloc_edit.htm`
 
 ---
 
@@ -186,38 +185,27 @@ Proceso para generar etiquetas de envío para embarques locales/domésticos a pa
 ## 2.2 Shipping Labels - Inner Box (SHIPILABEL)
 
 ### **Descripción**
-Proceso para generar etiquetas de caja interior para partes individuales de inventario.
+Proceso para generar etiquetas de caja interior para partes individuales de inventario (versión modernizada).
 
 ### **Flujo Completo**
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  SHIPILABELP1.HTM / SHIPILABEL1EDIT.HTM                     │
+│  SHIPILABEL1EDIT.HTM                                        │
 │  ┌───────────────────────────────────────┐                 │
 │  │ Escanear Número de Parte              │                 │
 │  │ Input: PARTNUM                        │                 │
 │  │ Nota: Strip leading 'P' si presente   │                 │
 │  └───────────────────────────────────────┘                 │
 │           │                                                 │
-│           ├─ [CANCEL/CANCEL2] → NBMMEDIT.HTM              │
+│           ├─ [CANCEL2] → NBMMEDIT.HTM                      │
 │           ├─ [Error] → PALMERROR2EDIT.HTM                  │
 │           └─ [Valid Part] ↓                                 │
 └─────────────────────────────────────────────────────────────┘
                         │
                         ↓
 ┌─────────────────────────────────────────────────────────────┐
-│  SHIPILABELP2.HTM / SHIPILABELP2A.HTM                       │
-│  ┌───────────────────────────────────────┐                 │
-│  │ Paso 2 del Workflow                    │                 │
-│  │ (Detalles de implementación varían)   │                 │
-│  └───────────────────────────────────────┘                 │
-│           │                                                 │
-│           └─ [Continue] ↓                                   │
-└─────────────────────────────────────────────────────────────┘
-                        │
-                        ↓
-┌─────────────────────────────────────────────────────────────┐
-│  SHIPILABELP3.HTM / SHIPILABELP3EDIT.HTM                    │
+│  SHIPILABELP3EDIT.HTM                                       │
 │  ┌───────────────────────────────────────┐                 │
 │  │ Generación de Etiqueta Inner Box       │                 │
 │  │ Inputs: PARTNUM, QTY, otros campos    │                 │
@@ -232,12 +220,8 @@ Proceso para generar etiquetas de caja interior para partes individuales de inve
 
 | Archivo | URL | Método | Propósito |
 |---------|-----|--------|-----------|
-| SHIPILABELP1.HTM | /SHIPILABELP1EDIT.HTM | GET | Entrada de parte |
-| SHIPILABEL1EDIT.HTM | /SHIPILABEL1EDIT.HTM | GET | Entrada alternativa |
-| SHIPILABELP2.HTM | /SHIPILABELP2.HTM | GET | Paso 2 |
-| SHIPILABELP2A.HTM | /SHIPILABELP2A.HTM | GET | Paso 2 alternativo |
-| SHIPILABELP3.HTM | /SHIPILABELP3.HTM | GET | Generación |
-| SHIPILABELP3EDIT.HTM | /SHIPILABELP3EDIT.HTM | GET | Generación (modern) |
+| SHIPILABEL1EDIT.HTM | /SHIPILABEL1EDIT.HTM | GET | Entrada de parte |
+| SHIPILABELP3EDIT.HTM | /SHIPILABELP3EDIT.HTM | GET | Generación de etiqueta |
 
 ### **Reglas de Negocio**
 
@@ -341,32 +325,9 @@ Sistema de verificación de embarques mediante escaneo de códigos de barras de 
 ### **Descripción**
 Consultas de inventario para partes y materias primas.
 
-### **Flujo INVPIN (Inventory Part Inquiry)**
+### **Flujo INVPIN (Inventory Part Inquiry) - NOTA: Versión legacy, usar INVIRMEDIT**
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  INVPIN.HTM                                                 │
-│  ┌───────────────────────────────────────┐                 │
-│  │ Consulta de Inventario                 │                 │
-│  │ Input: PARTNUM                        │                 │
-│  └───────────────────────────────────────┘                 │
-│           │                                                 │
-│           ├─ [Error] → PALMERROR2EDIT.HTM                  │
-│           └─ [Valid] ↓                                      │
-└─────────────────────────────────────────────────────────────┘
-                        │
-                        ↓
-┌─────────────────────────────────────────────────────────────┐
-│  INVPIN2.HTM                                                │
-│  ┌───────────────────────────────────────┐                 │
-│  │ Resultados de Inventario               │                 │
-│  │ Action: INVINQ subroutine             │                 │
-│  │ Display: Niveles de inventario        │                 │
-│  └───────────────────────────────────────┘                 │
-│           │                                                 │
-│           └─ [MENU] → NBMMEDIT.HTM                        │
-└─────────────────────────────────────────────────────────────┘
-```
+**Se recomienda usar INVIRMEDIT.HTM en su lugar (versión modernizada)**
 
 ### **Flujo INVIRMEDIT (Raw Material Inquiry)**
 
