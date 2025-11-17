@@ -61,7 +61,7 @@ inventory/
 - Stock Locations → `stockloc_edit.htm`
 - Part Inquiry → `NBPART.HTM`
 
-**Desde STOCKMENU.HTM** (menú no encontrado físicamente, referenciado en archivos):
+**Desde NBMMEDIT.HTM** (menú no encontrado físicamente, referenciado en archivos):
 - Shipping Labels Local → `SHIPLCLABELP1EDIT.HTM`
 - Shipping Labels Inner Box → `SHIPILABELP1.HTM`
 - Ship Check → `SHIPCHECKEDIT.HTM`
@@ -88,7 +88,7 @@ Proceso para generar etiquetas de envío para embarques locales/domésticos a pa
 │  │ Input: ORDNUM                         │                 │
 │  └───────────────────────────────────────┘                 │
 │           │                                                 │
-│           ├─ [CANCEL] → STOCKMENU.HTM                      │
+│           ├─ [CANCEL] → NBMMEDIT.HTM                      │
 │           ├─ [Error] → PALMERROR2EDIT.HTM                  │
 │           └─ [Valid] ↓                                      │
 └─────────────────────────────────────────────────────────────┘
@@ -102,7 +102,7 @@ Proceso para generar etiquetas de envío para embarques locales/domésticos a pa
 │  │ Display: ORDNUM                       │                 │
 │  └───────────────────────────────────────┘                 │
 │           │                                                 │
-│           ├─ [CANCEL] → STOCKMENU.HTM                      │
+│           ├─ [CANCEL] → NBMMEDIT.HTM                      │
 │           └─ [NEXT] ↓                                       │
 └─────────────────────────────────────────────────────────────┘
                         │
@@ -121,7 +121,7 @@ Proceso para generar etiquetas de envío para embarques locales/domésticos a pa
 │  │  - WT (peso)                          │                 │
 │  └───────────────────────────────────────┘                 │
 │           │                                                 │
-│           ├─ [CANCEL] → STOCKMENU.HTM                      │
+│           ├─ [CANCEL] → NBMMEDIT.HTM                      │
 │           └─ [PRINT LABEL] ↓                                │
 └─────────────────────────────────────────────────────────────┘
                         │
@@ -133,7 +133,7 @@ Proceso para generar etiquetas de envío para embarques locales/domésticos a pa
 │  │ Display: Todos los datos capturados   │                 │
 │  └───────────────────────────────────────┘                 │
 │           │                                                 │
-│           ├─ [CANCEL] → STOCKMENU.HTM                      │
+│           ├─ [CANCEL] → NBMMEDIT.HTM                      │
 │           ├─ [EDIT] → SHIPLCLABELP3EDIT.HTM                │
 │           └─ [CONFIRM & PRINT] ↓                            │
 └─────────────────────────────────────────────────────────────┘
@@ -147,7 +147,7 @@ Proceso para generar etiquetas de envío para embarques locales/domésticos a pa
 │  └───────────────────────────────────────┘                 │
 │           │                                                 │
 │           ├─ [PRINT ANOTHER] → SHIPLCLABELP1EDIT.HTM       │
-│           └─ [MAIN MENU] → STOCKMENU.HTM                   │
+│           └─ [MAIN MENU] → NBMMEDIT.HTM                   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -199,7 +199,7 @@ Proceso para generar etiquetas de caja interior para partes individuales de inve
 │  │ Nota: Strip leading 'P' si presente   │                 │
 │  └───────────────────────────────────────┘                 │
 │           │                                                 │
-│           ├─ [CANCEL/CANCEL2] → STOCKMENU.HTM              │
+│           ├─ [CANCEL/CANCEL2] → NBMMEDIT.HTM              │
 │           ├─ [Error] → PALMERROR2EDIT.HTM                  │
 │           └─ [Valid Part] ↓                                 │
 └─────────────────────────────────────────────────────────────┘
@@ -223,7 +223,7 @@ Proceso para generar etiquetas de caja interior para partes individuales de inve
 │  │ Inputs: PARTNUM, QTY, otros campos    │                 │
 │  └───────────────────────────────────────┘                 │
 │           │                                                 │
-│           ├─ [CANCEL] → STOCKMENU.HTM                      │
+│           ├─ [CANCEL] → NBMMEDIT.HTM                      │
 │           └─ [PRINT] → Genera etiqueta                      │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -364,7 +364,7 @@ Consultas de inventario para partes y materias primas.
 │  │ Display: Niveles de inventario        │                 │
 │  └───────────────────────────────────────┘                 │
 │           │                                                 │
-│           └─ [MENU] → STOCKMENU.HTM                        │
+│           └─ [MENU] → NBMMEDIT.HTM                        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -379,7 +379,7 @@ Consultas de inventario para partes y materias primas.
 │  └───────────────────────────────────────┘                 │
 │           │                                                 │
 │           ├─ [CLEAR] → Limpia formulario                   │
-│           ├─ [MENU] → STOCKMENU.HTM                        │
+│           ├─ [MENU] → NBMMEDIT.HTM                        │
 │           ├─ [Error] → PALMERROR2EDIT.HTM                  │
 │           └─ [Valid] ↓                                      │
 └─────────────────────────────────────────────────────────────┘
@@ -397,7 +397,7 @@ Consultas de inventario para partes y materias primas.
 │           │                                                 │
 │           ├─ [BACK] → INVIRMEDIT.HTM                       │
 │           ├─ [CREATE] → INVPULL1EDIT.HTM                   │
-│           └─ [MENU] → STOCKMENU.HTM                        │
+│           └─ [MENU] → NBMMEDIT.HTM                        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -1223,7 +1223,7 @@ Campo 26: WHBIN + YYMM (warehouse bin + datecode)
 
 | Botón | Acción Común |
 |-------|--------------|
-| **CANCEL** | Regresar a STOCKMENU.HTM |
+| **CANCEL** | Regresar a NBMMEDIT.HTM |
 | **MENU** / **Main Menu** | Regresar a menú principal |
 | **BACK** | Página anterior en flujo |
 | **NEXT** | Siguiente paso en flujo |
@@ -1289,7 +1289,7 @@ END
 ```basic
 IF CANCEL NE "" THEN
    ERR = ''
-   CALL PLW.PAGE('STOCKMENU.HTM','',ERR)
+   CALL PLW.PAGE('NBMMEDIT.HTM','',ERR)
    RETURN
 END
 ```
@@ -1305,7 +1305,7 @@ WHBIN = OCONV(WHBIN,'MCU')
 ```basic
 ' En código BASIC dentro de <pre>, usar &quot; en lugar de "
 IF CANCEL3 NE &quot;&quot; THEN
-   CALL PLW.PAGE('STOCKMENU.HTM','',ERR)
+   CALL PLW.PAGE('NBMMEDIT.HTM','',ERR)
 END
 ```
 
@@ -1317,11 +1317,11 @@ END
 
 | Desde | CANCEL → | NEXT/OK → | Error → |
 |-------|----------|-----------|---------|
-| P1EDIT | STOCKMENU | P2EDIT | PALMERROR2 |
-| P2EDIT | STOCKMENU | P3EDIT | - |
-| P3EDIT | STOCKMENU | P4EDIT | - |
-| P4EDIT | STOCKMENU | P5EDIT (CONFIRM) | P3EDIT (EDIT) |
-| P5EDIT | STOCKMENU | P1EDIT (ANOTHER) | - |
+| P1EDIT | NBMMEDIT | P2EDIT | PALMERROR2 |
+| P2EDIT | NBMMEDIT | P3EDIT | - |
+| P3EDIT | NBMMEDIT | P4EDIT | - |
+| P4EDIT | NBMMEDIT | P5EDIT (CONFIRM) | P3EDIT (EDIT) |
+| P5EDIT | NBMMEDIT | P1EDIT (ANOTHER) | - |
 
 ### Inventory Audit Process
 
