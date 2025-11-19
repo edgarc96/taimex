@@ -345,6 +345,64 @@ if (checkbox) {
 - El `checkbox` debe estar declarado FUERA del bloque `if (overlay && checkbox)` para que esté disponible en el scope del event listener de menuLabels.
 - El overlay debe ser un `<div>` (NO un `<label>`) para que JavaScript maneje el cierre correctamente sin comportamiento de toggle.
 
+### ❌ BUG: Error [B10] "Variable has not been assigned a value; zero used"
+
+**Problema**: Al enviar formularios, aparece el error de servidor:
+```
+[B10] in program "WEB$0002XXXX", Line XX:
+Variable has not been assigned a value; zero used.
+```
+
+**Causas Comunes**:
+
+1. **Entidades HTML en código BASIC**: El código PicLan-IP/BASIC contiene `&quot;` en lugar de comillas simples.
+2. **Campos de formulario duplicados**: Existe un `<select>` o `<input>` visible y un `<input type="hidden">` con el mismo `name=""`, causando conflictos de valores.
+
+**Síntomas**:
+- Error 500 Internal Server Error
+- Variables BASIC sin valor asignado
+- Formulario no procesa correctamente
+
+**Solución 1 - Entidades HTML**:
+
+Buscar en el bloque `<PRE>` todas las líneas con `&quot;` y reemplazar con comillas simples:
+
+```basic
+❌ INCORRECTO:
+IF CANCEL NE &quot;&quot; THEN
+IF FIELD NE &quot;value&quot; THEN
+
+✅ CORRECTO:
+IF CANCEL NE '' THEN
+IF FIELD NE 'value' THEN
+```
+
+**Solución 2 - Campos Duplicados**:
+
+Eliminar el campo `<input type="hidden">` cuando ya existe un `<select>` o `<input>` visible con el mismo nombre:
+
+```html
+❌ INCORRECTO (duplicado):
+<select name="COO">...</select>
+<input type="hidden" name="COO" value="^COO^">
+
+✅ CORRECTO (sin duplicado):
+<select name="COO">...</select>
+<!-- Sin hidden input - el select ya envía el valor -->
+```
+
+**Patrón de Detección**:
+
+Cuando veas este tipo de error:
+1. Buscar `&quot;` en el código BASIC con: `grep -n "&quot;" filename.HTM`
+2. Buscar campos duplicados con: `grep -n 'name="FIELDNAME"' filename.HTM`
+3. Corregir ambos problemas si existen
+
+**Prevención**:
+- Al crear nuevos templates, usar SIEMPRE comillas simples `''` en código BASIC
+- NO duplicar campos de formulario entre elementos visibles y hidden inputs
+- Usar hidden inputs SOLO para campos que no tiene el usuario (IDs internos, estados, etc.)
+
 ## Modernization Process for Legacy Files
 
 When modernizing legacy HTML files (files without "EDIT" suffix):
