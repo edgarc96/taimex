@@ -403,6 +403,51 @@ Cuando veas este tipo de error:
 - NO duplicar campos de formulario entre elementos visibles y hidden inputs
 - Usar hidden inputs SOLO para campos que no tiene el usuario (IDs internos, estados, etc.)
 
+### ❌ BUG: Error [B10] por Tag `<pre>` en Minúsculas
+
+**Problema**: Al enviar formularios, aparece el error de servidor [B10] y las variables no se asignan correctamente.
+
+**Causa**: El tag del bloque BASIC está en minúsculas `<pre>` en vez de mayúsculas `<PRE>`.
+
+**Síntomas**:
+- Error 500 Internal Server Error
+- Error [B10] "Variable has not been assigned a value; zero used"
+- El código BASIC no se ejecuta correctamente
+
+**Explicación**: PicLan-IP/BASIC requiere que el tag sea `<PRE>` en mayúsculas para reconocer y ejecutar el bloque de código del servidor. Si se usa `<pre>` en minúsculas, el sistema no procesa el código BASIC y todas las variables quedan sin asignar.
+
+**Solución**:
+
+Siempre usar `<PRE>` en mayúsculas para el bloque de código BASIC:
+
+```html
+❌ INCORRECTO:
+<pre>
+PicLan-IP/BASIC ^ ^
+...
+</pre>
+
+✅ CORRECTO:
+<PRE>
+PicLan-IP/BASIC ^ ^
+...
+</PRE>
+```
+
+**Patrón de Detección**:
+
+```bash
+grep -n '<pre>' filename.HTM
+grep -n '</pre>' filename.HTM
+```
+
+Si encuentras resultados, cámbialos a mayúsculas.
+
+**Prevención**:
+- Al crear o modernizar templates, verificar que el tag sea siempre `<PRE>` en mayúsculas
+- Agregar este check a la revisión de código antes de commitear
+- Los linters/formatters HTML pueden cambiar a minúsculas - verificar después de formatear
+
 ## Modernization Process for Legacy Files
 
 When modernizing legacy HTML files (files without "EDIT" suffix):
