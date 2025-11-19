@@ -535,7 +535,12 @@ IF CANCEL4 NE '' THEN
    RETURN
 END
 *
-IF COO[1,3] NE 'Ple' AND GON1 NE '' THEN
+IF GON1 NE '' THEN
+   IF COO[1,3] = 'Ple' OR COO = '' THEN
+      * User clicked Next without selecting valid country - reload page
+      RETURN
+   END
+   * Valid country selected, proceed to next page
    PL_PUTVAR PARTNUM IN 'PARTNUM' ELSE NULL
    PL_PUTVAR QTY IN 'QTY' ELSE NULL
    PL_PUTVAR DCODE IN 'DCODE' ELSE NULL
