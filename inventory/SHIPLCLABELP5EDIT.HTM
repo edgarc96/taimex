@@ -386,7 +386,7 @@
 </head>
 <body>
   <input type="checkbox" id="sb-toggle">
-  <label for="sb-toggle" class="sidebar-overlay" aria-hidden="true"></label>
+  <div class="sidebar-overlay"></div>
 
   <aside class="sidebar" aria-label="Main menu">
     <div class="sidebar-header">
@@ -394,11 +394,11 @@
     </div>
     <div class="sidebar-content">
       <ul class="sidebar-menu">
-        <li><label for="sb-toggle">Main Menu</label></li>
-        <li><label for="sb-toggle">Inventory</label></li>
-        <li><label for="sb-toggle" class="active">Shipping Labels</label></li>
-        <li><label for="sb-toggle">Stock Check</label></li>
-        <li><label for="sb-toggle">Reports</label></li>
+        <li><label>Main Menu</label></li>
+        <li><label>Inventory</label></li>
+        <li><label class="active">Shipping Labels</label></li>
+        <li><label>Stock Check</label></li>
+        <li><label>Reports</label></li>
       </ul>
     </div>
   </aside>
@@ -430,7 +430,7 @@
     </header>
 
     <main class="main-content">
-      <form method="GET" action="/SHIPLCLABELP5.HTM" class="form-container">
+      <form method="GET" action="/SHIPLCLABELP5EDIT.HTM" class="form-container">
         <div class="form-card">
           <h1 class="form-title">
             <i class="fas fa-box"></i>
@@ -486,6 +486,38 @@
     </main>
   </div>
 
+<script>
+  (function() {
+    'use strict';
+
+    // Auto-focus ROHS field
+    var rohsField = document.getElementById('ROHS');
+    if (rohsField) {
+      rohsField.focus();
+    }
+
+    // Sidebar overlay click handler
+    var overlay = document.querySelector('.sidebar-overlay');
+    var checkbox = document.getElementById('sb-toggle');
+
+    if (overlay && checkbox) {
+      overlay.addEventListener('click', function() {
+        checkbox.checked = false;
+      });
+    }
+
+    // Close sidebar when clicking menu items
+    if (checkbox) {
+      var menuLabels = document.querySelectorAll('.sidebar-menu label');
+      menuLabels.forEach(function(label) {
+        label.addEventListener('click', function() {
+          checkbox.checked = false;
+        });
+      });
+    }
+  })();
+</script>
+
 <PRE>
 PicLan-IP/BASIC ^ ^
 *
@@ -516,7 +548,7 @@ IF ROHS NE '' AND GON2 NE '' THEN
    PL_PUTVAR COO IN 'COO' ELSE NULL
    PL_PUTVAR ROHS IN 'ROHS' ELSE NULL
    ERR = ''
-   CALL PLW.PAGE('SHIPLCLABELP6.HTM','',ERR)
+   CALL PLW.PAGE('SHIPLCLABELP6EDIT.HTM','',ERR)
    RETURN
 END
 </PRE>
