@@ -1,104 +1,521 @@
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Language" content="en-us">
-<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
-<meta name="ProgId" content="FrontPage.Editor.Document">
-<meta name="viewport" content="width=device-width, user-scalable=no" />
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
-<title>Box Label</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TAIMEX - Print Inner Box Label</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-body: #f1f5f9;
+      --bg-card: #ffffff;
+      --accent-blue: #1d4ed8;
+      --accent-green: #10b981;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --shadow-card: 0 18px 46px rgba(15, 23, 42, 0.18);
+      --radius-lg: 20px;
+    }
 
-</head>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-<body bgcolor="#99FF99" topmargin="0" OnLoad="placeFocus()">
-<SCRIPT>
-function getSelect(s) {
-  return s.options[s.selectedIndex].value
-}
-</SCRIPT>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-body);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
 
-<SCRIPT LANGUAGE="JavaScript">
-<!-- Original:  Tom Khoury (twaks@yahoo.com) -->
+    /* Hidden checkbox for sidebar toggle */
+    #sb-toggle {
+      position: absolute;
+      left: -9999px;
+    }
 
-<!-- This script and many more are available free online at -->
-<!-- The JavaScript Source!! http://javascript.internet.com -->
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.35);
+      position: relative;
+      z-index: 50;
+    }
 
-<!-- Begin
-function placeFocus() {
-if (document.forms.length > 0) {
-var field = document.forms[0];
-for (i = 0; i < field.length; i++) {
-if ((field.elements[i].type == "text") || (field.elements[i].type == "textarea") || (field.elements[i].type.toString().charAt(0) == "s")) {
-document.forms[0].elements[i].focus();
-break;
-         }
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      font-size: 1.5em;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-section img {
+      height: 36px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+
+    .title-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .title-section h2 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .title-section p {
+      font-size: 0.75rem;
+      opacity: 0.9;
+    }
+
+    /* Sidebar Overlay */
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+      z-index: 1500;
+      pointer-events: none;
+    }
+
+    #sb-toggle:checked ~ .sidebar-overlay {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 300px;
+      height: 100vh;
+      background: rgba(255, 255, 255, .08);
+      backdrop-filter: blur(1px);
+      -webkit-backdrop-filter: blur(1px);
+      color: white;
+      transition: left 0.3s ease;
+      z-index: 2000;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+    }
+
+    #sb-toggle:checked ~ .sidebar {
+      left: 0;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar-header h3 {
+      font-size: 1.2em;
+      color: #fff;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .sidebar-content {
+      padding: 24px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-menu li {
+      margin-bottom: 8px;
+    }
+
+    .sidebar-menu label {
+      display: block;
+      padding: 12px 16px;
+      color: #f3f4f6;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .sidebar-menu label:hover {
+      background-color: rgba(30, 64, 175, 0.1);
+      color: #fff;
+    }
+
+    .sidebar-menu label.active {
+      background-color: rgba(30, 64, 175, 0.2);
+      color: #93c5fd;
+    }
+
+    /* Main Content */
+    .container {
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: var(--bg-body);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 620px;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card-header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-align: center;
+    }
+
+    .card-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .card-header p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+      border-left: 4px solid var(--accent-green);
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+      color: #065f46;
+      font-weight: 500;
+    }
+
+    .data-display {
+      background: var(--bg-body);
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .data-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .data-label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+
+    .data-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--accent-blue);
+    }
+
+    /* Form Styles */
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+    }
+
+    .form-group select {
+      padding: 0.875rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+      background: white;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+    }
+
+    .form-group select option {
+      padding: 0.5rem;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 0.875rem 1.5rem;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(29, 78, 216, 0.3);
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      background: #cbd5e1;
+      transform: translateY(-2px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 12px;
       }
-   }
-}
-//  End -->
+
+      .card {
+        padding: 20px 24px;
+      }
+
+      .data-display {
+        gap: 1rem;
+      }
+
+      .form-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar Toggle Checkbox -->
+<input type="checkbox" id="sb-toggle">
+
+<!-- Overlay -->
+<div class="sidebar-overlay"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" aria-label="Main menu">
+  <div class="sidebar-header">
+    <h3>Menu</h3>
+  </div>
+  <div class="sidebar-content">
+    <ul class="sidebar-menu">
+      <li><label>Main Menu</label></li>
+    </ul>
+  </div>
+</aside>
+
+<div class="container">
+  <header class="header">
+    <div class="header-left">
+      <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">☰</label>
+      <div class="logo-section">
+        <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL">
+      </div>
+    </div>
+    <div class="title-section">
+      <h2>TAIMEX - Shipping Labels</h2>
+      <p>Inner Box Label</p>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section class="card">
+      <div class="card-header">
+        <h1>Print Inner Box Label</h1>
+      </div>
+
+      <div class="info-box">
+        Select the Country of Origin for this shipment
+      </div>
+
+      <div class="data-display">
+        <div class="data-item">
+          <span class="data-label">Part Number</span>
+          <span class="data-value">^PARTNUM^</span>
+        </div>
+        <div class="data-item">
+          <span class="data-label">Quantity</span>
+          <span class="data-value">^QTY^</span>
+        </div>
+        <div class="data-item">
+          <span class="data-label">Date Code</span>
+          <span class="data-value">^DCODE^</span>
+        </div>
+      </div>
+
+      <form method="GET" action="/SHIPLCLABELP4EDIT.HTM" class="form">
+        <div class="form-group">
+          <label for="coo">Country of Origin</label>
+          <select id="coo" name="COO" tabindex="1" required>
+            <option value="Please Select">Please Select</option>
+            <option value="Canada">A - Canada</option>
+            <option value="China">C - China</option>
+            <option value="India">I - India</option>
+            <option value="Italy">L - Italy</option>
+            <option value="Japan">J - Japan</option>
+            <option value="Korea">K - Korea</option>
+            <option value="Mexico">M - Mexico</option>
+            <option value="Portugal">P - Portugal</option>
+            <option value="Sweden">S - Sweden</option>
+            <option value="Taiwan">T - Taiwan</option>
+            <option value="USA">U - USA</option>
+            <option value="Malaysia">Y - Malaysia</option>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" name="GON1" value="Next" class="btn btn-primary" tabindex="2">
+            Next
+          </button>
+          <button type="submit" name="CANCEL4" value="Cancel" class="btn btn-secondary" tabindex="3">
+            Cancel
+          </button>
+        </div>
+
+        <input type="hidden" name="PARTNUM" value="^PARTNUM^">
+        <input type="hidden" name="QTY" value="^QTY^">
+        <input type="hidden" name="DCODE" value="^DCODE^">
+        <input type="hidden" name="COO" value="^COO^">
+      </form>
+    </section>
+  </main>
+</div>
+
+<script>
+  (function() {
+    'use strict';
+
+    var cooField = document.getElementById('coo');
+    if (cooField) {
+      cooField.focus();
+    }
+
+    // Sidebar overlay click handler
+    var overlay = document.querySelector('.sidebar-overlay');
+    var checkbox = document.getElementById('sb-toggle');
+
+    if (overlay && checkbox) {
+      overlay.addEventListener('click', function() {
+        checkbox.checked = false;
+      });
+    }
+
+    // Close sidebar when clicking menu items
+    if (checkbox) {
+      var menuLabels = document.querySelectorAll('.sidebar-menu label');
+      menuLabels.forEach(function(label) {
+        label.addEventListener('click', function() {
+          checkbox.checked = false;
+        });
+      });
+    }
+
+    // No form validation needed - backend validates COO selection
+    // Backend checks: IF COO[1,3] NE "Ple" AND GON1 NE ""
+  })();
 </script>
 
-<div align="center">
-  <center>
-
-<table border="1" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="280" id="AutoNumber1" bgcolor="#FFFFFF">
-  <tr>
-    <form method="GET" action="/SHIPLCLABELP4.HTM">
-      <td width="460">
-    <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber2" height="157">
-      <tr>
-        <td width="100%" height="16">
-        <p align="center"><b>
-        <font face="Verdana" size="2">Print Inner Box Label</font></b></td>
-      </tr>
-      <tr>
-        <td width="160%" align="right" height="33">
-        Part: ^PARTNUM^&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-        Qty: ^QTY^&nbsp;&nbsp;&nbsp;<br>
-        DateCode: ^DCODE^&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; </td>
-      </tr>
-      <tr>
-        <td width="160%" align="right" height="33">
-        <p align="center">Select Country of Origin</td>
-      </tr>
-      <tr>
-        <td width="160%" align="right" height="11">
-        <p align="center"><font face="Verdana" size="2">
-		<select size="1" name="COO" tabindex="4" style="font-family: Verdana; font-size: 8pt; background-color: #FFFFCC">
-		<option>Please Select</option>
-		<option value="Canada">A - Canada</option>
-		<option value="China">C - China</option>
-		<option value="India">I - India</option>
-		<option value="Italy">L - Italy</option>
-		<option value="Japan">J - Japan</option>
-		<option value="Korea">K - Korea</option>
-		<option value="Mexico">M - Mexico</option>
-		<option value="Portugal">P - Portugal</option>
-		<option value="Sweden">S - Sweden</option>
-		<option value="Taiwan">T - Taiwan</option>
-		<option value="USA">U - USA</option>
-		<option value="Malaysia">Y - Malaysia</option>
-		</select></font></td>
-        </tr>
-      <tr>
-        <td width="160%" align="right" height="11">
-        <p align="center">
-        <input type="submit" value="Cancel" name="CANCEL4" tabindex="2" style="font-family: Verdana; font-size: 8pt; background-color: #FF0000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <input type="submit" value="Next" name="GON1" tabindex="3" style="font-family: Verdana; font-size: 8pt; background-color: #99FF99"></td>
-        </tr>
-      </table>
-    </td>
-      <input type="hidden" name="PARTNUM" value="^PARTNUM^">
-      <input type="hidden" name="QTY" value="^QTY^">
-      <input type="hidden" name="DCODE" value="^DCODE^">
-      <input type="hidden" name="COO" value="^COO^">
-    </form>
-  </tr>
-</table>
-
-  </center>
-</div>
-<pre>PicLan-IP/BASIC ^ ^
+<pre>
+PicLan-IP/BASIC ^ ^
 *
  PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
     ERR = '' ; INITIALS=  ''
@@ -115,7 +532,7 @@ PL_GETVAR GON1 FROM 'GON1' ELSE GON1 = ''
 *
 IF CANCEL4 NE &quot;&quot; THEN
    ERR = ''
-   CALL PLW.PAGE('STOCKMENU.HTM','',ERR)
+   CALL PLW.PAGE('NBMMEDIT.HTM','',ERR)
    RETURN
 END
 *
@@ -125,12 +542,11 @@ IF COO[1,3] NE &quot;Ple&quot; AND GON1 NE &quot;&quot; THEN
    PL_PUTVAR DCODE IN 'DCODE' ELSE NULL
    PL_PUTVAR COO IN 'COO' ELSE NULL
    ERR = ''
-   CALL PLW.PAGE('SHIPLCLABELP5.HTM','',ERR)
+   CALL PLW.PAGE('SHIPLCLABELP5EDIT.HTM','',ERR)
    RETURN
 END
 </pre>
 
 </body>
-
 </html>
-
+     
