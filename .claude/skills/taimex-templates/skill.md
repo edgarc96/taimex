@@ -448,6 +448,104 @@ Si encuentras resultados, cámbialos a mayúsculas.
 - Agregar este check a la revisión de código antes de commitear
 - Los linters/formatters HTML pueden cambiar a minúsculas - verificar después de formatear
 
+### ❌ BUG: Error "Exceeded maximum 32767 file opens" - Loop Infinito de Redirects
+
+**Problema**: El servidor muestra el error `[33] Exceeded the maximum number of 32767 file opens!` y el sistema se bloquea después de múltiples requests.
+
+**Causa**: Un loop infinito de redirects causado por un `RETURN` sin `PLW.PAGE` en el backend. Cuando hay un `RETURN` vacío sin redirect, PicLan-IP vuelve a cargar la misma página infinitamente, agotando los file handles del sistema.
+
+**Síntomas**:
+- Error en servidor: `Exceeded the maximum number of 32767 file opens!`
+- Sistema se congela o se vuelve muy lento
+- Logs muestran requests repetidos a la misma página
+- Puede aparecer `Frame Out of Range` después del error
+
+**Código Problemático**:
+
+```basic
+❌ INCORRECTO (causa loop infinito):
+IF COO[1,3] = 'Ple' OR COO = '' THEN
+   * User clicked Next without selecting valid country - reload page
+   RETURN  ← SIN REDIRECT = LOOP INFINITO
+END
+```
+
+También causado por inicializaciones dummy que no existen en versiones legacy y hacen que el flujo continúe con datos inválidos:
+
+```basic
+❌ INCORRECTO (no debe existir):
+* Initialize empty values if not provided (for initial page load)
+IF PARTNUM = '' THEN PARTNUM = 'N/A'
+IF QTY = '' THEN QTY = '0'
+IF DCODE = '' THEN DCODE = 'N/A'
+IF COO = '' THEN COO = 'N/A'
+IF ROHS = '' THEN ROHS = 'N'
+```
+
+**Solución**:
+
+1. **NUNCA usar `RETURN` sin un redirect previo**. Si la validación falla, simplemente no ejecutar el bloque de redirect usando lógica positiva:
+
+```basic
+✅ CORRECTO (validación positiva):
+IF COO[1,3] NE 'Ple' AND GON1 NE '' THEN
+   PL_PUTVAR PARTNUM IN 'PARTNUM' ELSE NULL
+   PL_PUTVAR QTY IN 'QTY' ELSE NULL
+   PL_PUTVAR DCODE IN 'DCODE' ELSE NULL
+   PL_PUTVAR COO IN 'COO' ELSE NULL
+   ERR = ''
+   CALL PLW.PAGE('NEXTPAGE.HTM','',ERR)
+   RETURN
+END
+* Si la validación falla, el código termina naturalmente
+* sin RETURN y la página se mantiene sin recargar
+```
+
+2. **NO agregar inicializaciones dummy**: Si las variables vienen vacías desde el frontend, déjalas vacías. El frontend debe manejar valores vacíos correctamente con template syntax (`^VAR^`).
+
+3. **Comparar con versión legacy**: Antes de agregar lógica nueva, siempre verificar que exista en la versión legacy original.
+
+**Patrón de Validación Estándar**:
+
+```basic
+❌ INCORRECTO (causa loop):
+IF FIELD = '' THEN
+   RETURN  ← Recarga la página infinitamente
+END
+
+✅ CORRECTO (lógica positiva):
+IF FIELD NE '' AND BUTTON NE '' THEN
+   * Process and redirect
+   PL_PUTVAR FIELD IN 'FIELD' ELSE NULL
+   ERR = ''
+   CALL PLW.PAGE('NEXTPAGE.HTM','',ERR)
+   RETURN
+END
+* Termina naturalmente, página se mantiene
+```
+
+**CRÍTICO**:
+- Todo `RETURN` DEBE estar precedido por `CALL PLW.PAGE` o ser parte de un redirect explícito (como el redirect de autenticación a `LOGINWH.HTM`).
+- Si necesitas que la página se quede en su lugar cuando la validación falla, simplemente NO ejecutar el bloque de redirect (usar lógica positiva en el `IF`).
+- Las variables vacías (`''`) son válidas y esperadas en carga inicial - NO inicializar con valores dummy como `'N/A'` o `'0'`.
+- El único `RETURN` aceptable sin validación previa es el del check de autenticación (`PL_GET_COOKIE`).
+
+**Patrón de Detección**:
+
+```bash
+# Buscar RETURNs peligrosos (que no son parte de un bloque PLW.PAGE)
+grep -B3 "RETURN" filename.HTM | grep -v "CALL PLW.PAGE"
+
+# Buscar inicializaciones dummy
+grep "IF.*= '' THEN.*=" filename.HTM
+```
+
+**Prevención**:
+- Al crear/modernizar templates, copiar la lógica BASIC exacta de la versión legacy
+- No agregar validaciones o lógica extra sin verificar que existen en legacy
+- Siempre usar validaciones positivas (checking NE '') en lugar de negativas (checking = '' con RETURN)
+- Las variables vacías no necesitan inicialización - déjalas vacías
+
 ## Modernization Process for Legacy Files
 
 When modernizing legacy HTML files (files without "EDIT" suffix):

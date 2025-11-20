@@ -3,59 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TAIMEX - Print Inner Box Label</title>
+  <title>TAIMEX - Manifest Type</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
+    :root {
+      --bg-body: #f1f5f9;
+      --bg-card: #ffffff;
+      --accent-blue: #1d4ed8;
+      --accent-green: #10b981;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --shadow-card: 0 18px 46px rgba(15, 23, 42, 0.18);
+      --radius-lg: 20px;
+    }
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
 
-    html, body {
-      height: 100%;
-      width: 100%;
-    }
-
     body {
-      font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-      color: #334155;
-      width: 100%;
-    }
-
-    .container {
-      width: 100%;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-body);
+      color: var(--text-primary);
+      line-height: 1.6;
       min-height: 100vh;
-      background: #fff;
-      display: flex;
-      flex-direction: column;
     }
 
+    /* Hidden checkbox for sidebar toggle */
+    #sb-toggle {
+      position: absolute;
+      left: -9999px;
+    }
+
+    /* Header */
     .header {
       background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
       color: #fff;
-      padding: 12px 24px;
+      padding: 10px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 8px rgba(30, 41, 59, 0.25);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.35);
       position: relative;
-      z-index: 100;
-      width: 100%;
+      z-index: 50;
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      font-size: 1.5em;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
     }
 
     .header-left {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 14px;
     }
 
     .logo-section img {
-      height: 40px;
+      height: 36px;
       width: auto;
       object-fit: contain;
       filter: brightness(1.05);
@@ -63,96 +87,33 @@
 
     .title-section {
       text-align: right;
-    }
-
-    .title-row {
       display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 15px;
-    }
-
-    .welcome-user span {
-      color: #cbd5e1;
-      font-size: 0.8em;
-      font-weight: 400;
-    }
-
-    .welcome-user strong {
-      color: #3b82f6;
-      margin-left: 4px;
-      font-weight: 600;
+      flex-direction: column;
+      gap: 4px;
     }
 
     .title-section h2 {
-      font-size: 0.95em;
-      margin: 0;
-      font-weight: 500;
-      color: #cbd5e1;
+      font-size: 0.95rem;
+      font-weight: 600;
       letter-spacing: 0.3px;
     }
 
     .title-section p {
-      font-size: 0.75em;
-      margin: 2px 0 0 0;
-      color: #a2a8ba;
-      font-weight: 400;
+      font-size: 0.75rem;
+      opacity: 0.9;
     }
 
-    .hamburger-menu {
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 1.2em;
-      cursor: pointer;
-      padding: 8px;
-      border-radius: 6px;
-      transition: background-color 0.2s ease;
-    }
-
-    .hamburger-menu:hover {
-      background-color: rgba(255, 255, 255, 0.12);
-    }
-
-    .hamburger-menu svg {
-      width: 20px;
-      height: 20px;
-      fill: currentColor;
-    }
-
-    /* Sidebar */
-    #sb-toggle {
-      display: none;
-    }
-
-    .sidebar {
-      position: fixed;
-      top: 0;
-      left: -300px;
-      width: 300px;
-      height: 100vh;
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(1px);
-      color: #fff;
-      transition: left 0.2s ease;
-      z-index: 2000;
-      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.35);
-    }
-
-    #sb-toggle:checked ~ .sidebar {
-      left: 0;
-    }
-
+    /* Sidebar Overlay */
     .sidebar-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.55);
+      background: rgba(0, 0, 0, 0.5);
       opacity: 0;
       visibility: hidden;
-      transition: all 0.25s ease;
+      transition: opacity 0.3s ease;
       z-index: 1500;
       pointer-events: none;
     }
@@ -161,6 +122,28 @@
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 300px;
+      height: 100vh;
+      background: rgba(255, 255, 255, .08);
+      backdrop-filter: blur(1px);
+      -webkit-backdrop-filter: blur(1px);
+      color: white;
+      transition: left 0.3s ease;
+      z-index: 2000;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+    }
+
+    #sb-toggle:checked ~ .sidebar {
+      left: 0;
     }
 
     .sidebar-header {
@@ -173,10 +156,13 @@
       font-size: 1.2em;
       color: #fff;
       margin: 0;
+      font-weight: 600;
     }
 
     .sidebar-content {
       padding: 24px;
+      flex: 1;
+      overflow-y: auto;
     }
 
     .sidebar-menu {
@@ -210,261 +196,278 @@
       color: #93c5fd;
     }
 
+    /* Main Content */
+    .container {
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+
     .main-content {
       flex: 1;
       display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-      width: 100%;
-      background: #f8fafc;
-      padding: 40px 20px;
-    }
-
-    .form-container {
-      max-width: 600px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    .form-card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 32px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-
-    .form-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #1e293b;
-      margin-bottom: 24px;
-      text-align: center;
-      display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      padding: 20px;
+      background: var(--bg-body);
     }
 
-    .form-title i {
-      color: #2563eb;
-    }
-
-    .info-section {
-      background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%);
-      border-left: 4px solid #2563eb;
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 24px;
-    }
-
-    .info-section .info-row {
+    .card {
+      width: 100%;
+      max-width: 620px;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: 28px 32px;
       display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-      font-size: 0.9rem;
+      flex-direction: column;
+      gap: 20px;
     }
 
-    .info-section .info-row:last-child {
-      margin-bottom: 0;
+    .card-header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-align: center;
     }
 
-    .info-section .label {
-      font-weight: 600;
-      color: #1e293b;
+    .card-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
     }
 
-    .info-section .value {
-      color: #475569;
+    .card-header p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+      border-left: 4px solid var(--accent-green);
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+      color: #065f46;
+      font-weight: 500;
+    }
+
+    .data-display {
+      background: var(--bg-body);
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .data-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .data-label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+
+    .data-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--accent-blue);
+    }
+
+    /* Form Styles */
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
     }
 
     .form-group {
-      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
 
     .form-group label {
-      display: block;
-      font-size: 1rem;
       font-weight: 600;
-      color: #1e293b;
-      margin-bottom: 8px;
+      color: var(--text-primary);
+      font-size: 0.95rem;
     }
 
     .form-group select {
-      width: 100%;
-      padding: 14px 16px;
+      padding: 0.875rem 1rem;
       border: 2px solid #e2e8f0;
-      border-radius: 10px;
+      border-radius: 12px;
       font-size: 1rem;
-      font-family: inherit;
-      background: #f9fafb;
-      color: #1e293b;
-      transition: all 0.2s ease;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+      background: white;
       cursor: pointer;
+      font-weight: 500;
     }
 
     .form-group select:focus {
       outline: none;
-      border-color: #2563eb;
-      background: #fff;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
     }
 
-    .button-group {
+    .form-group select option {
+      padding: 0.5rem;
+    }
+
+    .form-actions {
       display: flex;
-      gap: 12px;
-      margin-top: 32px;
+      gap: 1rem;
+      margin-top: 1rem;
     }
 
     .btn {
       flex: 1;
-      padding: 14px 24px;
+      padding: 0.875rem 1.5rem;
       border: none;
-      border-radius: 10px;
-      font-weight: 600;
+      border-radius: 12px;
       font-size: 1rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
     }
 
-    .btn-cancel {
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-      color: #fff;
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+      color: white;
     }
 
-    .btn-cancel:hover {
+    .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+      box-shadow: 0 8px 20px rgba(29, 78, 216, 0.3);
     }
 
-    .btn-next {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: #fff;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    .btn-secondary {
+      background: #e2e8f0;
+      color: var(--text-primary);
     }
 
-    .btn-next:hover {
+    .btn-secondary:hover {
+      background: #cbd5e1;
       transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
     }
 
+    /* Responsive */
     @media (max-width: 768px) {
       .main-content {
-        padding: 20px 16px;
+        padding: 12px;
       }
 
-      .form-card {
-        padding: 24px 20px;
+      .card {
+        padding: 20px 24px;
       }
 
-      .button-group {
+      .data-display {
+        gap: 1rem;
+      }
+
+      .form-actions {
         flex-direction: column;
       }
     }
   </style>
 </head>
 <body>
-  <input type="checkbox" id="sb-toggle">
-  <label for="sb-toggle" class="sidebar-overlay" aria-hidden="true"></label>
 
-  <aside class="sidebar" aria-label="Main menu">
-    <div class="sidebar-header">
-      <h3>Menu</h3>
-    </div>
-    <div class="sidebar-content">
-      <ul class="sidebar-menu">
-        <li><label for="sb-toggle">Main Menu</label></li>
-        <li><label for="sb-toggle">Inventory</label></li>
-        <li><label for="sb-toggle" class="active">Shipping Labels</label></li>
-        <li><label for="sb-toggle">Stock Check</label></li>
-        <li><label for="sb-toggle">Reports</label></li>
-      </ul>
-    </div>
-  </aside>
+<!-- Sidebar Toggle Checkbox -->
+<input type="checkbox" id="sb-toggle">
 
-  <div class="container">
-    <header class="header">
-      <div class="header-left">
-        <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">
-          <svg viewBox="0 0 448 512" role="img" aria-hidden="true" focusable="false" width="20" height="20">
-            <path d="M0 96C0 78.3 14.3 64 32 64H416C433.7 64 448 78.3 448 96C448 113.7 433.7 128 416 128H32C14.3 128 0 113.7 0 96zM0 256C0 238.3 14.3 224 32 224H416C433.7 224 448 238.3 448 256C448 273.7 433.7 288 416 288H32C14.3 288 0 273.7 0 256zM448 416C448 433.7 433.7 448 416 448H32C14.3 448 0 433.7 0 416C0 398.3 14.3 384 32 384H416C433.7 384 448 398.3 448 416z"></path>
-          </svg>
-        </label>
-        <div class="logo-section">
-          <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL">
+<!-- Overlay -->
+<div class="sidebar-overlay"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" aria-label="Main menu">
+  <div class="sidebar-header">
+    <h3>Menu</h3>
+  </div>
+  <div class="sidebar-content">
+    <ul class="sidebar-menu">
+      <li><label>Main Menu</label></li>
+    </ul>
+  </div>
+</aside>
+
+<div class="container">
+  <header class="header">
+    <div class="header-left">
+      <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">☰</label>
+      <div class="logo-section">
+        <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL">
+      </div>
+    </div>
+    <div class="title-section">
+      <h2>TAIMEX - Shipping Labels</h2>
+      <p>Inner Box Label</p>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section class="card">
+      <div class="card-header">
+        <h1>Manifest Type</h1>
+      </div>
+
+      <div class="info-box">
+        Select the manifest type for this shipment
+      </div>
+
+      <div class="data-display">
+        <div class="data-item">
+          <span class="data-label">Part</span>
+          <span class="data-value">^PARTNUM^</span>
+        </div>
+        <div class="data-item">
+          <span class="data-label">Qty</span>
+          <span class="data-value">^QTY^</span>
+        </div>
+        <div class="data-item">
+          <span class="data-label">Date Code</span>
+          <span class="data-value">^DCODE^</span>
+        </div>
+        <div class="data-item">
+          <span class="data-label">COO</span>
+          <span class="data-value">^COO^</span>
+        </div>
+        <div class="data-item">
+          <span class="data-label">ROHS</span>
+          <span class="data-value">^ROHS^</span>
         </div>
       </div>
-      <div class="title-section">
-        <div class="title-row">
-          <div class="welcome-user">
-            <span>Welcome,</span>
-            <strong>^USER^</strong>
-          </div>
-          <div>
-            <h2>TAIMEX - SHIPPING LABELS</h2>
-            <p>Print Inner Box Label</p>
-          </div>
+
+      <form method="GET" action="/SHIPLCLABELP6EDIT.HTM" class="form">
+        <div class="form-group">
+          <label for="mani">Manifest Type</label>
+          <select id="mani" name="MANI" tabindex="1" required>
+            <option value="PO-">PO - Purchase Order</option>
+            <option value="RE-">RE - Return</option>
+            <option value="WO-">WO - Work Order</option>
+            <option value="X">X - None</option>
+          </select>
         </div>
-      </div>
-    </header>
 
-    <main class="main-content">
-      <form method="GET" action="/SHIPLCLABELP6.HTM" class="form-container">
-        <div class="form-card">
-          <h1 class="form-title">
-            <i class="fas fa-box"></i>
-            Print Inner Box Label
-          </h1>
-
-          <div class="info-section">
-            <div class="info-row">
-              <span class="label">Part Number:</span>
-              <span class="value">^PARTNUM^</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Quantity:</span>
-              <span class="value">^QTY^</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Date Code:</span>
-              <span class="value">^DCODE^</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Country of Origin:</span>
-              <span class="value">^COO^</span>
-            </div>
-            <div class="info-row">
-              <span class="label">ROHS Compliant:</span>
-              <span class="value">^ROHS^</span>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="MANI">
-              <i class="fas fa-file-invoice"></i> Manifest Type
-            </label>
-            <select name="MANI" id="MANI" tabindex="1" autofocus>
-              <option value="PO-">PO - Purchase Order</option>
-              <option value="RE-">RE - Return</option>
-              <option value="WO-">WO - Work Order</option>
-              <option value="X">X - No Manifest</option>
-            </select>
-          </div>
-
-          <div class="button-group">
-            <button type="submit" name="CANCEL6" value="Cancel" class="btn btn-cancel" tabindex="3">
-              <i class="fas fa-times"></i>
-              Cancel
-            </button>
-            <button type="submit" name="GON3" value="Next" class="btn btn-next" tabindex="2">
-              <i class="fas fa-arrow-right"></i>
-              Next
-            </button>
-          </div>
+        <div class="form-actions">
+          <button type="submit" name="GON3" value="Next" class="btn btn-primary" tabindex="2">
+            Next
+          </button>
+          <button type="submit" name="CANCEL6" value="Cancel" class="btn btn-secondary" tabindex="3">
+            Cancel
+          </button>
         </div>
 
         <input type="hidden" name="PARTNUM" value="^PARTNUM^">
@@ -472,10 +475,51 @@
         <input type="hidden" name="DCODE" value="^DCODE^">
         <input type="hidden" name="COO" value="^COO^">
         <input type="hidden" name="ROHS" value="^ROHS^">
-        <input type="hidden" name="MANI" value="^MANI^">
       </form>
-    </main>
-  </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  (function() {
+    'use strict';
+
+    var maniField = document.getElementById('mani');
+    if (maniField) {
+      maniField.focus();
+    }
+
+    // Clean up template placeholders if backend didn't replace them
+    var dataValues = document.querySelectorAll('.data-value');
+    dataValues.forEach(function(el) {
+      var text = el.textContent.trim();
+      if (text.indexOf('^') === 0 && text.lastIndexOf('^') === text.length - 1) {
+        el.textContent = '-';
+        el.style.color = '#94a3b8';
+      }
+    });
+
+    // Sidebar overlay click handler
+    var overlay = document.querySelector('.sidebar-overlay');
+    var checkbox = document.getElementById('sb-toggle');
+
+    if (overlay && checkbox) {
+      overlay.addEventListener('click', function() {
+        checkbox.checked = false;
+      });
+    }
+
+    // Close sidebar when clicking menu items
+    if (checkbox) {
+      var menuLabels = document.querySelectorAll('.sidebar-menu label');
+      menuLabels.forEach(function(label) {
+        label.addEventListener('click', function() {
+          checkbox.checked = false;
+        });
+      });
+    }
+  })();
+</script>
 
 <PRE>
 PicLan-IP/BASIC ^ ^
@@ -495,26 +539,26 @@ PL_GETVAR ROHS FROM 'ROHS' ELSE ROHS = ''
 PL_GETVAR GON3 FROM 'GON3' ELSE GON3 = ''
 PL_GETVAR MANI FROM 'MANI' ELSE MANI = ''
 *
-IF CANCEL6 NE '' THEN
+IF CANCEL6 NE "" THEN
    ERR = ''
    CALL PLW.PAGE('STOCKMENU.HTM','',ERR)
    RETURN
 END
 *
-IF MANI NE '' AND GON3 NE '' THEN
+IF MANI NE "" AND GON3 NE "" THEN
    PL_PUTVAR PARTNUM IN 'PARTNUM' ELSE NULL
    PL_PUTVAR QTY IN 'QTY' ELSE NULL
    PL_PUTVAR DCODE IN 'DCODE' ELSE NULL
    PL_PUTVAR COO IN 'COO' ELSE NULL
    PL_PUTVAR ROHS IN 'ROHS' ELSE NULL
    PL_PUTVAR MANI IN 'MANI' ELSE NULL
-   IF MANI NE 'X' THEN
+   IF MANI NE "X" THEN
      ERR = ''
-     CALL PLW.PAGE('SHIPLCLABELP7.HTM','',ERR)
+     CALL PLW.PAGE('SHIPLCLABELP7EDIT.HTM','',ERR)
      RETURN
    END ELSE
      ERR = ''
-     CALL PLW.PAGE('SHIPLCLABELP8.HTM','',ERR)
+     CALL PLW.PAGE('SHIPLCLABELP8EDIT.HTM','',ERR)
      RETURN
    END
 END
