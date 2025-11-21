@@ -496,6 +496,13 @@
   </script>
 <pre>PicLan-IP/BASIC ^ ^
 *
+* Initialize variables
+QTY = ''
+CANCEL1 = ''
+PARTNUM = ''
+ERR = ''
+INITIALS = ''
+*
  PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
     ERR = '' ; INITIALS=  ''
     CALL PLW.PAGE('LOGINWH.HTM','',ERR)
