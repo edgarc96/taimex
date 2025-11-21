@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="pragma" content="no-cache">
+  <title>TAIMEX - Part Description Notes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-body: #f1f5f9;
+      --bg-card: #ffffff;
+      --accent-blue: #1d4ed8;
+      --accent-green: #10b981;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --shadow-card: 0 18px 46px rgba(15, 23, 42, 0.18);
+      --radius-lg: 20px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-body);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Hidden checkbox for sidebar toggle */
+    #sb-toggle {
+      position: absolute;
+      left: -9999px;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.35);
+      position: relative;
+      z-index: 50;
+    }
+
+    .hamburger-menu {
+      background: none;
+      border: none;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      font-size: 1.5em;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .hamburger-menu:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-section img {
+      height: 36px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+
+    .title-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .title-section h2 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .title-section p {
+      font-size: 0.75rem;
+      opacity: 0.9;
+    }
+
+    /* Sidebar Overlay */
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+      z-index: 1500;
+      pointer-events: none;
+    }
+
+    #sb-toggle:checked ~ .sidebar-overlay {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 300px;
+      height: 100vh;
+      background: rgba(255, 255, 255, .08);
+      backdrop-filter: blur(1px);
+      -webkit-backdrop-filter: blur(1px);
+      color: white;
+      transition: left 0.3s ease;
+      z-index: 2000;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+    }
+
+    #sb-toggle:checked ~ .sidebar {
+      left: 0;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar-header h3 {
+      font-size: 1.2em;
+      color: #fff;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .sidebar-content {
+      padding: 24px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-menu li {
+      margin-bottom: 8px;
+    }
+
+    .sidebar-menu a {
+      display: block;
+      padding: 12px 16px;
+      color: #f3f4f6;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .sidebar-menu a:hover {
+      background-color: rgba(30, 64, 175, 0.1);
+      color: #fff;
+    }
+
+    .sidebar-menu a.active {
+      background-color: rgba(30, 64, 175, 0.2);
+      color: #93c5fd;
+    }
+
+    /* Main Content */
+    .container {
+      min-height: 100vh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      background: var(--bg-body);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 1000px;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: 32px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .card-header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 16px;
+    }
+
+    .card-header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .card-header p {
+      font-size: 1rem;
+      color: var(--text-secondary);
+    }
+
+    .part-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+      color: white;
+      padding: 0.5rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-top: 0.5rem;
+    }
+
+    .notes-section {
+      background: var(--bg-body);
+      padding: 1.5rem;
+      border-radius: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      line-height: 1.8;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 600px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+    }
+
+    .actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .btn {
+      padding: 0.875rem 2rem;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      background: #cbd5e1;
+      transform: translateY(-2px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 20px 12px;
+      }
+
+      .card {
+        padding: 24px 20px;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar Toggle Checkbox -->
+<input type="checkbox" id="sb-toggle">
+
+<!-- Overlay -->
+<div class="sidebar-overlay"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" aria-label="Main menu">
+  <div class="sidebar-header">
+    <h3>Menu</h3>
+  </div>
+  <div class="sidebar-content">
+    <ul class="sidebar-menu">
+      <li><a href="SCHEDMENU.HTM">Main Menu</a></li>
+      <li><a href="SCHEDMENU.HTM" class="active">Schedule Menu</a></li>
+    </ul>
+  </div>
+</aside>
+
+<div class="container">
+  <header class="header">
+    <div class="header-left">
+      <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">0</label>
+      <div class="logo-section">
+        <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL">
+      </div>
+    </div>
+    <div class="title-section">
+      <h2>TAIMEX - MRP System</h2>
+      <p>Part Description Notes</p>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <form method="GET" action="/MRPDESCEDIT.HTM">
+      <section class="card">
+        <div class="card-header">
+          <h1>Notes for Part</h1>
+          <span class="part-badge">^PART^</span>
+        </div>
+
+        <div class="notes-section">^RAW(SALESREPORT)^</div>
+
+        <div class="actions">
+          <button type="button" onclick="window.close();" class="btn btn-secondary">Close Window</button>
+        </div>
+
+        <input type="hidden" name="PART" value="^PART^">
+      </section>
+    </form>
+  </main>
+</div>
+
+<script>
+  (function() {
+    'use strict';
+
+    // Sidebar overlay click handler
+    var overlay = document.querySelector('.sidebar-overlay');
+    var checkbox = document.getElementById('sb-toggle');
+
+    if (overlay && checkbox) {
+      overlay.addEventListener('click', function() {
+        checkbox.checked = false;
+      });
+    }
+
+    // Close sidebar when clicking menu items
+    if (checkbox) {
+      var menuLinks = document.querySelectorAll('.sidebar-menu a');
+      menuLinks.forEach(function(link) {
+        link.addEventListener('click', function() {
+          checkbox.checked = false;
+        });
+      });
+    }
+  })();
+</script>
+
+<pre>PicLan-IP/BASIC ^ ^
+*
+PL_GETVAR PART FROM 'PART' ELSE PART = ''
+*
+OPEN '','PURINFO' TO PURINFOF ELSE PRINT 'CAN''T OPEN PURINFO FILE'
+OPEN '','EPARTS' TO EPARTSF ELSE  PRINT 'CAN''T OPEN EPARTS FILE'
+*
+SALESREPORT = ''
+CALL MRPDESC(SALESREPORT,PART)
+SALESREPORT = PL_AMTOCRLF(SALESREPORT)
+
+
+</pre>
+
+</body>
+</html>
