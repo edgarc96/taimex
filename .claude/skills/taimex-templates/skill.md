@@ -15,6 +15,45 @@ This skill should be active whenever you:
 - Modernize legacy templates
 - Receive requests about "plantillas", "templates", "forms", or "páginas HTML"
 
+## ⚠️ CRITICAL DESIGN RULES
+
+### ❌ NO EMOJI ICONS
+
+**NEVER use emoji icons in the HTML/CSS design.**
+
+This includes:
+- ❌ No emojis in HTML content (📋, 🔧, 📝, ℹ️, etc.)
+- ❌ No emojis in CSS pseudo-elements (`::before`, `::after`)
+- ❌ No emojis in button labels
+- ❌ No emojis in empty states
+- ❌ No emojis in headers or footers
+
+**Use instead:**
+- ✅ Plain text labels
+- ✅ Unicode symbols (×, ☰, •, ▸, etc.)
+- ✅ CSS borders, shapes, and backgrounds
+- ✅ SVG icons if needed
+- ✅ Font Awesome or similar icon fonts (if approved)
+
+**Example:**
+
+```html
+❌ INCORRECT:
+<h1>📋 Part Description Notes</h1>
+<button>🖨️ Print</button>
+<div class="info">ℹ️ Information</div>
+
+✅ CORRECT:
+<h1>Part Description Notes</h1>
+<button>Print</button>
+<div class="info">Information</div>
+```
+
+**Reason:** Professional enterprise applications should not use emoji icons as they:
+- Appear unprofessional in business settings
+- May render inconsistently across browsers/OS
+- Are not appropriate for industrial/manufacturing context
+
 ## Template Structure
 
 All HTML templates in this project follow a hybrid structure:
@@ -67,6 +106,9 @@ All HTML templates in this project follow a hybrid structure:
   </div>
 </header>
 ```
+
+**Note:** The hamburger menu ☰ is an acceptable Unicode symbol (not an emoji).
+Acceptable Unicode: ×, ☰, •, ▸, ►, ◄, ▲, ▼, ★, ☆, □, ■
 
 #### Sidebar Menu
 ```html

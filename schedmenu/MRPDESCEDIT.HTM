@@ -78,14 +78,6 @@
       font-size: 1.5rem;
       font-weight: 700;
       margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .header-content h1::before {
-      content: "📋";
-      font-size: 1.8rem;
     }
 
     .part-number {
@@ -100,9 +92,10 @@
       backdrop-filter: blur(10px);
     }
 
-    .part-number::before {
-      content: "🔧";
-      font-size: 1.2rem;
+    .part-label {
+      font-size: 0.85rem;
+      opacity: 0.9;
+      font-weight: 500;
     }
 
     .close-btn {
@@ -136,16 +129,8 @@
       padding: 16px 20px;
       border-radius: 8px;
       margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
       font-weight: 500;
       color: #1e40af;
-    }
-
-    .info-banner::before {
-      content: "ℹ️";
-      font-size: 1.5rem;
     }
 
     .notes-container {
@@ -159,8 +144,7 @@
       position: relative;
     }
 
-    .notes-container::before {
-      content: "📝 Notes";
+    .notes-header {
       display: block;
       font-weight: 700;
       font-size: 1.1rem;
@@ -209,14 +193,10 @@
     .footer-info {
       color: var(--text-secondary);
       font-size: 0.875rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
 
-    .footer-info::before {
-      content: "🕐";
-      font-size: 1rem;
+    .footer-label {
+      font-weight: 600;
     }
 
     .action-buttons {
@@ -233,9 +213,6 @@
       cursor: pointer;
       transition: all 0.2s;
       font-family: 'Inter', sans-serif;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
     }
 
     .btn-primary {
@@ -267,10 +244,10 @@
       color: var(--text-secondary);
     }
 
-    .empty-state::before {
-      content: "📭";
-      display: block;
-      font-size: 4rem;
+    .empty-state-icon {
+      font-size: 3rem;
+      font-weight: 300;
+      color: #cbd5e1;
       margin-bottom: 16px;
     }
 
@@ -343,7 +320,10 @@
     <header class="popup-header">
       <div class="header-content">
         <h1>Part Description Notes</h1>
-        <div class="part-number">^PART^</div>
+        <div class="part-number">
+          <span class="part-label">Part:</span>
+          <span>^PART^</span>
+        </div>
       </div>
       <button type="button" class="close-btn" onclick="window.close();" title="Close Window">×</button>
     </header>
@@ -354,20 +334,21 @@
       </div>
 
       <div class="notes-container">
+        <div class="notes-header">Notes</div>
         <div class="notes-content" id="notesContent">^RAW(SALESREPORT)^</div>
       </div>
     </div>
 
     <footer class="popup-footer">
       <div class="footer-info">
-        Last updated: <span id="timestamp"></span>
+        <span class="footer-label">Last updated:</span> <span id="timestamp"></span>
       </div>
       <div class="action-buttons">
         <button type="button" class="btn btn-secondary" onclick="window.print();">
-          🖨️ Print
+          Print
         </button>
         <button type="button" class="btn btn-primary" onclick="window.close();">
-          ✓ Close
+          Close
         </button>
       </div>
     </footer>
@@ -393,7 +374,7 @@
       var text = notesContent.textContent.trim();
       // Check if content is empty or just template variable
       if (!text || text.indexOf('^RAW(SALESREPORT)^') !== -1) {
-        notesContent.innerHTML = '<div class="empty-state"><p>No notes available for this part</p></div>';
+        notesContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon">[ ]</div><p>No notes available for this part</p></div>';
       }
     }
 
