@@ -26,12 +26,18 @@
       box-sizing: border-box;
     }
 
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+    }
+
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--bg-body);
       color: var(--text-primary);
       line-height: 1.6;
-      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
     /* Hidden checkbox for sidebar toggle */
@@ -51,6 +57,7 @@
       box-shadow: 0 2px 8px rgba(15, 23, 42, 0.35);
       position: relative;
       z-index: 50;
+      flex-shrink: 0;
     }
 
     .hamburger-menu {
@@ -198,131 +205,114 @@
 
     /* Main Content */
     .container {
-      min-height: 100vh;
-      background: #fff;
+      flex: 1;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
 
     .main-content {
       flex: 1;
+      padding: 16px;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      overflow: auto;
+    }
+
+    /* Excel Grid Wrapper */
+    .excel-grid-wrapper {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Grid Toolbar */
+    .grid-toolbar {
+      background: #f8f9fa;
+      padding: 12px 20px;
+      border-bottom: 1px solid #dee2e6;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      padding: 40px 20px;
-      background: var(--bg-body);
     }
 
-    .card {
-      width: 100%;
-      max-width: 1000px;
-      background: var(--bg-card);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-card);
-      padding: 32px 40px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
-
-    .card-header {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      border-bottom: 2px solid #e2e8f0;
-      padding-bottom: 16px;
-    }
-
-    .card-header h1 {
-      font-size: 1.75rem;
+    .toolbar-left h3 {
+      color: #1e293b;
+      font-size: 16px;
       font-weight: 700;
-      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .toolbar-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
     }
 
     .part-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+      background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
       color: white;
-      padding: 8px 16px;
-      border-radius: 8px;
+      padding: 6px 16px;
+      border-radius: 6px;
       font-weight: 600;
-      font-size: 1rem;
-      width: fit-content;
+      font-size: 14px;
     }
 
-    .part-label {
-      opacity: 0.9;
-      font-weight: 500;
+    /* Excel Grid Container */
+    .excel-grid-container {
+      background: white;
+      padding: 0;
     }
 
-    .info-banner {
-      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-      border-left: 4px solid var(--accent-blue);
-      padding: 16px 20px;
-      border-radius: 8px;
-      font-weight: 500;
-      color: #1e40af;
-    }
-
-    .notes-container {
-      background: #fafafa;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 24px;
+    /* Notes Section - Excel Style */
+    .notes-section {
+      background: #fffbeb;
+      padding: 20px;
       min-height: 400px;
-      max-height: 600px;
+      max-height: calc(100vh - 300px);
       overflow-y: auto;
-    }
-
-    .notes-header {
-      font-weight: 700;
-      font-size: 1.1rem;
-      color: var(--text-secondary);
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid #e2e8f0;
-    }
-
-    .notes-content {
-      font-family: 'Courier New', Consolas, monospace;
-      font-size: 0.95rem;
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+      font-size: 13px;
       line-height: 1.8;
-      color: var(--text-primary);
+      color: #1f2937;
       white-space: pre-wrap;
       word-wrap: break-word;
+      border: 1px solid #e5e7eb;
     }
 
-    .notes-container::-webkit-scrollbar {
+    .notes-section::-webkit-scrollbar {
       width: 8px;
     }
 
-    .notes-container::-webkit-scrollbar-track {
+    .notes-section::-webkit-scrollbar-track {
       background: #f1f5f9;
       border-radius: 4px;
     }
 
-    .notes-container::-webkit-scrollbar-thumb {
+    .notes-section::-webkit-scrollbar-thumb {
       background: #cbd5e1;
       border-radius: 4px;
     }
 
-    .notes-container::-webkit-scrollbar-thumb:hover {
+    .notes-section::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
 
-    .card-footer {
+    /* Action Buttons */
+    .grid-footer {
+      background: #f8f9fa;
+      padding: 12px 20px;
+      border-top: 1px solid #dee2e6;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-top: 16px;
-      border-top: 1px solid #e2e8f0;
     }
 
     .footer-info {
       color: var(--text-secondary);
-      font-size: 0.875rem;
+      font-size: 13px;
     }
 
     .footer-label {
@@ -331,41 +321,40 @@
 
     .action-buttons {
       display: flex;
-      gap: 12px;
+      gap: 8px;
     }
 
     .btn {
-      padding: 12px 24px;
+      padding: 8px 16px;
       border: none;
-      border-radius: 8px;
-      font-size: 0.95rem;
+      border-radius: 6px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
       font-family: 'Inter', sans-serif;
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       color: white;
-      box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3);
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
     }
 
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(29, 78, 216, 0.4);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
     }
 
     .btn-secondary {
-      background: white;
-      color: var(--text-primary);
-      border: 2px solid #e2e8f0;
+      background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+      color: white;
+      box-shadow: 0 2px 6px rgba(6, 182, 212, 0.3);
     }
 
     .btn-secondary:hover {
-      background: var(--bg-body);
-      border-color: var(--accent-blue);
       transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
     }
 
     .empty-state {
@@ -389,21 +378,18 @@
     /* Responsive */
     @media (max-width: 768px) {
       .main-content {
-        padding: 20px 12px;
+        padding: 12px;
       }
 
-      .card {
-        padding: 24px 20px;
-      }
-
-      .notes-container {
-        min-height: 300px;
-        max-height: 400px;
-      }
-
-      .card-footer {
+      .grid-toolbar {
         flex-direction: column;
-        gap: 16px;
+        gap: 12px;
+        align-items: flex-start;
+      }
+
+      .grid-footer {
+        flex-direction: column;
+        gap: 12px;
         align-items: stretch;
       }
 
@@ -454,25 +440,21 @@
 
   <main class="main-content">
     <form method="GET" action="/MRPDESCEDIT.HTM">
-      <section class="card">
-        <div class="card-header">
-          <h1>Part Description Notes</h1>
-          <div class="part-badge">
-            <span class="part-label">Part Number:</span>
-            <span>^PART^</span>
+      <div class="excel-grid-wrapper">
+        <div class="grid-toolbar">
+          <div class="toolbar-left">
+            <h3>Part Description Notes</h3>
+          </div>
+          <div class="toolbar-right">
+            <span class="part-badge">Part: ^PART^</span>
           </div>
         </div>
 
-        <div class="info-banner">
-          Detailed information and notes for this part number
+        <div class="excel-grid-container">
+          <div class="notes-section" id="notesContent">^RAW(SALESREPORT)^</div>
         </div>
 
-        <div class="notes-container">
-          <div class="notes-header">Notes</div>
-          <div class="notes-content" id="notesContent">^RAW(SALESREPORT)^</div>
-        </div>
-
-        <div class="card-footer">
+        <div class="grid-footer">
           <div class="footer-info">
             <span class="footer-label">Last updated:</span> <span id="timestamp"></span>
           </div>
@@ -485,9 +467,9 @@
             </button>
           </div>
         </div>
+      </div>
 
-        <input type="hidden" name="PART" value="^PART^">
-      </section>
+      <input type="hidden" name="PART" value="^PART^">
     </form>
   </main>
 </div>
