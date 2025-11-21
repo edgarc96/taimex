@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="pragma" content="no-cache">
+  <title>MRP Categories</title>
+  <base target="right">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-body: #f8fafc;
+      --bg-item: #ffffff;
+      --accent-blue: #2a5298;
+      --accent-hover: #1e3c72;
+      --text-primary: #0f172a;
+      --text-secondary: #64748b;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-body);
+      color: var(--text-primary);
+      line-height: 1.5;
+      font-size: 13px;
+      overflow-x: hidden;
+    }
+
+    .container {
+      padding: 16px 12px;
+      max-width: 100%;
+    }
+
+    /* Header Section */
+    .header {
+      text-align: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .header-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .header-category {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent-blue);
+      margin-top: 4px;
+    }
+
+    /* Action Links */
+    .action-links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .action-link {
+      display: block;
+      padding: 8px 12px;
+      background: var(--bg-item);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      text-decoration: none;
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 500;
+      text-align: center;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .action-link:hover {
+      background: var(--accent-blue);
+      color: white;
+      border-color: var(--accent-blue);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(42, 82, 152, 0.2);
+    }
+
+    .action-link.primary {
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-hover) 100%);
+      color: white;
+      border-color: var(--accent-blue);
+    }
+
+    .action-link.primary:hover {
+      background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent-blue) 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(42, 82, 152, 0.3);
+    }
+
+    .action-link.secondary {
+      font-size: 11px;
+      padding: 6px 10px;
+      background: #f1f5f9;
+      color: var(--text-secondary);
+    }
+
+    .action-link.secondary:hover {
+      background: #e2e8f0;
+      color: var(--text-primary);
+      transform: translateY(-1px);
+    }
+
+    /* List Section */
+    .list-section {
+      background: var(--bg-item);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+      min-height: 200px;
+      overflow: hidden;
+    }
+
+    .list-content {
+      font-size: 12px;
+      line-height: 1.6;
+      padding: 0;
+    }
+
+    /* Hide legacy content - JS will replace it */
+    #listContent table:not(.modern-list) {
+      display: none;
+    }
+    
+    #listContent .modern-list {
+      display: table;
+    }
+
+    /* Style links in list content */
+    .list-content a {
+      display: block;
+      padding: 8px 10px;
+      margin: 4px 0;
+      color: var(--text-primary);
+      text-decoration: none;
+      border-radius: 4px;
+      transition: all 0.15s ease;
+      border-left: 3px solid transparent;
+    }
+
+    .list-content a:hover {
+      background: #f0f9ff;
+      border-left-color: var(--accent-blue);
+      padding-left: 14px;
+      color: var(--accent-blue);
+    }
+
+    /* Excel Premium Grid Styles */
+    .modern-list {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 11px;
+      background: #ffffff;
+    }
+
+    .modern-list thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+    }
+
+    .modern-list tbody {
+      background: #ffffff;
+    }
+
+    .list-header {
+      background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+      color: white;
+      padding: 8px 10px;
+      font-weight: 600;
+      text-align: left;
+      border: none;
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .list-header:last-child {
+      border-right: none;
+    }
+
+    .list-header:hover {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    }
+
+    .list-item {
+      border-bottom: 1px solid #e5e7eb;
+      transition: background 0.15s ease;
+      background: #ffffff;
+    }
+
+    .list-item:nth-child(even) {
+      background: #f9fafb !important;
+    }
+
+    .list-item:hover {
+      background: #eff6ff !important;
+    }
+
+    .list-item td {
+      padding: 6px 10px;
+      border-right: 1px solid #e5e7eb;
+      overflow: hidden;
+      font-size: 13px;
+      color: #1f2937;
+      background: transparent;
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+      line-height: 1.4;
+      font-weight: 500;
+    }
+
+    .list-item td:last-child {
+      border-right: none;
+    }
+
+    .list-item a {
+      color: var(--accent-blue);
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    }
+
+    .list-item:hover a {
+      color: #1e3c72;
+      text-decoration: underline;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .empty-state i {
+      font-size: 32px;
+      margin-bottom: 8px;
+      opacity: 0.5;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-blue);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-title">MRP Inquiry Screen for</div>
+    <div class="header-category">^CLASSDESC^</div>
+  </div>
+
+  <!-- Action Links -->
+  <div class="action-links">
+    <a href="/^MAINPAGE^" target="_top" class="action-link primary">
+      ← Back to Main Categories
+    </a>
+    <a href="/mrplist3poedit.htm?CLASS=^CLASS^" target="_self" class="action-link secondary">
+      Sort by Part
+    </a>
+  </div>
+
+  <!-- List Content -->
+  <div class="list-section">
+    <div class="list-content" id="listContent">
+      ^RAW(WORKLOAD)^
+    </div>
+  </div>
+
+  <!-- Bottom Link -->
+  <div class="action-links">
+    <a href="/^MAINPAGE^" target="_top" class="action-link">
+      ← Back to Main Categories
+    </a>
+  </div>
+</div>
+
+<script>
+(function(){
+function transform(){
+var container=document.getElementById('listContent');
+if(!container){return;}
+var legacyTable=container.querySelector('table:not(.modern-list)');
+if(!legacyTable){return;}
+var rows=legacyTable.querySelectorAll('tr');
+if(rows.length<2){return;}
+var headerRow=rows[0];
+var headerCells=headerRow.querySelectorAll('th,td');
+var html='<table class="modern-list"><thead><tr>';
+for(var i=0;i<headerCells.length;i++){
+html+='<th class="list-header">'+headerCells[i].textContent+'</th>';
+}
+html+='</tr></thead><tbody>';
+for(var i=1;i<rows.length;i++){
+var cells=rows[i].querySelectorAll('td');
+if(cells.length>0){
+html+='<tr class="list-item">';
+for(var j=0;j<cells.length;j++){
+var cellHtml=cells[j].innerHTML;
+cellHtml=cellHtml.replace(/MRPRTPO\.HTM/g,'MRPRTPOEDIT.HTM');
+html+='<td>'+cellHtml+'</td>';
+}
+html+='</tr>';
+}
+}
+html+='</tbody></table>';
+container.innerHTML=html;
+}
+if(document.readyState==='loading'){
+document.addEventListener('DOMContentLoaded',transform);
+}else{
+setTimeout(transform,100);
+}
+})();
+</script>
+
+</body>
+<PRE>PicLan-IP/BASIC ^ ^
+*
+  PL_GETVAR FRONLY FROM 'FRONLY' ELSE FRONLY = ''
+  PL_GET_COOKIE CLASS FROM 'CLASS' ELSE CLASS = ''
+*
+*RIP = ST$RIP
+*RIP = FIELD(RIP,':',1)
+*IF RIP[1,3] NE "192" THEN RETURN
+*
+ OPEN 'PARTS' TO PARTSF ELSE STOP 201,'PARTS'
+ OPEN 'EPARTS' TO EPARTSF ELSE STOP 201,'EPARTS'
+ OPEN 'POCHG' TO POCHGF ELSE STOP 201,'POCHG'
+ OPEN 'POCART' TO POCARTF ELSE STOP 201,'POCART'
+*
+ *PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+ *   ERR = ''
+  *  CALL PLW.PAGE('/SWLB/LOGIN.HTM','',ERR)
+  *  RETURN
+ *END
+  INITIALS = 'EC'
+ CUSTOMER = ''
+ MAINPAGE = 'mrplistmainpoedit.htm'
+ IF INITIALS = 'CQ' THEN
+   MAINPAGE = 'mrplistcustedit.htm'
+   CUSTOMER = '1'
+ END
+ PONO = 'NEW':INITIALS<1>
+ PRINT 'FIRSTPO = ':PONO
+ DELETE POCHGF,PONO
+ DELETE POCARTF,PONO
+ CLASSDESC = OCONV(CLASS,'TMRPGROUPS;X;;1')
+ *IF CLASS = 'S0255' THEN
+  IF CLASS[1,1] = 'S' THEN
+   CLASSDESC = OCONV(CLASS,'TPLANT;X;;1')
+ END
+IF CLASS[1,1] = 'V' THEN
+   VENDNO = CLASS[2,99]
+   CLASSDESC = OCONV(VENDNO,'TVENDOR;X;;1')
+END
+ *
+  WORKLOAD = '' ; PRODIDS = '' ; TTQTY = 0 ; TLANES = 0
+  IF CUSTOMER = '1' THEN WORKLOAD = 1
+  CALL BUILDMRPLIST2PO(WORKLOAD,PRODIDS,TLANES,CLASS)
+  WORKLOAD = PL_AMTOCRLF(WORKLOAD)
+*
+
+</PRE>
+</html>
+     

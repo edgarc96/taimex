@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="pragma" content="no-cache">
+<title>Work Orders - TAIMEX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  color: #0f172a;
+  min-height: 100vh;
+}
+.container {
+  min-height: 100vh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+  color: #fff;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.35);
+  position: relative;
+  z-index: 50;
+}
+
+.hamburger-menu {
+  background: none;
+  border: none;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 1.5em;
+  line-height: 1;
+}
+
+.hamburger-menu:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo-section img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  filter: brightness(1.05);
+}
+
+.title-section {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title-section h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.title-section p {
+  font-size: 0.78rem;
+  color: rgba(226, 232, 240, 0.8);
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+}
+
+/* Sidebar */
+#sb-toggle {
+  position: absolute;
+  left: -9999px;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -300px;
+  width: 300px;
+  height: 100vh;
+  background: rgba(255, 255, 255, .08);
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+  color: white;
+  transition: left 0.3s ease;
+  z-index: 2000;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+#sb-toggle:checked ~ .sidebar {
+  left: 0;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease;
+  z-index: 1500;
+  pointer-events: none;
+}
+
+#sb-toggle:checked ~ .sidebar-overlay {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-header h3 {
+  font-size: 1.2em;
+  color: #fff;
+  margin: 0;
+  font-weight: 600;
+}
+
+.sidebar-content {
+  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-menu li {
+  margin-bottom: 8px;
+}
+
+.sidebar-menu label {
+  display: block;
+  padding: 12px 16px;
+  color: #f3f4f6;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.sidebar-menu label:hover {
+  background-color: rgba(30, 64, 175, 0.1);
+  color: #fff;
+}
+
+.sidebar-menu label.active {
+  background-color: rgba(30, 64, 175, 0.2);
+  color: #93c5fd;
+}
+
+/* Excel Grid Wrapper - Premium Style */
+.excel-grid-wrapper {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Grid Toolbar */
+.grid-toolbar {
+  background: #f8f9fa;
+  padding: 12px 20px;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toolbar-left h3 {
+  color: #1e293b;
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.week-badge {
+  background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(42, 82, 152, 0.3);
+}
+
+/* Excel Grid Container */
+.excel-grid-container {
+  background: white;
+  padding: 0;
+  overflow-x: auto;
+}
+
+#gridContainer {
+  min-height: 200px;
+}
+
+/* Legacy tables will be replaced by JS - no hiding needed */
+
+.modern-grid {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 11px;
+  background: #ffffff;
+}
+.modern-grid thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+}
+.modern-grid th {
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  color: white;
+  padding: 12px 14px;
+  font-weight: 700;
+  text-align: left;
+  border: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 11px;
+  white-space: nowrap;
+  user-select: none;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+}
+.modern-grid th:last-child {
+  border-right: none;
+}
+.modern-grid th:hover {
+  background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);
+}
+.modern-grid tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background 0.15s ease;
+}
+.modern-grid tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+.modern-grid tbody tr:hover {
+  background: #fef2f2 !important;
+}
+.modern-grid tbody td {
+  padding: 10px 14px;
+  border-right: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 12px;
+  color: #1f2937;
+  text-align: left;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  line-height: 1.5;
+  font-weight: 500;
+}
+.modern-grid tbody td:last-child {
+  border-right: none;
+}
+.modern-grid tbody td.col-wo {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  font-weight: 700;
+  color: #92400e;
+  border-right: 2px solid #f59e0b;
+}
+.modern-grid tbody tr.total-row {
+  background: #f0fdf4 !important;
+  font-weight: 700;
+}
+.modern-grid tbody tr.total-row td {
+  border-top: 2px solid #10b981;
+  color: #065f46;
+}
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #64748b;
+  font-size: 14px;
+}
+.excel-grid-container::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+.excel-grid-container::-webkit-scrollbar-track {
+  background: #f1f3f4;
+  border-radius: 6px;
+}
+.excel-grid-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+  border-radius: 6px;
+  border: 2px solid #f1f3f4;
+}
+.excel-grid-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+}
+</style>
+</head>
+<body>
+<input type="checkbox" id="sb-toggle">
+<div class="sidebar-overlay"></div>
+
+<aside class="sidebar" aria-label="Main menu">
+  <div class="sidebar-header">
+    <h3>Menu</h3>
+  </div>
+  <div class="sidebar-content">
+    <ul class="sidebar-menu">
+      <li><label>Main Menu</label></li>
+      <li><label>Work Orders</label></li>
+    </ul>
+  </div>
+</aside>
+
+<div class="container">
+  <header class="header">
+    <div class="header-left">
+      <label class="hamburger-menu" for="sb-toggle" aria-label="Open menu">☰</label>
+      <div class="logo-section">
+        <img src="http://54.189.226.145/uploads/assets/images/taimex_logo.png" alt="TAIMEX INDUSTRIAL">
+      </div>
+    </div>
+    <div class="title-section">
+      <h2>TAIMEX - Work Orders</h2>
+      <p>Week Ending: ^WEND^</p>
+    </div>
+  </header>
+
+  <main class="main-content">
+  <div class="excel-grid-wrapper">
+    <!-- Toolbar -->
+    <div class="grid-toolbar">
+      <div class="toolbar-left">
+        <h3> Work Orders for the Week</h3>
+      </div>
+    </div>
+    
+    <!-- Grid Container -->
+    <div class="excel-grid-container">
+      <div id="gridContainer">
+        ^RAW(SALESREPORT)^
+      </div>
+    </div>
+  </div>
+  </main>
+</div>
+<script>
+(function(){
+function transformGrid(){
+var container=document.getElementById('gridContainer');
+if(!container){
+console.log('Container not found');
+return false;
+}
+var legacyTable=container.querySelector('table');
+if(!legacyTable){
+console.log('No table found yet');
+return false;
+}
+console.log('Table found, transforming...');
+var rows=legacyTable.querySelectorAll('tr');
+if(rows.length<2){
+console.log('Not enough rows');
+return false;
+}
+var headerRow=rows[0];
+var headerCells=headerRow.querySelectorAll('th,td');
+var html='<table class="modern-grid"><thead><tr>';
+for(var i=0;i<headerCells.length;i++){
+html+='<th>'+headerCells[i].textContent.trim()+'</th>';
+}
+html+='</tr></thead><tbody>';
+for(var r=1;r<rows.length;r++){
+var cells=rows[r].querySelectorAll('td');
+if(!cells.length){continue;}
+var rowText=rows[r].textContent.toLowerCase();
+var rowClass=rowText.indexOf('total')>-1?' class="total-row"':'';
+html+='<tr'+rowClass+'>';
+for(var c=0;c<cells.length;c++){
+var text=cells[c].textContent.replace(/\s+/g,' ').trim();
+var colClass=c===0?' class="col-wo"':'';
+html+='<td'+colClass+'>'+text+'</td>';
+}
+html+='</tr>';
+}
+html+='</tbody></table>';
+console.log('Replacing table with modern grid');
+container.innerHTML=html;
+return true;
+}
+var attempts=0;
+function init(){
+attempts++;
+console.log('Attempt',attempts);
+if(transformGrid()){
+console.log('Transformation successful!');
+return;
+}
+if(attempts<20){
+setTimeout(init,300);
+}
+}
+if(document.readyState==='loading'){
+document.addEventListener('DOMContentLoaded',init);
+}else{
+init();
+}
+})();
+
+(function(){
+var checkbox=document.getElementById('sb-toggle');
+var overlay=document.querySelector('.sidebar-overlay');
+var menuLabels=document.querySelectorAll('.sidebar-menu label');
+if(overlay){
+overlay.addEventListener('click',function(){
+if(checkbox){checkbox.checked=false;}
+});
+}
+if(menuLabels.length>0){
+for(var i=0;i<menuLabels.length;i++){
+menuLabels[i].addEventListener('click',function(){
+if(checkbox){checkbox.checked=false;}
+});
+}
+}
+})();
+</script>
+<pre>PicLan-IP/BASIC ^ ^
+*
+RIP = ST$RIP
+RIP = FIELD(RIP,':',1)
+*IF RIP[1,3] NE &quot;192&quot; THEN RETURN
+PL_GETVAR PART FROM 'PART' ELSE PART = ''
+PL_GETVAR POS FROM 'POS' ELSE POS = ''
+*
+OPEN '',&quot;WORK&quot; TO WORKF ELSE STOP 201
+*
+READ WORK FROM WORKF,PART ELSE WORK = ''
+WEND = OCONV(WORK&lt;2,POS&gt;,&quot;D2-&quot;)
+*
+SALESREPORT = '' 
+CALL WOPAGE(SALESREPORT,PART,POS)
+SALESREPORT = PL_AMTOCRLF(SALESREPORT)
+</pre>
+</body>
+</html>
+
+          

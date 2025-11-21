@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Expires" content="0">
+  <title>MRP Part Details</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: #334155;
+      padding: 16px;
+      min-height: 100vh;
+    }
+
+    /* Excel Grid Wrapper - From PO_EDIT */
+    .excel-grid-wrapper {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Grid Toolbar */
+    .grid-toolbar {
+      background: #f8f9fa;
+      padding: 12px 20px;
+      border-bottom: 1px solid #dee2e6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .toolbar-left h3 {
+      color: #1e293b;
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toolbar-left h3 i {
+      color: #2a5298;
+    }
+
+    /* Excel Grid Container */
+    .excel-grid-container {
+      background: white;
+      padding: 0;
+    }
+
+    /* Excel Table */
+    .excel-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: #ffffff;
+    }
+
+    .excel-table tbody {
+      background: #ffffff;
+    }
+
+    /* Excel Headers - Blue Gradient like PO_EDIT */
+    .excel-header {
+      background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+      color: white;
+      padding: 10px 12px;
+      font-weight: 600;
+      text-align: right;
+      border: 1px solid #1e3c72;
+      border-left: none;
+      user-select: none;
+      font-size: 11px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      width: 12%;
+    }
+
+    .excel-header:first-child {
+      border-left: 1px solid #1e3c72;
+    }
+
+    /* Excel Rows */
+    .excel-row {
+      border-bottom: 1px solid #e5e7eb;
+      transition: background 0.15s ease;
+    }
+
+    .excel-row:hover {
+      background: #f0f9ff !important;
+    }
+
+    .excel-row:last-child {
+      border-bottom: none;
+    }
+
+    /* Excel Cells - Values */
+    .excel-cell {
+      padding: 10px 12px;
+      border-right: 1px solid #e5e7eb;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 13px;
+      color: #1f2937;
+      background: #fffbeb;
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .excel-cell:last-child {
+      border-right: none;
+    }
+
+    .excel-cell a {
+      color: #2a5298;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .excel-cell a:hover {
+      color: #1e3c72;
+      text-decoration: underline;
+    }
+
+    /* Button Cell */
+    .button-cell {
+      background: #fffbeb;
+      text-align: center;
+      vertical-align: middle;
+      padding: 8px;
+      border-right: 1px solid #e5e7eb;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .button-cell:last-child {
+      border-right: none;
+    }
+
+    /* Buttons - Styled like PO_EDIT */
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-block;
+      margin: 2px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+      color: white;
+      box-shadow: 0 2px 6px rgba(6, 182, 212, 0.3);
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+    }
+
+    /* Input Field */
+    .input-field {
+      padding: 6px 8px;
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+      font-size: 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      width: 65px;
+      transition: all 0.2s ease;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: #2a5298;
+      box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+    }
+
+    /* Full Width Cells for Reports */
+    .full-width-cell {
+      background: #ffffff;
+      padding: 12px 16px;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    /* Message Cell */
+    .message-cell {
+      background: #ecfdf5;
+      color: #047857;
+      font-style: italic;
+      font-weight: 600;
+      padding: 10px 16px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    /* Info Cell - Footer */
+    .info-cell {
+      background: #eff6ff;
+      color: #1e40af;
+      font-style: italic;
+      font-size: 11px;
+      padding: 8px 16px;
+      text-align: center;
+    }
+
+    /* Special styling for multi-line cells */
+    .excel-cell.multiline {
+      line-height: 1.6;
+      white-space: normal;
+    }
+
+    /* Scrollbar styling */
+    .excel-grid-container::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+
+    .excel-grid-container::-webkit-scrollbar-track {
+      background: #f1f3f4;
+      border-radius: 6px;
+    }
+
+    .excel-grid-container::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+      border-radius: 6px;
+      border: 2px solid #f1f3f4;
+    }
+
+    .excel-grid-container::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    }
+
+    /* Modern Grid Styles for SALESREPORT table */
+    .full-width-cell table:not(.modern-grid) {
+      display: none;
+    }
+
+    .modern-grid {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 10px;
+      background: #ffffff;
+      margin: 0;
+    }
+
+    .modern-grid thead {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+    }
+
+    .modern-grid th {
+      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+      color: white;
+      padding: 6px 8px;
+      font-weight: 600;
+      text-align: center;
+      border: none;
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      font-size: 9px;
+      white-space: nowrap;
+    }
+
+    .modern-grid th:last-child {
+      border-right: none;
+    }
+
+    .modern-grid tbody tr {
+      border-bottom: 1px solid #e5e7eb;
+      transition: background 0.15s ease;
+    }
+
+    .modern-grid tbody tr:nth-child(even) {
+      background: #f9fafb;
+    }
+
+    .modern-grid tbody tr:hover {
+      background: #fef2f2 !important;
+    }
+
+    .modern-grid tbody td {
+      padding: 5px 8px;
+      border-right: 1px solid #e5e7eb;
+      font-size: 10px;
+      color: #1f2937;
+      text-align: center;
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+      line-height: 1.3;
+    }
+
+    .modern-grid tbody td:last-child {
+      border-right: none;
+    }
+
+    .modern-grid tbody td:first-child {
+      background: #fffbeb;
+      font-weight: 600;
+      color: #92400e;
+    }
+
+    /* Highlight rows with 'Leadtime' in yellow */
+    .modern-grid tbody tr.leadtime-row {
+      background: #fef3c7 !important;
+    }
+
+    .modern-grid tbody tr.leadtime-row:hover {
+      background: #fde68a !important;
+    }
+  </style>
+</head>
+<body>
+
+<div class="excel-grid-wrapper">
+  <!-- Toolbar -->
+  <div class="grid-toolbar">
+    <div class="toolbar-left">
+      <h3><i class="fas fa-cube"></i> Part Details - MRP Information</h3>
+    </div>
+  </div>
+
+  <!-- Grid Container -->
+  <div class="excel-grid-container">
+    <form method="get" action="/MRPRTPOEDIT.HTM">
+      <input type="hidden" name="PART" value="^PART^">
+
+      <table class="excel-table">
+        <tbody>
+          <!-- Row 1 -->
+          <tr class="excel-row">
+            <td class="excel-header">Part Number</td>
+            <td class="excel-cell">^PART^</td>
+            <td class="excel-header">On Hand</td>
+            <td class="excel-cell"><a href="MRPINV.HTM?PART=^PART^" target="2">^START.BAL^</a></td>
+            <td class="excel-header">Review Point</td>
+            <td class="excel-cell">^REVPT^</td>
+            <td class="excel-header">Reject Stock</td>
+            <td class="excel-cell">^REJECT^</td>
+            <td class="button-cell" rowspan="2">
+              <input type="submit" value="Back" name="BACK" class="btn btn-primary"><br>
+              <input type="submit" value="Revised" name="REVISED" class="btn btn-primary">
+            </td>
+          </tr>
+
+          <!-- Row 2 -->
+          <tr class="excel-row">
+            <td class="excel-header">Part Desc</td>
+            <td class="excel-cell"><a href="MRPDESC.HTM?PART=^PART^" target="1">^DESC^</a></td>
+            <td class="excel-header">Qty In Recvg</td>
+            <td class="excel-cell"><a href="INRECQTY.HTM?PART=^PART^" target="2">^INRECQTY^</a></td>
+            <td class="excel-header">Avg Wkly Usage</td>
+            <td class="excel-cell">^AWU^</td>
+            <td class="excel-header">Weeks on Hand</td>
+            <td class="excel-cell">^WEEKSOH^</td>
+          </tr>
+
+          <!-- Row 3 -->
+          <tr class="excel-row">
+            <td class="excel-header">Unit Measure</td>
+            <td class="excel-cell">^UM^</td>
+            <td class="excel-header">Unalloc Qty</td>
+            <td class="excel-cell multiline">
+              <a href="MRPUNACK.HTM?PART=^PART^" target="2">^UNALLOC.BAL^</a>
+              (On Hand - Needed WIP Qty)<br>
+              WIP Demand: <a href="/MRPWIP.HTM?PART=^PART^">^WIP^</a>
+            </td>
+            <td class="excel-header">Avg Yrly Usage</td>
+            <td class="excel-cell">^AYU^</td>
+            <td class="excel-header">Shorts-list Qty</td>
+            <td class="excel-cell" colspan="2">^RAW(TSHORTS)^</td>
+          </tr>
+
+          <!-- Row 4 -->
+          <tr class="excel-row">
+            <td class="excel-header">Lead Time</td>
+            <td class="excel-cell">^LEADTIME^</td>
+            <td class="excel-header">ABC Code</td>
+            <td class="excel-cell">^ABC^</td>
+            <td class="excel-header">Safety Stock</td>
+            <td class="excel-cell">^SS^</td>
+            <td class="excel-header">Commodity Code</td>
+            <td class="excel-cell" colspan="2">^VENTED^</td>
+          </tr>
+
+          <!-- Row 5 -->
+          <tr class="excel-row">
+            <td class="excel-header">Current Cost</td>
+            <td class="excel-cell"><a href="COST.HTM?PART=^PART^">^STDC^</a></td>
+            <td class="excel-header">Last Purch Price</td>
+            <td class="excel-cell">^LASTPP^</td>
+            <td class="excel-header">Qty Issued Today</td>
+            <td class="excel-cell">^QIT^</td>
+            <td class="excel-header">
+              SPO FC%<br>
+              <input name="SPOPER" class="input-field" type="text"><br>
+              <input type="submit" value="Refresh" name="REFRESH" class="btn btn-primary">
+            </td>
+            <td class="button-cell">
+              <input type="submit" value="Create PO" name="NEWPO" class="btn btn-primary">
+            </td>
+            <td class="button-cell">
+              <input type="submit" value="RMH" name="RMH" class="btn btn-secondary">
+            </td>
+          </tr>
+
+          <!-- Sales Report Row -->
+          <tr>
+            <td colspan="9" class="full-width-cell">
+              ^RAW(SALESREPORT)^
+            </td>
+          </tr>
+
+          <!-- Message Row -->
+          <tr>
+            <td colspan="9" class="message-cell">
+              ^MSG1^
+            </td>
+          </tr>
+
+          <!-- Footer Row -->
+          <tr>
+            <td colspan="9" class="info-cell">
+              Report Created on ^DATE^ at ^TIME^
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </form>
+  </div>
+</div>
+
+<script>
+(function(){
+function transformSalesReport(){
+var cell=document.querySelector('.full-width-cell');
+if(!cell){return;}
+var legacyTable=cell.querySelector('table:not(.modern-grid)');
+if(!legacyTable){return;}
+var rows=legacyTable.querySelectorAll('tr');
+if(rows.length<2){return;}
+var headerRow=rows[0];
+var headerCells=headerRow.querySelectorAll('th,td');
+var html='<table class="modern-grid"><thead><tr>';
+for(var i=0;i<headerCells.length;i++){
+html+='<th>'+headerCells[i].textContent.trim()+'</th>';
+}
+html+='</tr></thead><tbody>';
+for(var i=1;i<rows.length;i++){
+var cells=rows[i].querySelectorAll('td');
+if(cells.length>0){
+var rowText=rows[i].textContent.toLowerCase();
+var rowClass=rowText.indexOf('leadtime')>-1?'leadtime-row':'';
+html+='<tr class="'+rowClass+'">';
+for(var j=0;j<cells.length;j++){
+html+='<td>'+cells[j].innerHTML+'</td>';
+}
+html+='</tr>';
+}
+}
+html+='</tbody></table>';
+cell.innerHTML=html;
+}
+if(document.readyState==='loading'){
+document.addEventListener('DOMContentLoaded',transformSalesReport);
+}else{
+setTimeout(transformSalesReport,150);
+}
+})();
+</script>
+
+</body>
+<PRE>PicLan-IP/BASIC ^ ^
+*
+PRINT 'HI'
+PRINT 'HI'
+PL_GETVAR PART FROM 'PART' ELSE PART = ''
+PL_GETVAR BACK FROM 'BACK' ELSE BACK = ''
+PL_GETVAR PRICING FROM 'PRICING' ELSE PRICING = ''
+PL_GETVAR LASTPURO FROM 'LASTPURO' ELSE LASTPURO = ''
+PL_GETVAR REVISED FROM 'REVISED' ELSE REVISED = ''
+PL_GETVAR NEWPO FROM 'NEWPO' ELSE NEWPO = ''
+PL_GETVAR VIEWPO FROM 'VIEWPO' ELSE VIEWPO = ''
+PL_GETVAR SPOPER FROM 'SPOPER' ELSE SPOPER = ''
+PL_GETVAR REFRESH FROM 'REFRESH' ELSE REFRESH = ''
+PL_GETVAR RMH FROM 'RMH' ELSE RMH = ''
+*
+*RIP = ST$RIP
+*RIP = FIELD(RIP,':',1)
+*IF RIP[1,3] NE "192" THEN RETURN
+*
+OPEN '',"EPARTS" TO EPARTSF ELSE PRINT "CAN'T OPEN EPARTS FILE"
+OPEN '',"INV" TO INVF ELSE PRINT "CAN'T OPEN INV FILE"
+OPEN '',"ALLOC" TO ALLOCF ELSE PRINT "CAN'T OPEN ALLOC FILE"
+OPEN '',"PO.AVAIL" TO PO.AVAILF ELSE PRINT "CAN'T OPEN PO.AVAIL FILE"
+OPEN '',"SHORTS" TO SHORTSF ELSE PRINT "CAN'T OPEN SHORTS FILE"
+OPEN 'MRPREVISED' TO MRPREVISEDF ELSE STOP 201,'MRPREVISED'
+OPEN 'POCHG' TO POCHGF ELSE STOP 201,'POCHG'
+OPEN 'POCART' TO POCARTF ELSE STOP 201,'POCART'
+OPEN 'PO' TO POF ELSE STOP 201,'PO'
+OPEN 'VENDOR' TO VENDORF ELSE STOP 201,'VENDOR'
+OPEN 'DICT','POW,' TO DICTPOW ELSE STOP 201,'DICT,POW'
+OPEN '',"ECOST" TO COSTF ELSE STOP 201,"ECOST"
+OPEN 'VENDPT' TO VENDPTF ELSE STOP 201,'VENDPT'
+OPEN 'MRPTEMP' TO MRPTEMPF ELSE STOP 201,'MRPTEMP'
+*
+READ EREC FROM EPARTSF,PART ELSE EREC = ''
+PRINT 'PART = ':PART
+IF EREC<7> = '03' THEN
+     PRINT 'RUNNING .. SOFTPOGENID'
+  PARTPO = PART
+  CALL SOFTPOGENID(PARTPO,SPOPER)
+END
+READ COST FROM COSTF,PART ELSE COST = ""
+STDC = OCONV(COST<6>,"MR4")
+DATE=OCONV(DATE(),"D2-")
+TIME=OCONV(TIME(),"MT")
+*
+ PL_GET_COOKIE INITIALS FROM 'INIT' ELSE
+       ERR = ''
+       CALL PLW.PAGE('LOGIN.HTM','',ERR)
+       RETURN
+   END
+*
+IF REVISED NE '' THEN
+  AUDITFLG = PART
+  TIME = DATE()
+  WRITEV TIME ON MRPREVISEDF,AUDITFLG,1
+END
+IF PRICING NE '' THEN
+   ERR = ''
+   PL_PUTVAR PART IN 'PART' ELSE NULL
+   CALL PLW.PAGE('CANPRICING.HTM','',ERR)
+   RETURN
+END
+IF RMH NE '' THEN
+   ERR = ''
+   PARTNUM = PART
+   PL_PUTVAR PARTNUM IN 'PARTNUM' ELSE NULL
+   CALL PLW.PAGE('RMHFG.HTM','',ERR)
+   RETURN
+END
+IF LASTPURO NE '' THEN
+   ERR = ''
+   PL_PUTVAR PART IN 'PART' ELSE NULL
+   CALL PLW.PAGE('LASTPURORD.HTM','',ERR)
+   RETURN
+END
+*
+READ PO.AVAIL FROM PO.AVAILF,PART ELSE PO.AVAIL = ''
+READ EPARTS FROM EPARTSF,PART ELSE EPARTS = ''
+QIT = EPARTS<156>
+LASTPP = OCONV(EPARTS<122,2>,"MR4")
+*
+DESC = EPARTS<1> ; LEADTIME = EPARTS<6>  ; ABC = EPARTS<22>
+UM = EPARTS<24> ; ORDPOLICY = EPARTS<53>
+IF ORDPOLICY = "" THEN ORDPOLICY = "N/A"
+DESC=DESC[1,14]
+UMDESC = OCONV(UM,"TUM;X;1;1")
+UM = UM:" ":UMDESC
+MSG1=''
+IF EPARTS<3> = "5500" THEN
+MSG1 = "If the usage$ column is in bold type, then usage dollars are greater than max goal."
+END
+*
+AWU=''
+*CALL GETAWU2(PART,AWU)
+IF EPARTS<3> = "5500" THEN
+ USE2 = PO.AVAIL<7> / 13
+ USE2 = INT(USE2 + .5)
+ AWU = OCONV(USE2,"MR02")
+END
+IF EPARTS<7> NE "05" THEN
+ USE2 = PO.AVAIL<7> / 13
+ USE2 = INT(USE2 + .5)
+ AWU = USE2
+END
+SS=EPARTS<12>
+MANSSTK = SS[1,1]
+IF MANSSTK = "*" THEN
+ SS = FIELD(SS,'*',2)
+ GOTO 500
+ END
+IF MANSSTK = "#" THEN
+ SS = FIELD(SS,"#",2) * AWU
+ GOTO 500
+END
+*IF AWU > '0' THEN SS = AWU*2
+500 *
+IF EPARTS<152> > "0" THEN SS = SS + EPARTS<152>
+AYU = INT(PO.AVAIL<9> / 52 + .5)
+IF EPARTS<3> = "5500" THEN AYU = OCONV(AYU,"MR02")
+VENTED = EPARTS<7> ; * COMMODITY CODE
+*IF VENTED NE '' THEN
+* VENTEDINV = OCONV(VENTED,"TINV;X;1;1")
+* VENTED = VENTED:"/":VENTEDINV
+*END ELSE
+* VENTED = "N/A"
+*END
+*
+READ IREC FROM INVF,PART ELSE IREC = ""
+START.BAL=0;REJECT=0
+CNTT = DCOUNT(IREC<7>,VM)
+FOR ZZ = 1 TO CNTT
+ LOC = IREC<7,ZZ>
+ IF LOC[1,5] NE "99REJ" THEN
+ START.BAL = START.BAL + IREC<7,ZZ>
+ END ELSE
+ REJECT = REJECT + IREC<7,ZZ>
+ END
+NEXT ZZ
+*START.BAL = 0
+ WIP = OCONV(PART,'TMRPTEMP;X;;1')
+LIS = DCOUNT(IREC<31>,VM)
+*FOR ZZ = 1 TO LIS
+*   LOC = IREC<31,ZZ>
+*    IF LOC[1,2] = 'BF' THEN
+*       WIP = WIP + IREC<32,ZZ>
+ *   END ELSE
+*       START.BAL = START.BAL + IREC<32,ZZ>
+ *   END
+*NEXT ZZ
+
+ WIPNOTISSUED = WIP
+ WRITEV WIPNOTISSUED ON ALLOCF,PART,45
+
+IF EPARTS<3> = "5500" THEN
+ OPEN '',"ALLOCR" TO ALLOCF ELSE STOP
+ READ A.REC FROM ALLOCF,PART ELSE A.REC=''
+END ELSE
+  READ A.REC FROM ALLOCF,PART ELSE A.REC = ''
+END
+A.REC<45> = WIPNOTISSUED
+IF EPARTS<3> = "5500" THEN
+  OPEN '',"FOIL" TO FOILF ELSE PRINT "CAN'T OPEN FOIL FILE"
+  READ TMPBAL FROM FOILF,PART[1,6] ELSE TMPBAL = ""
+  START.BAL = OCONV(TMPBAL<1>,"MR02")
+  REJECT = OCONV(TMPBAL<2>,"MR02")
+END
+*
+INRT=0
+IF EPARTS<3> NE "5500" THEN
+  INRT = A.REC<40>/100000 '0'
+END
+UNALLOC.BAL = START.BAL + INRT - A.REC<45> - SS
+IF EPARTS<3> = "5500" THEN UNALLOC.BAL = 0
+*
+INRECQTY = A.REC<40>/100000
+IF INRECQTY='' THEN INRECQTY=0
+*
+REVPT = LEADTIME+2
+REVPT = REVPT * AWU
+REVPT = REVPT + SS
+* REVPT = REVPT / 10
+*
+WEEKSOH = 0
+IF AWU NE 0 THEN
+ WEEKSOH = START.BAL / AWU
+ WEEKSOH = WEEKSOH * 10
+ WEEKSOH = OCONV(WEEKSOH,"MR1")
+END
+*
+READ SRTS FROM SHORTSF,PART ELSE SRTS = ''
+TSHORTS = 0
+*FOR ZC = 1 TO DCOUNT(SRTS<1>,VM)
+* SHORTS.QTY = SRTS<1,ZC>
+* SHORTS.QTY = FIELD(SHORTS.QTY,"*",2)
+* TSHORTS = TSHORTS + SHORTS.QTY
+*NEXT ZC
+*
+SALESREPORT = ''
+CALL WEBMRPFOILPO(SALESREPORT,PART,AWU,LEADTIME,SS,REVPT,TSHORTS)
+SALESREPORT = PL_AMTOCRLF(SALESREPORT)
+IF TSHORTS NE "0" THEN
+  TSHORTS = '<a href="http://cdanb.cde.com/EBOARDRV.HTM">':TSHORTS:'</a>'
+END
+IF BACK NE '' THEN
+     PART = ''
+     PL_PUTVAR PART IN 'PART' ELSE NULL
+     ERR = ''
+     CALL PLW.PAGE('MRP.HTM','',ERR)
+     RETURN
+END
+*
+* ADD PO LINK OPTIONS
+*
+PONO = 'NEW':INITIALS<1>
+IF NEWPO NE '' THEN
+   PONO = 'NEW':INITIALS<1>
+   PRINT 'PONO = ':PONO
+  * READ POREC FROM POCHGF,PONO ELSE
+  *   PL_PUTVAR '2' IN 'GOUPD' ELSE NULL
+  *   PL_PUTVAR PONO IN 'PONO' ELSE NULL
+  *   CALL PLW.PAGE('NBPOCHGMAIN.HTM','',ERR)
+  *   RETURN
+  * END ELSE
+     QTS = '' ; TQT = 0
+     FOR JJ = 1 TO 40
+       PL_GETVAR QTY FROM 'QTY':JJ ELSE QTY = ''
+       DICTPO = JJ + 9
+       READ DICTPOX FROM DICTPOW,DICTPO ELSE DICTPOX = ''
+    *   SCHEDT = DICTPOX<3,1>:'-':DICTPOX<3,2>[1,2]
+       SCHEDT = DICTPOX<3,1>:'-29'
+       SCHEDT = ICONV(SCHEDT,'D2-')
+       IF QTY > 0 THEN
+           QTS<1,1,-1> = SCHEDT:'*':QTY
+       END
+       TQT = TQT + QTY
+     NEXT JJ
+     POREC = ''
+     POREC<1> = DATE()
+     POREC<15> = 'N'
+**     POREC<2> = '015550'
+     POREC<4> = '262770'
+     POREC<8> = INITIALS
+     POREC<31> = '1'
+     POREC<32> = PART
+     POREC<53> = PART
+     POREC<34> = QTS
+     POREC<57> = QTS
+     POREC<35> = TQT
+     READ PREC FROM EPARTSF,PART ELSE PREC = ''
+*
+     PDESC = PREC<21>
+     CONVERT VM TO SVM IN PDESC
+     POREC<33>= PDESC
+****     READV LPOR FROM EPARTSF,PART,145 ELSE LPOR = ''
+****     LPO = FIELD(LPOR,'*',1) ; LPOPRICE = FIELD(LPOR,'*',2)
+****     READV LVEND FROM POF,LPO,2 ELSE LVEND = ''
+****     IF LVEND = "015550" THEN LVEND = ''
+****     READV LEMAIL FROM POF,LPO,80 ELSE LEMAIL = ''
+****     LEMAIL = ''
+****   *  IF LEMAIL = '' THEN
+****       READV LEMAIL FROM VENDORF,LVEND,25 ELSE LEMAIL = ''
+****    * END
+****     READV CDFPT FROM POF,LPO,51 ELSE CDFPT = ''
+****     READV VIA FROM VENDORF,LVEND,21 ELSE VIA = ''
+****   *  READV VIA FROM POF,LPO,11 ELSE VIA = ''
+****     READV ATTN FROM POF,LPO,3 ELSE ATTN = ''
+****
+****     POREC<3> = ATTN
+****     POREC<11> = VIA
+****     POREC<51> = CDFPT
+****     PRINT 'LPO = ':LPO
+****     POREC<80> = LEMAIL
+****     POREC<2> = LVEND
+***     POREC<80> = 'hbulhoes@cde.com,dybarra@cde.com'
+***     LEMAIL = 'hbulhoes@cde.com,dybarra@cde.com'
+
+     IF POREC<2> = '' THEN
+       READV VENDOR FROM EPARTSF,PART,19 ELSE VENDOR = ''
+       POREC<2> = VENDOR
+       POREC<6> = OCONV(VENDOR,'TVENDOR;X;;8')
+       POREC<11> = OCONV(VENDOR,'TVENDOR;X;;21')
+       EMAILS = OCONV(VENDOR,'TVENDOR;X;;25')
+       CONVERT VM TO ',' IN EMAILS
+       POREC<80> = EMAILS
+     END
+*
+****     IF LEMAIL = '' THEN
+**        EMAILS = ''
+**        CALL GETPOEMAIL(POREC<2>,EMAILS)
+****        POREC<80> = EMAILS
+****     END
+*
+     READV TERMS FROM VENDORF,POREC<2>,9 ELSE TERMS = ''
+     POREC<18> = TERMS
+    * POREC<36,1> = LPOPRICE
+     READV PVEND FROM EPARTSF,PART,19 ELSE PVEND = ''
+     VENDPTID = PVEND:'*':PART
+     PRINT 'VENDPTID = ':VENDPTID
+     READ PRICETABLE FROM VENDPTF,VENDPTID ELSE PRICETABLE = ''
+     PRICE = PRICETABLE<2>
+     PRINT 'PRICE = ':PRICE
+*     IF PRICE = '' THEN PRICE = '0'
+     POREC<36,1> = PRICE
+     POREC<45,1> = '01500000' ; * LI ACCT
+   *  POREC<38,1> = PREC<24>
+     POREC<48,1> = FIELD(PREC<16>,'*',2)
+     READ PREC FROM EPARTSF,PART ELSE PREC = ''
+     POREC<61> = PREC<66>:'*':PREC<60>  ; *  DOC#*REV
+
+****     PRINT 'LPO = ':LPO
+****     PRINT 'LEMAIL = ':LEMAIL
+****     PRINT 'LVEND = ':LVEND
+****     PRINT 'LPOPRICE = ':LPOPRICE
+*
+     WRITE POREC ON POCHGF,PONO
+    * WRITE '' ON POCARTF,PONO
+     ID = 'NONSTOCKED'
+     PL_SET_COOKIE 'POTYPE' TO ID
+     PL_PUTVAR ID IN 'POTYPE' ELSE NULL
+     PL_GET_COOKIE POTYPE FROM 'POTYPE' ELSE POTYPE = ''
+     PL_SET_COOKIE 'PONO' TO PONO
+     PL_PUTVAR PONO IN 'PONO' ELSE NULL
+     ERR = ''
+     CALL PLW.PAGE('NBPOCHGHDR2.HTM','',ERR)
+     RETURN
+   * END
+END
+*
+IF VIEWPO NE '' THEN
+ PONO = 'NEW':INITIALS<1>
+ PRINT 'PONO = ':PONO
+   PL_PUTVAR '2' IN 'GOUPD' ELSE NULL
+   PL_PUTVAR PONO IN 'PONO' ELSE NULL
+   CALL PLW.PAGE('NBPOCHGMAIN.HTM','',ERR)
+   RETURN
+END
+
+
+</PRE>
+</html>
+     
