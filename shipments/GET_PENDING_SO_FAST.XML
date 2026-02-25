@@ -21,7 +21,7 @@ PL_ADD_HDR '"Cache-Control: no-cache, no-store, must-revalidate"'
 
 XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>' : CRLF
 XML.RESPONSE = XML.RESPONSE : '<pending_so_list>' : CRLF
-SCRIPT_VERSION = '2026-02-25-F5-CUSTOMER-READ-FIX'
+SCRIPT_VERSION = '2026-02-25-F6-PERFORMANCE-FIX'
 
 * Parse parameters
 PL_GETVAR LIMIT.PARAM FROM 'limit' ELSE LIMIT.PARAM = '50'
@@ -61,21 +61,22 @@ LOOP
    SHIPTO_CODE = SO.REC<4>
    IF SHIPTO_CODE = '' THEN SHIPTO_CODE = SO.REC<2>
 
-   * Read CUSTOMER for shipto_name (needed for search filter)
+   * Customer search filter - ONLY read CUSTOMER when actively searching
    SHIPTO_NAME = ''
    CREDIT_HOLD = 'N'
-   IF SHIPTO_CODE NE '' AND HAS.CUSTF THEN
-      READ CUST.REC FROM CUSTOMERF, SHIPTO_CODE ELSE CUST.REC = ''
-      IF CUST.REC NE '' THEN
-         SHIPTO_NAME = CUST.REC<1>
-         CONVERT XVM TO '' IN SHIPTO_NAME
-         CONVERT CHAR(252) TO '' IN SHIPTO_NAME
-      END
-   END
-   IF SHIPTO_NAME = '' THEN SHIPTO_NAME = SHIPTO_CODE
-
-   * Customer search filter - MUST BE APPLIED BEFORE COUNTING
    IF SEARCH.NORM NE '' THEN
+      * Read CUSTOMER only when search is active (performance optimization)
+      IF SHIPTO_CODE NE '' AND HAS.CUSTF THEN
+         READ CUST.REC FROM CUSTOMERF, SHIPTO_CODE ELSE CUST.REC = ''
+         IF CUST.REC NE '' THEN
+            SHIPTO_NAME = CUST.REC<1>
+            CONVERT XVM TO '' IN SHIPTO_NAME
+            CONVERT CHAR(252) TO '' IN SHIPTO_NAME
+         END
+      END
+      IF SHIPTO_NAME = '' THEN SHIPTO_NAME = SHIPTO_CODE
+
+      * Apply search filter
       SHIPTO_NAME.NORM = OCONV(SHIPTO_NAME, 'MCU')
       SHIPTO_CODE.NORM = OCONV(SHIPTO_CODE, 'MCU')
       SO_ID.NORM = OCONV(SO_ID, 'MCU')
@@ -83,6 +84,9 @@ LOOP
          SEARCH_SKIP_COUNT = SEARCH_SKIP_COUNT + 1
          CONTINUE
       END
+   END ELSE
+      * No search active - use shipto_code as name for speed
+      SHIPTO_NAME = SHIPTO_CODE
    END
 
    * Pagination offset
