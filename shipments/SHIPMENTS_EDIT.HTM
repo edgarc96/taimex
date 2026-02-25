@@ -1939,7 +1939,14 @@
         }
         params.append('_', Date.now());
 
-        const response = await fetch('GET_PENDING_SO_FAST.XML?' + params.toString());
+        const response = await fetch('GET_PENDING_SO_FAST.XML?' + params.toString(), {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        });
 
         if (!response.ok) {
           throw new Error('HTTP ' + response.status + ': ' + response.statusText);
