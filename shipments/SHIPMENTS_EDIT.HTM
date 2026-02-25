@@ -2018,23 +2018,10 @@
     }
 
     function renderBatchGroups(soEntries) {
-      // VALIDATION: Ensure we're not rendering stale cached data
-      if (batchSearchTerm && soEntries.length > 0) {
-        const searchLower = batchSearchTerm.toLowerCase();
-        const validEntries = soEntries.filter(so => {
-          const name = (so.shipto_name || '').toLowerCase();
-          const code = (so.shipto_code || '').toLowerCase();
-          return name.includes(searchLower) || code.includes(searchLower);
-        });
-
-        if (validEntries.length === 0) {
-          console.warn('⚠️ Search filter mismatch detected - clearing cache and reloading');
-          batchSOData = [];
-          batchSOLineDetails = {};
-          loadPendingSOs(true);
-          return;
-        }
-      }
+      // VALIDATION: Backend now correctly filters - trust the backend results
+      // Frontend validation disabled to prevent infinite loop
+      // The backend (GET_PENDING_SO_FAST.XML v2026-02-25-F5) now reads CUSTOMER
+      // before filtering, so search results are accurate
 
       // Group by shipto_code
       const groups = {};
