@@ -94,7 +94,7 @@
             <i class="fas fa-shipping-fast"></i> Shipments Management
           </h2>
           <p style="text-align: center; color: #64748b; margin-bottom: 30px;">What would you like to do?</p>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; max-width: 800px; margin: 0 auto;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; max-width: 1200px; margin: 0 auto;">
             <button class="btn btn-primary" onclick="showSearchMode()" style="padding: 40px 30px; font-size: 1.1em; flex-direction: column; gap: 12px;">
               <i class="fas fa-search" style="font-size: 2.5em;"></i>
               <span>Search Existing Shipment</span>
@@ -104,6 +104,21 @@
               <i class="fas fa-plus-circle" style="font-size: 2.5em;"></i>
               <span>Create New Shipment</span>
               <small style="font-weight: normal; opacity: 0.9;">Generate a new shipment record</small>
+            </button>
+            <button class="btn" onclick="showProcessShipments()" style="padding: 40px 30px; font-size: 1.1em; flex-direction: column; gap: 12px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
+              <i class="fas fa-truck-loading" style="font-size: 2.5em;"></i>
+              <span>Process Shipments</span>
+              <small style="font-weight: normal; opacity: 0.9;">View &amp; process pending by customer</small>
+            </button>
+            <button class="btn" onclick="showShipped()" style="padding: 40px 30px; font-size: 1.1em; flex-direction: column; gap: 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+              <i class="fas fa-check-circle" style="font-size: 2.5em;"></i>
+              <span>Shipped</span>
+              <small style="font-weight: normal; opacity: 0.9;">View processed shipments</small>
+            </button>
+            <button class="btn" onclick="showBatchProcess()" style="padding: 40px 30px; font-size: 1.1em; flex-direction: column; gap: 12px; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white;">
+              <i class="fas fa-layer-group" style="font-size: 2.5em;"></i>
+              <span>Batch Processing</span>
+              <small style="font-weight: normal; opacity: 0.9;">Create + process by customer</small>
             </button>
           </div>
         </div>
@@ -121,6 +136,173 @@
             <button class="btn btn-primary" onclick="searchShipment()">
               <i class="fas fa-search"></i> Search
             </button>
+          </div>
+        </div>
+
+        <!-- PROCESS SHIPMENTS SCREEN (grouped by customer) -->
+        <div class="step-wizard hidden" id="processShipmentsScreen">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2 style="margin: 0;"><i class="fas fa-truck-loading" style="color:#d97706;"></i> Process Shipments</h2>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <span id="processShipCount" style="font-size:13px;color:#64748b;"></span>
+              <button class="btn btn-secondary" onclick="returnToHome()">
+                <i class="fas fa-arrow-left"></i> Back
+              </button>
+            </div>
+          </div>
+          <div class="info-box" style="margin-bottom:16px;">
+            <div class="info-box-icon"><i class="fas fa-info-circle"></i></div>
+            <div class="info-box-content">
+              <strong>Pending Shipments by Customer</strong>
+              <p>Shipments grouped by Ship-To customer. Customers in <strong style="color:#ef4444;">Credit Hold</strong> cannot be processed. Select shipments, enter waybill per group, and click "Process Selected".</p>
+            </div>
+          </div>
+          <!-- Controls -->
+          <div style="margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button class="btn-step btn-step-primary" onclick="loadProcessShipments()">
+              <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            <input type="text" id="processFilterInput" placeholder="Filter by customer name..." oninput="filterShipmentGroups(this.value)" style="padding:8px 12px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;width:250px;">
+            <button class="btn-step btn-step-primary" id="btnProcessSelected" onclick="processSelectedShipments()" disabled style="opacity:0.5;background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);">
+              <i class="fas fa-bolt"></i> Process Selected (<span id="processSelectedCount">0</span>)
+            </button>
+          </div>
+          <!-- Groups Container -->
+          <div id="processGroupsContainer" style="max-height:55vh;overflow-y:auto;">
+            <div style="text-align:center;padding:30px;color:#94a3b8;">Click "Refresh" to load pending shipments</div>
+          </div>
+          <!-- Progress -->
+          <div id="processProgressContainer" class="hidden" style="margin-top:16px;padding:12px 16px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0;">
+            <div style="font-weight:600;color:#1e293b;margin-bottom:8px;">Processing Progress</div>
+            <div id="processProgressBar" style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;margin-bottom:8px;">
+              <div style="height:100%;background:linear-gradient(90deg,#f59e0b,#d97706);width:0%;transition:width 0.3s;"></div>
+            </div>
+            <div id="processProgressText" style="font-size:13px;color:#64748b;margin-bottom:12px;"></div>
+            <div id="processResultsList" style="max-height:200px;overflow-y:auto;font-size:12px;"></div>
+          </div>
+        </div>
+
+        <!-- SHIPPED SCREEN -->
+        <div class="step-wizard hidden" id="shippedScreen">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2 style="margin: 0;"><i class="fas fa-check-circle" style="color:#10b981;"></i> Shipped</h2>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <span id="shippedCount" style="font-size:13px;color:#64748b;"></span>
+              <button class="btn btn-secondary" onclick="returnToHome()">
+                <i class="fas fa-arrow-left"></i> Back
+              </button>
+            </div>
+          </div>
+          <div class="info-box" style="margin-bottom:16px;background:linear-gradient(135deg,#d1fae5 0%,#ecfdf5 100%);border-color:#10b981;">
+            <div class="info-box-icon" style="color:#10b981;"><i class="fas fa-check-circle"></i></div>
+            <div class="info-box-content">
+              <strong>Processed Shipments</strong>
+              <p>These shipments have been processed (SHIP.STOCK and SHIP.AR executed). Inventory was deducted and AR invoice was created.</p>
+            </div>
+          </div>
+          <div style="margin-bottom:12px;display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn-step btn-step-primary" onclick="loadShippedShipments()">
+              <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            <button class="btn-step btn-step-secondary" onclick="loadShippedShipments(500)">
+              <i class="fas fa-list"></i> Show Last 500
+            </button>
+            <button class="btn-step btn-step-secondary" onclick="toggleGroupByShipTo()" id="btnGroupByShipTo">
+              <i class="fas fa-object-group"></i> Group by Ship-To
+            </button>
+          </div>
+          <div style="overflow-x:auto;max-height:60vh;overflow-y:auto;">
+            <table class="line-items-table" id="shippedTable">
+              <thead>
+                <tr>
+                  <th>Shipment #</th>
+                  <th>SO #</th>
+                  <th>Ship To</th>
+                  <th>Ship Date</th>
+                  <th>Waybill</th>
+                  <th>Ship Via</th>
+                  <th>Lines</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="shippedBody">
+                <tr><td colspan="8" style="text-align:center;padding:30px;color:#94a3b8;">Click "Refresh" to load shipped shipments</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- BATCH PROCESS SCREEN (All-in-one create + process) -->
+        <div class="step-wizard hidden" id="batchProcessScreen">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2 style="margin: 0;"><i class="fas fa-layer-group" style="color:#8b5cf6;"></i> Batch Processing</h2>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <button class="btn btn-secondary" onclick="returnToHome()">
+                <i class="fas fa-arrow-left"></i> Back
+              </button>
+            </div>
+          </div>
+
+          <div class="info-box" style="margin-bottom:16px;background:linear-gradient(135deg,#f3e8ff 0%,#faf5ff 100%);border-color:#8b5cf6;">
+            <div class="info-box-icon" style="color:#8b5cf6;"><i class="fas fa-info-circle"></i></div>
+            <div class="info-box-content">
+              <strong>All-In-One Batch Processing</strong>
+              <p>Select open Sales Orders grouped by Ship-To customer, enter one waybill per customer, and process everything in one run.</p>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div style="margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button class="btn-step btn-step-primary" onclick="loadPendingSOs(true)">
+              <i class="fas fa-sync-alt"></i> Load Open SOs
+            </button>
+            <input type="text" id="batchCustomerSearch" placeholder="Search customer or Ship-To..." onkeydown="if(event.key==='Enter'){applyBatchCustomerSearch();}" style="width:260px;padding:8px 12px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;">
+            <button class="btn-step btn-step-secondary" onclick="applyBatchCustomerSearch()">
+              <i class="fas fa-search"></i> Search
+            </button>
+            <button class="btn-step btn-step-secondary" onclick="clearBatchCustomerSearch()">
+              <i class="fas fa-times"></i> Clear
+            </button>
+            <label style="font-size:12px;font-weight:600;color:#475569;margin:0;">Ship Date:</label>
+            <input type="date" id="batchShipDate" style="padding:8px 12px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;">
+            <button class="btn-step btn-step-primary" id="btnProcessBatch" onclick="processBatch()" disabled style="opacity:0.5;background:linear-gradient(135deg,#8b5cf6 0%,#6d28d9 100%);">
+              <i class="fas fa-bolt"></i> Process Batch (<span id="batchSelectedCount">0</span>)
+            </button>
+          </div>
+          <div style="margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button class="btn-step btn-step-secondary" id="btnBatchPrevPage" onclick="goBatchPage(-1)">
+              <i class="fas fa-chevron-left"></i> Prev
+            </button>
+            <button class="btn-step btn-step-secondary" id="btnBatchNextPage" onclick="goBatchPage(1)">
+              Next <i class="fas fa-chevron-right"></i>
+            </button>
+            <span id="batchPageInfo" style="font-size:12px;color:#64748b;"></span>
+          </div>
+
+          <!-- Locked Selection Display -->
+          <div id="lockedSOsContainer" class="hidden" style="margin-bottom:16px;padding:12px 16px;border-radius:8px;background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid #10b981;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="font-weight:600;color:#065f46;"><i class="fas fa-lock"></i> Locked Selection (<span id="lockedCount">0</span>)</div>
+              <button onclick="clearLockedSOs()" style="padding:4px 12px;background:#ef4444;color:white;border:none;border-radius:4px;font-size:12px;cursor:pointer;">
+                <i class="fas fa-trash"></i> Clear All
+              </button>
+            </div>
+            <div id="lockedSOsList" style="font-size:12px;color:#047857;max-height:120px;overflow-y:auto;"></div>
+          </div>
+
+          <!-- Groups Container -->
+          <div id="batchGroupsContainer" style="max-height:55vh;overflow-y:auto;">
+            <div style="text-align:center;padding:30px;color:#94a3b8;">Click "Load Open SOs" to begin</div>
+          </div>
+
+          <!-- Progress -->
+          <div id="batchProgressContainer" class="hidden" style="margin-top:16px;padding:12px 16px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0;">
+            <div style="font-weight:600;color:#1e293b;margin-bottom:8px;">Batch Processing Progress</div>
+            <div id="batchProgressBar" style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;margin-bottom:8px;">
+              <div style="height:100%;background:linear-gradient(90deg,#8b5cf6,#6d28d9);width:0%;transition:width 0.3s;"></div>
+            </div>
+            <div id="batchProgressText" style="font-size:13px;color:#64748b;margin-bottom:12px;"></div>
+            <div id="batchResultsList" style="max-height:200px;overflow-y:auto;font-size:12px;"></div>
           </div>
         </div>
 
@@ -298,6 +480,41 @@
               </div>
             </div>
 
+            <!-- STEP 4: Process Shipment -->
+            <div class="step-card" id="step-4">
+              <div class="step-card-header">
+                <div class="step-icon"><i class="fas fa-check-double"></i></div>
+                <div class="step-title">
+                  <h3>Step 4: Process Shipment</h3>
+                  <p>Execute inventory relief (SHIP.STOCK) and generate AR invoice (SHIP.AR)</p>
+                </div>
+              </div>
+              <div class="info-box">
+                <div class="info-box-icon"><i class="fas fa-info-circle"></i></div>
+                <div class="info-box-content">
+                  <strong>Ready to Process</strong>
+                  <p>This will deduct inventory and create the AR invoice. <strong>This action cannot be undone.</strong></p>
+                </div>
+              </div>
+              <div style="margin-bottom:16px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;font-size:13px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  <div><strong>Shipment #:</strong> <span id="proc_shipment_num">-</span></div>
+                  <div><strong>SO #:</strong> <span id="proc_so_num">-</span></div>
+                  <div><strong>Waybill:</strong> <span id="proc_waybill">-</span></div>
+                  <div><strong>Ship Date:</strong> <span id="proc_ship_date">-</span></div>
+                </div>
+              </div>
+              <div id="processStatusBanner" class="hidden" style="padding:12px 16px;border-radius:8px;margin-bottom:16px;font-weight:600;font-size:13px;"></div>
+              <div class="step-navigation">
+                <button class="btn-step btn-step-secondary" onclick="goToShipmentStep(3)">
+                  <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <button class="btn-step btn-step-primary" id="btnProcessShipment" onclick="processShipment()">
+                  <i class="fas fa-bolt"></i> Process Shipment
+                </button>
+              </div>
+            </div>
+
           </div> <!-- /steps container -->
 
         </div> <!-- /shipmentForm -->
@@ -310,6 +527,8 @@
     let lineItemCounter = 0;
     let currentShipmentNumber = null;
     let isNewShipment = false;
+    let isSaving = false;
+    let currentCustomerNumber = '';
 
     function parseXMLResponse(xmlText, contextLabel = '') {
       if (!xmlText || !xmlText.trim()) {
@@ -318,18 +537,46 @@
 
       let cleanedText = xmlText.trim();
 
-      // If there is leading non-XML content (e.g. debug headers), strip everything before the first XML tag
-      const firstTagIndex = cleanedText.indexOf('<?xml');
-      if (firstTagIndex > 0) {
-        cleanedText = cleanedText.slice(firstTagIndex);
+      // Strip leading noise before XML declaration or first tag.
+      const xmlDeclIndex = cleanedText.indexOf('<?xml');
+      if (xmlDeclIndex >= 0) {
+        cleanedText = cleanedText.slice(xmlDeclIndex);
+      } else {
+        const firstTagIndex = cleanedText.indexOf('<');
+        if (firstTagIndex > 0) {
+          cleanedText = cleanedText.slice(firstTagIndex);
+        }
       }
 
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(cleanedText, 'text/xml');
+      // Remove invalid XML control characters.
+      cleanedText = cleanedText.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '');
 
-      const parseErrors = xmlDoc.getElementsByTagName('parsererror');
+      const parser = new DOMParser();
+      let xmlDoc = parser.parseFromString(cleanedText, 'text/xml');
+
+      let parseErrors = xmlDoc.getElementsByTagName('parsererror');
+      if (parseErrors.length === 0) {
+        return xmlDoc;
+      }
+
+      // Recovery path: trim trailing non-XML content after the root closing tag.
+      const declEnd = cleanedText.indexOf('?>');
+      const rootStart = cleanedText.indexOf('<', declEnd >= 0 ? declEnd + 2 : 0);
+      if (rootStart >= 0) {
+        const rootMatch = cleanedText.slice(rootStart).match(/^<([A-Za-z_][\w:.-]*)\b/);
+        if (rootMatch) {
+          const closeTag = `</${rootMatch[1]}>`;
+          const closeIndex = cleanedText.lastIndexOf(closeTag);
+          if (closeIndex >= 0) {
+            const recovered = cleanedText.slice(0, closeIndex + closeTag.length);
+            xmlDoc = parser.parseFromString(recovered, 'text/xml');
+            parseErrors = xmlDoc.getElementsByTagName('parsererror');
+          }
+        }
+      }
+
       if (parseErrors.length > 0) {
-        console.error(`❌ XML parse error${contextLabel ? ` (${contextLabel})` : ''}:`, cleanedText);
+        console.error(`❌ XML parse error${contextLabel ? ` (${contextLabel})` : ''}:`, cleanedText.slice(0, 4000));
         throw new Error(`Invalid XML response${contextLabel ? ` for ${contextLabel}` : ''}`);
       }
 
@@ -419,8 +666,11 @@
 
     // Simplified step management
     function activateStepsAfterSoLoad() {
-      // Automatically go to step 2 after loading SO
-      goToShipmentStep(2);
+      // Only navigate to step 2 if still on step 1 - don't override step 3/4
+      const step1 = document.getElementById('step-1');
+      if (step1 && step1.classList.contains('active')) {
+        goToShipmentStep(2);
+      }
       showAlert('✅ SO loaded! Review shipment details and line items.', 'success');
     }
 
@@ -455,31 +705,52 @@
     });
 
     // ========== SCREEN NAVIGATION ==========
-    function showSearchMode() {
+    function hideAllScreens() {
       document.getElementById('initialSelectionScreen').classList.add('hidden');
-      document.getElementById('searchModeScreen').classList.remove('hidden');
+      document.getElementById('searchModeScreen').classList.add('hidden');
       document.getElementById('shipmentForm').classList.add('hidden');
+      document.getElementById('processShipmentsScreen').classList.add('hidden');
+      document.getElementById('shippedScreen').classList.add('hidden');
+      document.getElementById('batchProcessScreen').classList.add('hidden');
+    }
+
+    function showSearchMode() {
+      hideAllScreens();
+      document.getElementById('searchModeScreen').classList.remove('hidden');
       document.getElementById('searchShipmentInput').focus();
     }
 
     function showCreateMode() {
-      document.getElementById('initialSelectionScreen').classList.add('hidden');
-      document.getElementById('searchModeScreen').classList.add('hidden');
+      hideAllScreens();
       document.getElementById('shipmentForm').classList.remove('hidden');
       createNewShipment();
     }
 
+    function showProcessShipments() {
+      hideAllScreens();
+      document.getElementById('processShipmentsScreen').classList.remove('hidden');
+      document.getElementById('processSelectedCount').textContent = '0';
+      document.getElementById('btnProcessSelected').disabled = true;
+      document.getElementById('btnProcessSelected').style.opacity = '0.5';
+      document.getElementById('processFilterInput').value = '';
+      loadProcessShipments();
+    }
+
+    function showShipped() {
+      hideAllScreens();
+      document.getElementById('shippedScreen').classList.remove('hidden');
+      loadShippedShipments();
+    }
+
     function returnToHome() {
+      hideAllScreens();
       document.getElementById('initialSelectionScreen').classList.remove('hidden');
-      document.getElementById('searchModeScreen').classList.add('hidden');
-      document.getElementById('shipmentForm').classList.add('hidden');
       clearForm();
       clearAlerts();
     }
 
     function showShipmentForm() {
-      document.getElementById('initialSelectionScreen').classList.add('hidden');
-      document.getElementById('searchModeScreen').classList.add('hidden');
+      hideAllScreens();
       document.getElementById('shipmentForm').classList.remove('hidden');
     }
 
@@ -575,6 +846,13 @@
             document.getElementById('shipVia').value = shipVia;
             console.log('✅ Ship Via loaded:', shipVia);
           }
+
+          // Load Customer Number from SO (required by SHIP.STOCK for field 6)
+          const custNum = getXMLValue(xmlDoc, 'customer_number');
+          if (custNum) {
+            currentCustomerNumber = custNum;
+            console.log('✅ Customer Number loaded:', custNum);
+          }
           
           // Clear existing line items
           const tbody = document.getElementById('lineItemsBody');
@@ -600,8 +878,8 @@
               quantity = Number.isInteger(scheduleTotal) ? String(scheduleTotal) : scheduleTotal.toFixed(2);
             }
             
-            // Add line item with SO data (boxes will be empty for user to fill)
-            addLineItemRow(lineCode, partNumber, quantity, price, '');
+            // Add line item with SO data - pass scheduleTotal as max allowed ship qty
+            addLineItemRow(lineCode, partNumber, quantity, price, '', scheduleTotal);
           });
           
           activateStepsAfterSoLoad();
@@ -712,9 +990,6 @@
     }
 
     function loadShipmentData(xmlDoc) {
-      // Go to step 2 when loading existing shipment
-      goToShipmentStep(2);
-      
       // Load basic fields
       document.getElementById('shipmentNumber').value = getXMLValue(xmlDoc, 'shipment_number');
       document.getElementById('shipDate').value = normalizeDateForInput(getXMLValue(xmlDoc, 'ship_date'));
@@ -743,26 +1018,37 @@
         const shipQty = getXMLValue(line, 'ship_qty');
         const price = getXMLValue(line, 'price');
         const boxes = getXMLValue(line, 'boxes');
-        
         addLineItemRow(lineItem, partNumber, shipQty, price, boxes);
       });
+
+      // If waybill present, show Step 4 with process status
+      const packPrint = getXMLValue(xmlDoc, 'pack_print');
+      const waybillVal = getXMLValue(xmlDoc, 'waybill');
+      if (waybillVal) {
+        goToShipmentStep(4);
+        updateStep4Details();
+        setProcessStatus(packPrint || 'P');
+      } else {
+        goToShipmentStep(2);
+      }
     }
 
     function addLineItem() {
-      addLineItemRow('', '', '', '', '');
+      addLineItemRow('', '', '', '', '', null);
     }
 
-    function addLineItemRow(lineItem = '', partNumber = '', shipQty = '', price = '', boxes = '') {
+    function addLineItemRow(lineItem = '', partNumber = '', shipQty = '', price = '', boxes = '', scheduleMax = null) {
       lineItemCounter++;
       const tbody = document.getElementById('lineItemsBody');
       const row = tbody.insertRow();
       row.id = `lineItem${lineItemCounter}`;
-      
+      const dataMax = scheduleMax !== null ? ` data-schedule-max="${scheduleMax}"` : '';
+      const maxHint = scheduleMax !== null ? ` <small style="color:#64748b;font-size:10px;">(max ${scheduleMax})</small>` : '';
       row.innerHTML = `
         <td>${lineItemCounter}</td>
         <td><input type="text" value="${lineItem}" id="lineItem_${lineItemCounter}"></td>
         <td><input type="text" value="${partNumber}" id="partNumber_${lineItemCounter}"></td>
-        <td><input type="number" value="${shipQty}" id="shipQty_${lineItemCounter}"></td>
+        <td><input type="number" value="${shipQty}" id="shipQty_${lineItemCounter}"${dataMax} oninput="validateShipQty(this)" style="width:100%;">\n        ${maxHint}</td>
         <td><input type="number" step="0.01" value="${price}" id="price_${lineItemCounter}"></td>
         <td><input type="number" value="${boxes}" id="boxes_${lineItemCounter}"></td>
         <td style="text-align: center;">
@@ -773,12 +1059,56 @@
       `;
     }
 
+    function validateShipQty(input) {
+      const max = parseFloat(input.dataset.scheduleMax);
+      const val = parseFloat(input.value);
+      if (!isNaN(max) && !isNaN(val) && val > max) {
+        input.style.borderColor = '#ef4444';
+        input.style.background = '#fef2f2';
+      } else {
+        input.style.borderColor = '';
+        input.style.background = '';
+      }
+    }
+
     function removeLineItem(id) {
       const row = document.getElementById(`lineItem${id}`);
       if (row) row.remove();
     }
 
+    async function checkInventory(partNumbers, shipQtys) {
+      if (!partNumbers.length) return { ok: true };
+      try {
+        const params = new URLSearchParams();
+        params.append('part_numbers', partNumbers.join('|'));
+        params.append('ship_qtys', shipQtys.join('|'));
+        const response = await fetch('CHECK_INVENTORY.XML?' + params.toString() + '&_=' + Date.now());
+        const xmlText = await response.text();
+        const xmlDoc = parseXMLResponse(xmlText, 'CHECK_INVENTORY.XML');
+        const status = getXMLValue(xmlDoc, 'status');
+        if (status === 'ok') return { ok: true };
+        // Build detail of insufficient parts
+        const parts = xmlDoc.getElementsByTagName('part');
+        let issues = [];
+        for (let i = 0; i < parts.length; i++) {
+          const suf = getXMLValue(parts[i], 'sufficient');
+          if (suf === 'false') {
+            const pn = getXMLValue(parts[i], 'part_number');
+            const avail = getXMLValue(parts[i], 'qty_available');
+            const req = getXMLValue(parts[i], 'qty_requested');
+            issues.push(pn + ': need ' + req + ', available ' + avail);
+          }
+        }
+        return { ok: false, issues: issues };
+      } catch (error) {
+        console.error('Inventory check error:', error);
+        return { ok: true }; // allow save on check failure
+      }
+    }
+
     async function saveShipment() {
+      if (isSaving) return;
+      isSaving = true;
       const shipmentNumberInput = document.getElementById('shipmentNumber');
       // Validate required fields
       let shipmentNumber = shipmentNumberInput.value.trim();
@@ -787,11 +1117,13 @@
 
       if (!shipDate) {
         showAlert('Ship Date is required', 'error');
+        isSaving = false;
         return;
       }
       
       if (!soNumber) {
         showAlert('SO Number is required', 'error');
+        isSaving = false;
         return;
       }
       
@@ -820,6 +1152,41 @@
         }
       });
       
+      // Validate ship qty against SO schedule balance per line
+      const scheduleErrors = [];
+      rows.forEach((row) => {
+        const id = row.id.replace('lineItem', '');
+        const qtyInput = document.getElementById(`shipQty_${id}`);
+        if (!qtyInput) return;
+        const max = parseFloat(qtyInput.dataset.scheduleMax);
+        const val = parseFloat(qtyInput.value);
+        const pn = document.getElementById(`partNumber_${id}`)?.value || id;
+        if (!isNaN(max) && !isNaN(val) && val > max) {
+          scheduleErrors.push(`${pn}: ship qty ${val} exceeds schedule balance ${max}`);
+        }
+      });
+      if (scheduleErrors.length > 0) {
+        showAlert('Ship quantity exceeds SO schedule balance:\n• ' + scheduleErrors.join('\n• '), 'error');
+        isSaving = false;
+        return;
+      }
+
+      // Validate inventory before saving (warning only - user can override)
+      const invCheck = await checkInventory(partNumbers, shipQtys);
+      if (!invCheck.ok) {
+        const issueList = invCheck.issues.join('\n• ');
+        const proceed = confirm(
+          'WARNING: Inventory check shows possible shortages:\n\n• ' + issueList +
+          '\n\nThis may be a system discrepancy. Do you want to proceed anyway?'
+        );
+        if (!proceed) {
+          showAlert('Save cancelled. Verify inventory before proceeding.', 'error');
+          isSaving = false;
+          return;
+        }
+        showAlert('Proceeding with save despite inventory warning.', 'info');
+      }
+
       // Collect notes
       const notesText = document.getElementById('notes').value.trim();
       const notesArray = notesText.split('\n').filter(n => n.trim());
@@ -866,6 +1233,7 @@
       formData.append('prices', prices.join('|'));
       formData.append('boxes', boxes.join('|'));
       formData.append('save_mode', isNewShipment ? 'CREATE' : 'UPDATE');
+      formData.append('customer_number', currentCustomerNumber);
       
       console.log('Saving shipment:', Object.fromEntries(formData));
       
@@ -901,7 +1269,22 @@
             statusBadge.className = 'status-badge status-saved';
             statusBadge.classList.remove('hidden');
           }
-          // Success - shipment saved
+          // If waybill is present, go to Step 4 to show process option
+          const packPrint = getXMLValue(xmlDoc, 'pack_print');
+          const waybillVal = document.getElementById('waybill').value.trim();
+          const shipViaVal = document.getElementById('shipVia').value.trim();
+          if (waybillVal) {
+            goToShipmentStep(4);
+            updateStep4Details();
+            setProcessStatus(packPrint || 'P');
+          } else {
+            // Saved but not ready to process - explain why
+            let missing = [];
+            if (!waybillVal) missing.push('Waybill (tracking number)');
+            if (!shipViaVal) missing.push('Ship Via (carrier)');
+            const missingStr = missing.join(' and ');
+            showAlert('Shipment saved ✅ — To process inventory and generate invoice, please add: ' + missingStr, 'info');
+          }
         } else {
           const errorMsg = getXMLValue(xmlDoc, 'error') || 'Unknown error';
           showAlert(errorMsg, 'error');
@@ -909,6 +1292,477 @@
       } catch (error) {
         console.error('Error:', error);
         showAlert('Error saving shipment', 'error');
+      } finally {
+        isSaving = false;
+      }
+    }
+
+    // ========== PROCESS SHIPMENTS (grouped by customer) ==========
+    let processShipmentsData = [];
+
+    async function loadProcessShipments() {
+      const container = document.getElementById('processGroupsContainer');
+      container.innerHTML = '<div style="text-align:center;padding:30px;color:#64748b;"><i class="fas fa-spinner fa-spin"></i> Loading pending shipments...</div>';
+
+      try {
+        const response = await fetch('GET_READY_SHIPMENTS.XML?_=' + Date.now());
+        const xmlText = await response.text();
+        const xmlDoc = parseXMLResponse(xmlText, 'GET_READY_SHIPMENTS.XML');
+        const shipments = xmlDoc.getElementsByTagName('shipment');
+        const count = shipments.length;
+
+        document.getElementById('processShipCount').textContent = count + ' shipment' + (count !== 1 ? 's' : '') + ' pending';
+
+        if (count === 0) {
+          container.innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;">No pending shipments found</div>';
+          return;
+        }
+
+        // Parse all shipments
+        processShipmentsData = [];
+        for (let i = 0; i < shipments.length; i++) {
+          const s = shipments[i];
+          processShipmentsData.push({
+            shipment_number: getXMLValue(s, 'shipment_number'),
+            so_number: getXMLValue(s, 'so_number'),
+            ship_date: getXMLValue(s, 'ship_date'),
+            waybill: getXMLValue(s, 'waybill'),
+            ship_via: getXMLValue(s, 'ship_via'),
+            num_lines: getXMLValue(s, 'num_lines'),
+            ready_status: getXMLValue(s, 'ready_status'),
+            shipto_code: getXMLValue(s, 'shipto_code'),
+            shipto_name: getXMLValue(s, 'shipto_name'),
+            shipto_city: getXMLValue(s, 'shipto_city'),
+            shipto_state: getXMLValue(s, 'shipto_state'),
+            credit_hold: getXMLValue(s, 'credit_hold')
+          });
+        }
+
+        // Group by shipto_code
+        const groups = {};
+        processShipmentsData.forEach(s => {
+          const key = s.shipto_code || 'UNKNOWN';
+          if (!groups[key]) {
+            groups[key] = {
+              code: key,
+              name: s.shipto_name || 'Unknown Customer',
+              city: s.shipto_city || '',
+              state: s.shipto_state || '',
+              credit_hold: s.credit_hold === 'Y',
+              shipments: []
+            };
+          }
+          groups[key].shipments.push(s);
+          // If any shipment in this group has credit hold, mark the whole group
+          if (s.credit_hold === 'Y') groups[key].credit_hold = true;
+        });
+
+        renderShipmentGroups(groups);
+      } catch (error) {
+        console.error('Error loading shipments:', error);
+        container.innerHTML = '<div style="text-align:center;padding:30px;color:#ef4444;">Error loading shipments: ' + error.message + '</div>';
+      }
+    }
+
+    function renderShipmentGroups(groups) {
+      let html = '';
+      const sortedKeys = Object.keys(groups).sort((a, b) => {
+        // Credit hold groups go to the bottom
+        const aHold = groups[a].credit_hold ? 1 : 0;
+        const bHold = groups[b].credit_hold ? 1 : 0;
+        if (aHold !== bHold) return aHold - bHold;
+        return (groups[a].name || '').localeCompare(groups[b].name || '');
+      });
+
+      sortedKeys.forEach(key => {
+        const group = groups[key];
+        html += buildShipmentGroupHTML(key, group);
+      });
+
+      document.getElementById('processGroupsContainer').innerHTML = html;
+      updateProcessCounts();
+    }
+
+    function buildShipmentGroupHTML(code, group) {
+      const isHold = group.credit_hold;
+      const location = group.city && group.state ? ` (${group.city}, ${group.state})` :
+                       group.city ? ` (${group.city})` : group.state ? ` (${group.state})` : '';
+      const readyCount = group.shipments.filter(s => s.ready_status === 'READY').length;
+      const borderStyle = isHold ? 'border:2px solid #fca5a5;' : 'border:1px solid #e2e8f0;';
+      const headerBg = isHold ? 'background:linear-gradient(135deg,#fef2f2,#fee2e2);' : 'background:linear-gradient(135deg,#f1f5f9,#e2e8f0);';
+
+      return `
+        <div class="shipment-group" data-customer="${(group.name || '').toLowerCase()}" style="margin-bottom:12px;${borderStyle}border-radius:8px;overflow:hidden;">
+          <div style="${headerBg}padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <input type="checkbox" class="group-checkbox" data-shipto="${code}" ${isHold ? 'disabled' : ''} onchange="toggleGroupSelection(this)">
+            <strong style="flex:1;font-size:13px;color:#1e293b;">${group.name || code}${location}</strong>
+            <span style="font-size:12px;color:#64748b;">${group.shipments.length} shipment${group.shipments.length > 1 ? 's' : ''}${readyCount < group.shipments.length ? ' (' + readyCount + ' ready)' : ''}</span>
+            ${isHold ? '<span style="padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;">CREDIT HOLD</span>' : ''}
+            ${!isHold ? '<label style="font-size:12px;font-weight:600;color:#475569;margin:0;">Waybill:</label><input type="text" class="group-waybill" data-shipto="' + code + '" placeholder="Enter tracking" style="width:200px;padding:6px 8px;border:1px solid #cbd5e1;border-radius:4px;font-size:13px;">' : ''}
+          </div>
+          <div style="padding:4px 16px 8px;background:${isHold ? '#fffbfb' : 'white'};">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+              <thead>
+                <tr style="border-bottom:1px solid #e2e8f0;">
+                  <th style="padding:6px 4px;text-align:left;width:30px;"></th>
+                  <th style="padding:6px 4px;text-align:left;">Ship #</th>
+                  <th style="padding:6px 4px;text-align:left;">SO #</th>
+                  <th style="padding:6px 4px;text-align:left;">Ship Date</th>
+                  <th style="padding:6px 4px;text-align:left;">Ship Via</th>
+                  <th style="padding:6px 4px;text-align:left;">Waybill</th>
+                  <th style="padding:6px 4px;text-align:right;">Lines</th>
+                  <th style="padding:6px 4px;text-align:left;">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${group.shipments.map(s => {
+                  const canSelect = !isHold && s.ready_status === 'READY';
+                  const statusBadge = isHold ? '<span style="padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;background:#fef2f2;color:#dc2626;">BLOCKED</span>'
+                    : s.ready_status === 'READY' ? '<span style="padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;background:#d1fae5;color:#065f46;">READY</span>'
+                    : '<span style="padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;background:#fef3c7;color:#92400e;">PENDING</span>';
+                  return `
+                    <tr style="border-bottom:1px solid #f1f5f9;${isHold ? 'opacity:0.6;' : ''}">
+                      <td style="padding:4px;"><input type="checkbox" class="shipment-checkbox" data-shipto="${code}" data-shipment="${s.shipment_number}" ${canSelect ? '' : 'disabled'} onchange="updateProcessCounts()"></td>
+                      <td style="padding:4px;"><strong>${s.shipment_number}</strong></td>
+                      <td style="padding:4px;">${s.so_number}</td>
+                      <td style="padding:4px;">${s.ship_date || '-'}</td>
+                      <td style="padding:4px;">${s.ship_via || '<span style="color:#ef4444;">-</span>'}</td>
+                      <td style="padding:4px;">${s.waybill || '<span style="color:#ef4444;">-</span>'}</td>
+                      <td style="padding:4px;text-align:right;">${s.num_lines}</td>
+                      <td style="padding:4px;">${statusBadge}</td>
+                    </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function filterShipmentGroups(searchTerm) {
+      const term = (searchTerm || '').toLowerCase().trim();
+      document.querySelectorAll('.shipment-group').forEach(group => {
+        const customerName = group.dataset.customer || '';
+        if (!term || customerName.includes(term)) {
+          group.style.display = '';
+        } else {
+          group.style.display = 'none';
+        }
+      });
+    }
+
+    function toggleGroupSelection(groupCheckbox) {
+      const shipto = groupCheckbox.dataset.shipto;
+      const checked = groupCheckbox.checked;
+      document.querySelectorAll(`.shipment-checkbox[data-shipto="${shipto}"]:not(:disabled)`).forEach(cb => {
+        cb.checked = checked;
+      });
+      updateProcessCounts();
+    }
+
+    function updateProcessCounts() {
+      const selectedCount = document.querySelectorAll('.shipment-checkbox:checked').length;
+      document.getElementById('processSelectedCount').textContent = selectedCount;
+      const btn = document.getElementById('btnProcessSelected');
+      btn.disabled = selectedCount === 0;
+      btn.style.opacity = selectedCount === 0 ? '0.5' : '1';
+    }
+
+    async function processSelectedShipments() {
+      const checked = document.querySelectorAll('.shipment-checkbox:checked');
+      if (checked.length === 0) { showAlert('No shipments selected', 'error'); return; }
+
+      const ids = Array.from(checked).map(cb => cb.dataset.shipment);
+
+      // Validate waybills for each group with selected shipments
+      const groupsWithSelections = new Set();
+      checked.forEach(cb => groupsWithSelections.add(cb.dataset.shipto));
+      for (const shipto of groupsWithSelections) {
+        const waybillInput = document.querySelector(`.group-waybill[data-shipto="${shipto}"]`);
+        if (waybillInput && !waybillInput.value.trim()) {
+          const groupName = processShipmentsData.find(s => s.shipto_code === shipto)?.shipto_name || shipto;
+          showAlert('Enter waybill for ' + groupName, 'error');
+          return;
+        }
+      }
+
+      if (!confirm('Process ' + ids.length + ' shipment(s)? This deducts inventory and creates AR invoices. This cannot be undone.')) return;
+
+      // Show progress
+      const progressContainer = document.getElementById('processProgressContainer');
+      progressContainer.classList.remove('hidden');
+      const progressBar = progressContainer.querySelector('#processProgressBar > div');
+      const progressText = document.getElementById('processProgressText');
+      const resultsList = document.getElementById('processResultsList');
+      resultsList.innerHTML = '';
+
+      const btn = document.getElementById('btnProcessSelected');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+      let successCount = 0;
+      let failCount = 0;
+      batchCreatedShipments.clear(); // Clear previous batch tracking
+
+      for (let i = 0; i < checked.length; i++) {
+        const checkbox = checked[i];
+        const shipId = checkbox.dataset.shipment;
+        const shipto = checkbox.dataset.shipto;
+        const waybillInput = document.querySelector(`.group-waybill[data-shipto="${shipto}"]`);
+        const waybill = waybillInput ? waybillInput.value.trim() : '';
+
+        const progress = Math.round(((i + 1) / checked.length) * 100);
+        progressBar.style.width = progress + '%';
+        progressText.textContent = 'Processing ' + (i + 1) + ' of ' + checked.length + ': Shipment ' + shipId;
+
+        try {
+          // Step 1: Update waybill in shipment record if not already set
+          if (waybill) {
+            const updateParams = new URLSearchParams();
+            updateParams.append('shipment_number', shipId);
+            updateParams.append('waybill', waybill);
+            updateParams.append('update_waybill_only', 'Y');
+
+            const updateResp = await fetch('UPDATE_SHIPMENT.XML', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: updateParams.toString()
+            });
+            const updateXml = await updateResp.text();
+            const updateDoc = parseXMLResponse(updateXml, 'UPDATE_SHIPMENT.XML');
+            const updateStatus = getXMLValue(updateDoc, 'status');
+
+            if (updateStatus !== 'SUCCESS') {
+              throw new Error('Failed to update waybill: ' + getXMLValue(updateDoc, 'error'));
+            }
+          }
+
+          // Step 2: Process shipment (SHIP.STOCK + SHIP.AR)
+          const response = await fetch('PROCESS_SHIPMENT.XML?shipment_number=' + encodeURIComponent(shipId) + '&_=' + Date.now());
+          const xmlText = await response.text();
+          const xmlDoc = parseXMLResponse(xmlText, 'PROCESS_SHIPMENT.XML');
+          const status = getXMLValue(xmlDoc, 'status');
+          const message = getXMLValue(xmlDoc, 'message');
+
+          if (status === 'success') {
+            successCount++;
+            resultsList.innerHTML += '<div style="color:#10b981;padding:3px 0;"><i class="fas fa-check-circle"></i> Shipment ' + shipId + ' processed</div>';
+          } else {
+            failCount++;
+            resultsList.innerHTML += '<div style="color:#f59e0b;padding:3px 0;"><i class="fas fa-exclamation-triangle"></i> Shipment ' + shipId + ': ' + (message || 'Failed') + '</div>';
+          }
+        } catch (error) {
+          failCount++;
+          resultsList.innerHTML += '<div style="color:#ef4444;padding:3px 0;"><i class="fas fa-times-circle"></i> Shipment ' + shipId + ': ' + error.message + '</div>';
+        }
+        resultsList.scrollTop = resultsList.scrollHeight;
+      }
+
+      progressBar.style.width = '100%';
+      progressText.textContent = 'Complete: ' + successCount + ' succeeded, ' + failCount + ' failed';
+      btn.innerHTML = '<i class="fas fa-bolt"></i> Process Selected (<span id="processSelectedCount">0</span>)';
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+
+      if (successCount > 0) {
+        showAlert('Processing complete: ' + successCount + ' succeeded, ' + failCount + ' failed', successCount === ids.length ? 'success' : 'info');
+        // Refresh after a moment
+        setTimeout(() => loadProcessShipments(), 2000);
+      } else {
+        showAlert('All shipments failed to process', 'error');
+      }
+    }
+
+    // ========== SHIPPED GRID ==========
+    let shippedShipmentsCache = [];
+    let groupByShipToEnabled = false;
+
+    function toggleGroupByShipTo() {
+      groupByShipToEnabled = !groupByShipToEnabled;
+      const btn = document.getElementById('btnGroupByShipTo');
+      if (groupByShipToEnabled) {
+        btn.style.background = '#dbeafe';
+        btn.style.color = '#1e40af';
+        btn.style.borderColor = '#3b82f6';
+      } else {
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }
+      if (shippedShipmentsCache.length > 0) {
+        renderShippedShipments(shippedShipmentsCache);
+      }
+    }
+
+    function renderShippedShipments(shipments) {
+      const tbody = document.getElementById('shippedBody');
+      tbody.innerHTML = '';
+      
+      if (groupByShipToEnabled) {
+        // Group by Ship-To
+        const groups = {};
+        for (let i = 0; i < shipments.length; i++) {
+          const s = shipments[i];
+          const shiptoCode = getXMLValue(s, 'shipto_code') || 'Unknown';
+          const shiptoName = getXMLValue(s, 'shipto_name') || 'Unknown';
+          const key = shiptoCode + '|' + shiptoName;
+          if (!groups[key]) {
+            groups[key] = { code: shiptoCode, name: shiptoName, shipments: [] };
+          }
+          groups[key].shipments.push(s);
+        }
+        
+        // Render groups
+        Object.keys(groups).forEach(key => {
+          const group = groups[key];
+          // Group header row
+          const headerRow = document.createElement('tr');
+          headerRow.style.background = '#f1f5f9';
+          headerRow.innerHTML = '<td colspan="8" style="padding:8px 12px;font-weight:600;color:#1e293b;border-left:4px solid #10b981;">' +
+            '<i class="fas fa-building" style="margin-right:8px;color:#64748b;"></i>' +
+            group.name + ' <span style="color:#64748b;font-weight:normal;">(' + group.code + ')</span> - ' + 
+            group.shipments.length + ' shipment' + (group.shipments.length !== 1 ? 's' : '') + '</td>';
+          tbody.appendChild(headerRow);
+          
+          // Render shipments in this group
+          group.shipments.forEach(s => renderShippedRow(s, tbody, true));
+        });
+      } else {
+        // Render flat list
+        for (let i = 0; i < shipments.length; i++) {
+          renderShippedRow(shipments[i], tbody, false);
+        }
+      }
+    }
+
+    function renderShippedRow(s, tbody, isGrouped) {
+      const sn = getXMLValue(s, 'shipment_number');
+      const so = getXMLValue(s, 'so_number');
+      const dt = getXMLValue(s, 'ship_date');
+      const wb = getXMLValue(s, 'waybill');
+      const sv = getXMLValue(s, 'ship_via');
+      const nl = getXMLValue(s, 'num_lines');
+      const shiptoName = getXMLValue(s, 'shipto_name');
+      const shiptoCity = getXMLValue(s, 'shipto_city');
+      const shiptoState = getXMLValue(s, 'shipto_state');
+      const shiptoDisplay = shiptoName ? shiptoName + (shiptoCity ? ', ' + shiptoCity : '') + (shiptoState ? ' ' + shiptoState : '') : '<span style="color:#94a3b8;">—</span>';
+      const row = document.createElement('tr');
+      if (isGrouped) {
+        row.style.background = '#fafafa';
+      }
+      row.innerHTML = '<td><strong>' + sn + '</strong></td>' +
+        '<td>' + so + '</td>' +
+        (isGrouped ? '' : '<td style="font-size:12px;max-width:180px;">' + shiptoDisplay + '</td>') +
+        '<td>' + dt + '</td>' +
+        '<td>' + (wb || '<span style="color:#64748b;">—</span>') + '</td>' +
+        '<td>' + (sv || '<span style="color:#64748b;">—</span>') + '</td>' +
+        '<td>' + nl + '</td>' +
+        '<td><span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:#d1fae5;color:#065f46;">SHIPPED</span></td>';
+      tbody.appendChild(row);
+    }
+
+    async function loadShippedShipments(limit = 100) {
+      const tbody = document.getElementById('shippedBody');
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+      try {
+        const response = await fetch('GET_SHIPPED_SHIPMENTS.XML?limit=' + limit + '&_=' + Date.now());
+        const xmlText = await response.text();
+        const xmlDoc = parseXMLResponse(xmlText, 'GET_SHIPPED_SHIPMENTS.XML');
+        const shipments = Array.from(xmlDoc.getElementsByTagName('shipment'));
+        shippedShipmentsCache = shipments;
+        const count = shipments.length;
+        const limitVal = getXMLValue(xmlDoc, 'limit');
+        document.getElementById('shippedCount').textContent = count + ' of last ' + limitVal + ' shipped';
+        if (count === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:#94a3b8;">No shipped shipments found</td></tr>';
+          return;
+        }
+        renderShippedShipments(shipments);
+      } catch (error) {
+        console.error('Error loading shipped shipments:', error);
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:#ef4444;">Error loading shipments</td></tr>';
+      }
+    }
+
+    function updateStep4Details() {
+      var shipNum = (document.getElementById('shipmentNumber') || {}).value || '-';
+      var soNum = (document.getElementById('soNumber') || {}).value || '-';
+      var waybill = (document.getElementById('waybill') || {}).value || '-';
+      var shipDateRaw = (document.getElementById('shipDate') || {}).value || '';
+      // Convert YYYY-MM-DD to DD-MM-YYYY for display
+      var shipDate = '-';
+      if (shipDateRaw && shipDateRaw.indexOf('-') > -1) {
+        var parts = shipDateRaw.split('-');
+        if (parts.length === 3) shipDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+      }
+      var e1 = document.getElementById('proc_shipment_num');
+      var e2 = document.getElementById('proc_so_num');
+      var e3 = document.getElementById('proc_waybill');
+      var e4 = document.getElementById('proc_ship_date');
+      if (e1) e1.textContent = shipNum;
+      if (e2) e2.textContent = soNum;
+      if (e3) e3.textContent = waybill;
+      if (e4) e4.textContent = shipDate;
+    }
+
+    function setProcessStatus(packPrint) {
+      var btn = document.getElementById('btnProcessShipment');
+      var banner = document.getElementById('processStatusBanner');
+      if (packPrint === 'P') {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.innerHTML = '<i class="fas fa-bolt"></i> Process Shipment';
+        banner.classList.add('hidden');
+      } else {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.innerHTML = '<i class="fas fa-check"></i> Processed';
+        banner.classList.remove('hidden');
+        banner.style.background = '#d1fae5';
+        banner.style.color = '#065f46';
+        banner.style.border = '1px solid #6ee7b7';
+        banner.textContent = '✅ Shipment already processed (PACK-PRINT=' + packPrint + ')';
+      }
+    }
+
+    async function processShipment() {
+      var shipmentNumber = document.getElementById('shipmentNumber').value.trim();
+      if (!shipmentNumber) {
+        showAlert('No shipment number found. Save the shipment first.', 'error');
+        return;
+      }
+      var waybill = document.getElementById('waybill').value.trim();
+      if (!waybill) {
+        showAlert('Waybill is required before processing. Go back and enter the waybill number.', 'error');
+        return;
+      }
+      var btn = document.getElementById('btnProcessShipment');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+      showAlert('Processing shipment ' + shipmentNumber + '...', 'info');
+
+      try {
+        var response = await fetch('PROCESS_SHIPMENT.XML?shipment_number=' + encodeURIComponent(shipmentNumber) + '&_=' + Date.now());
+        var xmlText = await response.text();
+        var xmlDoc = parseXMLResponse(xmlText, 'PROCESS_SHIPMENT.XML');
+        var status = getXMLValue(xmlDoc, 'status');
+        var message = getXMLValue(xmlDoc, 'message');
+        var packPrint = getXMLValue(xmlDoc, 'pack_print');
+
+        if (status === 'success') {
+          showAlert('Shipment ' + shipmentNumber + ' processed successfully!', 'success');
+          setProcessStatus(packPrint && packPrint !== 'P' ? packPrint : 'A');
+        } else {
+          showAlert(message || 'Error processing shipment', 'error');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-bolt"></i> Process Shipment';
+          if (packPrint && packPrint !== 'P') setProcessStatus(packPrint);
+        }
+      } catch (error) {
+        console.error('Error processing shipment:', error);
+        showAlert('Error processing shipment', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-bolt"></i> Process Shipment';
       }
     }
 
@@ -922,14 +1776,852 @@
       document.getElementById('lineItemsBody').innerHTML = '';
       document.getElementById('searchShipmentInput').value = '';
       document.getElementById('statusBadge').classList.add('hidden');
-      
+
       lineItemCounter = 0;
       currentShipmentNumber = null;
       isNewShipment = true;
-      
+      currentCustomerNumber = '';
+
       goToShipmentStep(1);
       setTodayDate();
     }
+
+    // ========== BATCH PROCESS (All-in-one create + process from Open SOs) ==========
+    let batchSOData = [];
+    let batchSOLineDetails = {};
+    const BATCH_SO_LIMIT = 50;
+    let batchOffset = 0;
+    let batchHasMore = false;
+    let batchSearchTerm = '';
+    let lockedSOs = []; // SOs locked for multi-customer batch processing
+    const batchCreatedShipments = new Set(); // Track created shipment numbers to avoid duplicates
+
+    function showBatchProcess() {
+      hideAllScreens();
+      document.getElementById('batchProcessScreen').classList.remove('hidden');
+      document.getElementById('batchShipDate').value = new Date().toISOString().split('T')[0];
+
+      // CRITICAL: Fully reset batch state when entering screen
+      const searchInput = document.getElementById('batchCustomerSearch');
+      if (searchInput) searchInput.value = '';
+      batchSearchTerm = '';
+      batchOffset = 0;
+      batchHasMore = false;
+      batchSOData = [];
+      batchSOLineDetails = {};
+
+      console.log('🚀 Batch Processing screen opened - all cache cleared');
+
+      updateBatchCounts(); // Use updateBatchCounts to consider locked SOs
+      loadPendingSOs(true);
+    }
+
+    function applyBatchCustomerSearch() {
+      const input = document.getElementById('batchCustomerSearch');
+      const newSearch = (input ? input.value : '').trim();
+
+      // Auto-lock current selections before searching for a new customer
+      if (newSearch && newSearch !== batchSearchTerm) {
+        autoLockCurrentSelection();
+      }
+
+      // CRITICAL: Clear search term BEFORE clearing cache to prevent race conditions
+      const previousSearch = batchSearchTerm;
+      batchSearchTerm = newSearch;
+      batchOffset = 0;
+
+      // IMPORTANT: Clear ALL cached data + pagination state + hasMore flag
+      batchSOData = [];
+      batchSOLineDetails = {};
+      batchHasMore = false;
+
+      console.log('🔍 Customer search changed from "' + previousSearch + '" to "' + newSearch + '" - cache cleared');
+
+      // Force a brand new fetch with unique timestamp
+      loadPendingSOs(true);
+    }
+
+    function clearBatchCustomerSearch() {
+      const input = document.getElementById('batchCustomerSearch');
+      if (input) input.value = '';
+
+      const previousSearch = batchSearchTerm;
+      batchSearchTerm = '';
+      batchOffset = 0;
+
+      // Clear ALL cached data + pagination state to force fresh database search
+      batchSOData = [];
+      batchSOLineDetails = {};
+      batchHasMore = false;
+
+      console.log('🧹 Customer search cleared (was: "' + previousSearch + '") - cache reset');
+
+      loadPendingSOs(true);
+    }
+
+    function goBatchPage(direction) {
+      if (direction < 0 && batchOffset === 0) return;
+      if (direction > 0 && !batchHasMore) return;
+
+      const newOffset = Math.max(0, batchOffset + (direction * BATCH_SO_LIMIT));
+
+      // Clear line details cache when paginating (prevent stale data)
+      batchSOLineDetails = {};
+      batchOffset = newOffset;
+
+      console.log('📄 Page navigation: offset=' + batchOffset + ', search="' + batchSearchTerm + '"');
+      loadPendingSOs();
+    }
+
+    function updateBatchPageControls(returnedCount) {
+      const prevBtn = document.getElementById('btnBatchPrevPage');
+      const nextBtn = document.getElementById('btnBatchNextPage');
+      const info = document.getElementById('batchPageInfo');
+      const page = Math.floor(batchOffset / BATCH_SO_LIMIT) + 1;
+
+      if (prevBtn) prevBtn.disabled = batchOffset === 0;
+      if (nextBtn) nextBtn.disabled = !batchHasMore;
+      if (info) {
+        info.textContent = 'Page ' + page + ' • ' + returnedCount + ' row(s)';
+      }
+    }
+
+    async function tryLoadPendingSOFastFallback() {
+      console.warn('⚠️ GET_PENDING_SO_FAST.XML returned 0 rows. Trying GET_PENDING_SO_FAST.XML fallback...');
+      const response = await fetch('GET_PENDING_SO_FAST.XML?_=' + Date.now());
+      if (!response.ok) return false;
+
+      const xmlText = await response.text();
+      const xmlDoc = parseXMLResponse(xmlText, 'GET_PENDING_SO_FAST.XML');
+      const soEntries = Array.from(xmlDoc.getElementsByTagName('so_entry'));
+      if (soEntries.length === 0) return false;
+
+      batchHasMore = false;
+      batchSOLineDetails = {};
+      batchSOData = soEntries.map(e => ({
+        so_number: getXMLValue(e, 'so_number'),
+        shipto_code: getXMLValue(e, 'shipto_code'),
+        shipto_name: getXMLValue(e, 'shipto_name'),
+        shipto_city: getXMLValue(e, 'shipto_city'),
+        shipto_state: getXMLValue(e, 'shipto_state'),
+        ship_via: getXMLValue(e, 'ship_via'),
+        line_count: getXMLValue(e, 'line_count'),
+        total_qty: getXMLValue(e, 'total_qty'),
+        so_date: getXMLValue(e, 'so_date'),
+        credit_hold: getXMLValue(e, 'credit_hold') === 'Y' ? 'Y' : 'N'
+      }));
+
+      updateBatchPageControls(batchSOData.length);
+      renderBatchGroups(batchSOData);
+      showAlert('Loaded from fallback endpoint (GET_PENDING_SO_FAST.XML).', 'info');
+      return true;
+    }
+
+    async function loadPendingSOs(resetPage = false) {
+      if (resetPage) {
+        batchOffset = 0;
+        // Clear cache when resetting page (ensures fresh data for new search)
+        batchSOData = [];
+        batchSOLineDetails = {};
+      }
+
+      const container = document.getElementById('batchGroupsContainer');
+      container.innerHTML = '<div style="text-align:center;padding:30px;color:#64748b;"><i class="fas fa-spinner fa-spin"></i> Loading open SOs...</div>';
+
+      try {
+        console.log('🔄 Fetching GET_PENDING_SO_FAST.XML... (offset=' + batchOffset + ', search="' + batchSearchTerm + '")');
+        const params = new URLSearchParams();
+        params.append('limit', BATCH_SO_LIMIT);
+        params.append('offset', batchOffset);
+        if (batchSearchTerm) {
+          params.append('customer_search', batchSearchTerm);
+          console.log('🔍 Active customer search filter: "' + batchSearchTerm + '"');
+        }
+        params.append('_', Date.now());
+
+        const response = await fetch('GET_PENDING_SO_FAST.XML?' + params.toString());
+
+        if (!response.ok) {
+          throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+        }
+
+        console.log('📥 Response received, parsing XML...');
+        const xmlText = await response.text();
+        console.log('📄 XML length:', xmlText.length, 'chars');
+        console.log('📄 First 500 chars:', xmlText.substring(0, 500));
+
+        const xmlDoc = parseXMLResponse(xmlText, 'GET_PENDING_SO_FAST.XML');
+        const soEntries = Array.from(xmlDoc.getElementsByTagName('so_entry'));
+        batchHasMore = getXMLValue(xmlDoc, 'has_more') === 'Y';
+        const endpointVersion = getXMLValue(xmlDoc, 'version');
+        const dbgTotal = getXMLValue(xmlDoc, 'debug_total_selected');
+        const dbgReadFail = getXMLValue(xmlDoc, 'debug_read_fail');
+        const dbgStatusSkip = getXMLValue(xmlDoc, 'debug_status_skip');
+        const dbgSearchSkip = getXMLValue(xmlDoc, 'debug_search_skip');
+        const dbgOffsetSkip = getXMLValue(xmlDoc, 'debug_offset_skip');
+        if (endpointVersion) {
+          console.log('🧩 GET_PENDING_SO_FAST.XML version:', endpointVersion);
+        }
+        if (dbgTotal || dbgReadFail || dbgStatusSkip || dbgSearchSkip || dbgOffsetSkip) {
+          console.log('📊 Pending SO debug:', {
+            total_selected: dbgTotal || '0',
+            read_fail: dbgReadFail || '0',
+            status_skip: dbgStatusSkip || '0',
+            search_skip: dbgSearchSkip || '0',
+            offset_skip: dbgOffsetSkip || '0'
+          });
+        }
+
+        console.log('📦 Loaded', soEntries.length, 'open SOs (search="' + batchSearchTerm + '")');
+
+        if (soEntries.length === 0 && !batchSearchTerm && batchOffset === 0) {
+          try {
+            const usedFallback = await tryLoadPendingSOFastFallback();
+            if (usedFallback) return;
+          } catch (fallbackError) {
+            console.warn('Fallback GET_PENDING_SO_FAST.XML failed:', fallbackError);
+          }
+        }
+
+        // CRITICAL: Clear line details cache before loading new SO data
+        batchSOLineDetails = {};
+
+        // IMPORTANT: Replace entire batchSOData array (not append/concat) to prevent mixing search results
+        batchSOData = soEntries.map(e => ({
+          so_number: getXMLValue(e, 'so_number'),
+          shipto_code: getXMLValue(e, 'shipto_code'),
+          shipto_name: getXMLValue(e, 'shipto_name'),
+          shipto_city: getXMLValue(e, 'shipto_city'),
+          shipto_state: getXMLValue(e, 'shipto_state'),
+          ship_via: getXMLValue(e, 'ship_via'),
+          line_count: getXMLValue(e, 'line_count'),
+          total_qty: getXMLValue(e, 'total_qty'),
+          so_date: getXMLValue(e, 'so_date'),
+          credit_hold: getXMLValue(e, 'credit_hold') === 'Y' ? 'Y' : 'N'
+        }));
+
+        updateBatchPageControls(batchSOData.length);
+
+        if (batchSOData.length === 0) {
+          const searchMsg = batchSearchTerm ? 'No SOs found for "' + escapeHTML(batchSearchTerm) + '"' : 'No open SOs available for batch processing';
+          container.innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;">' + searchMsg + '</div>';
+          return;
+        }
+
+        renderBatchGroups(batchSOData);
+      } catch (error) {
+        console.error('Error loading open SOs:', error);
+        batchHasMore = false;
+        updateBatchPageControls(0);
+        container.innerHTML = '<div style="text-align:center;padding:30px;color:#ef4444;">Error loading: ' + error.message + '</div>';
+      }
+    }
+
+    function renderBatchGroups(soEntries) {
+      // VALIDATION: Ensure we're not rendering stale cached data
+      if (batchSearchTerm && soEntries.length > 0) {
+        const searchLower = batchSearchTerm.toLowerCase();
+        const validEntries = soEntries.filter(so => {
+          const name = (so.shipto_name || '').toLowerCase();
+          const code = (so.shipto_code || '').toLowerCase();
+          return name.includes(searchLower) || code.includes(searchLower);
+        });
+
+        if (validEntries.length === 0) {
+          console.warn('⚠️ Search filter mismatch detected - clearing cache and reloading');
+          batchSOData = [];
+          batchSOLineDetails = {};
+          loadPendingSOs(true);
+          return;
+        }
+      }
+
+      // Group by shipto_code
+      const groups = {};
+      soEntries.forEach(so => {
+        const key = so.shipto_code || 'UNKNOWN';
+        if (!groups[key]) {
+          groups[key] = {
+            code: key,
+            name: so.shipto_name || 'Unknown Customer',
+            city: so.shipto_city || '',
+            state: so.shipto_state || '',
+            credit_hold: so.credit_hold === 'Y',
+            sos: []
+          };
+        }
+        if (so.credit_hold === 'Y') groups[key].credit_hold = true;
+        groups[key].sos.push(so);
+      });
+
+      console.log('📦 Grouped into', Object.keys(groups).length, 'customer groups (search="' + batchSearchTerm + '")');
+
+      let html = '';
+      Object.keys(groups).sort((a, b) => (groups[a].name || '').localeCompare(groups[b].name || '')).forEach(key => {
+        const group = groups[key];
+        const location = group.city && group.state ? ` (${group.city}, ${group.state})` : group.city ? ` (${group.city})` : group.state ? ` (${group.state})` : '';
+        const isHold = group.credit_hold === true;
+        const wrapperBorder = isHold ? 'border:2px solid #fca5a5;' : 'border:1px solid #e2e8f0;';
+        const headerBg = isHold ? 'background:linear-gradient(135deg,#fef2f2,#fee2e2);' : 'background:linear-gradient(135deg,#f8f9fa,#e9ecef);';
+
+        html += `
+          <div class="batch-group" style="margin-bottom:12px;${wrapperBorder}border-radius:8px;overflow:hidden;">
+            <div style="${headerBg}padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <input type="checkbox" class="batch-group-checkbox" data-shipto="${key}" ${isHold ? 'disabled' : ''} onchange="toggleBatchGroupCheckboxes(this)">
+              <strong style="flex:1;font-size:13px;color:#1e293b;">${group.name}${location}</strong>
+              <span style="font-size:12px;color:#64748b;">${group.sos.length} SO${group.sos.length > 1 ? 's' : ''}</span>
+              ${isHold ? '<span style="padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;">CREDIT HOLD</span>' : ''}
+              <label style="font-size:12px;font-weight:600;color:#475569;margin:0;">Waybill:</label>
+              <input type="text" class="batch-waybill-input" data-shipto="${key}" ${isHold ? 'disabled' : ''} placeholder="${isHold ? 'Blocked by credit hold' : 'Enter tracking'}" style="width:160px;padding:6px 8px;border:1px solid #cbd5e1;border-radius:4px;font-size:13px;">
+              ${!isHold ? '<button onclick="saveBatchWaybill(\'' + key + '\')" style="padding:6px 10px;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;"><i class="fas fa-save"></i> Save</button>' : ''}
+            </div>
+            <div style="padding:4px 16px 8px;background:white;">
+              <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                <thead>
+                  <tr style="border-bottom:1px solid #e2e8f0;">
+                    <th style="padding:6px 4px;text-align:left;width:30px;"></th>
+                    <th style="padding:6px 4px;text-align:left;">SO #</th>
+                    <th style="padding:6px 4px;text-align:left;">SO Date</th>
+                    <th style="padding:6px 4px;text-align:left;">Ship Via</th>
+                    <th style="padding:6px 4px;text-align:right;">Lines</th>
+                    <th style="padding:6px 4px;text-align:right;">Total Qty</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${group.sos.map(so => {
+                    const rowKey = (key + '__' + so.so_number).replace(/[^a-zA-Z0-9_-]/g, '_');
+                    return `
+                    <tr style="border-bottom:1px solid #f1f5f9;${isHold ? 'opacity:0.6;' : ''}">
+                      <td style="padding:4px;"><input type="checkbox" class="batch-so-checkbox" data-shipto="${key}" data-so="${so.so_number}" ${isHold ? 'disabled' : ''} onchange="updateBatchCounts()"></td>
+                      <td style="padding:4px;">
+                        <button type="button" onclick="toggleBatchSODetails('${key}','${so.so_number}','${rowKey}')" style="background:none;border:none;padding:0;color:#1e3a8a;cursor:pointer;font-weight:700;">
+                          <i class="fas fa-chevron-right" id="batch-so-toggle-icon-${rowKey}" style="font-size:10px;margin-right:6px;"></i>${so.so_number}
+                        </button>
+                      </td>
+                      <td style="padding:4px;">${so.so_date || '—'}</td>
+                      <td style="padding:4px;">${so.ship_via || '—'}</td>
+                      <td style="padding:4px;text-align:right;">${so.line_count}</td>
+                      <td style="padding:4px;text-align:right;">${so.total_qty}</td>
+                    </tr>
+                    <tr id="batch-so-detail-row-${rowKey}" class="hidden" style="background:#f8fafc;">
+                      <td colspan="6" style="padding:10px 12px;border-bottom:1px solid #e2e8f0;">
+                        <div id="batch-so-detail-content-${rowKey}" style="font-size:12px;color:#64748b;">Click SO to load line items...</div>
+                      </td>
+                    </tr>`;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      });
+
+      document.getElementById('batchGroupsContainer').innerHTML = html;
+      updateBatchCounts();
+    }
+
+    function toggleBatchGroupCheckboxes(groupCheckbox) {
+      const shipto = groupCheckbox.dataset.shipto;
+      const checked = groupCheckbox.checked;
+      document.querySelectorAll(`.batch-so-checkbox[data-shipto="${shipto}"]:not(:disabled)`).forEach(cb => {
+        cb.checked = checked;
+      });
+      updateBatchCounts();
+    }
+
+    function escapeHTML(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function decodeXMLEntities(value) {
+      return String(value || '')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&#x27;/gi, "'")
+        .replace(/&apos;/g, "'")
+        .replace(/&amp;/g, '&');
+    }
+
+    function getRawXMLTagValue(source, tagName) {
+      const pattern = new RegExp('<' + tagName + '>([\\s\\S]*?)</' + tagName + '>', 'i');
+      const match = pattern.exec(String(source || ''));
+      return match ? decodeXMLEntities(match[1].trim()) : '';
+    }
+
+    function extractSOLinesFromRawXML(xmlText) {
+      const raw = String(xmlText || '');
+      const rawError = getRawXMLTagValue(raw, 'error');
+      if (rawError) {
+        throw new Error(rawError);
+      }
+
+      const lineBlocks = raw.match(/<line_item(?:\s+[^>]*)?>[\s\S]*?<\/line_item>/gi) || [];
+      return lineBlocks.map((lineBlock, idx) => ({
+        line_item_code: getRawXMLTagValue(lineBlock, 'line_item_code') || String(idx + 1),
+        part_number: getRawXMLTagValue(lineBlock, 'part_number'),
+        quantity: getRawXMLTagValue(lineBlock, 'quantity')
+      }));
+    }
+
+    function tryParseXMLSilently(xmlText) {
+      if (!xmlText || !xmlText.trim()) return null;
+      let cleanedText = xmlText.trim();
+      const xmlDeclIndex = cleanedText.indexOf('<?xml');
+      if (xmlDeclIndex >= 0) {
+        cleanedText = cleanedText.slice(xmlDeclIndex);
+      } else {
+        const firstTagIndex = cleanedText.indexOf('<');
+        if (firstTagIndex > 0) cleanedText = cleanedText.slice(firstTagIndex);
+      }
+      cleanedText = cleanedText.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '');
+
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(cleanedText, 'text/xml');
+      if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
+        return null;
+      }
+      return xmlDoc;
+    }
+
+    function toggleBatchSODetails(shipto, soNumber, rowKey) {
+      const detailRow = document.getElementById('batch-so-detail-row-' + rowKey);
+      const icon = document.getElementById('batch-so-toggle-icon-' + rowKey);
+      if (!detailRow) return;
+
+      const isHidden = detailRow.classList.contains('hidden');
+      if (!isHidden) {
+        detailRow.classList.add('hidden');
+        if (icon) icon.className = 'fas fa-chevron-right';
+        return;
+      }
+
+      detailRow.classList.remove('hidden');
+      if (icon) icon.className = 'fas fa-chevron-down';
+
+      if (!batchSOLineDetails[soNumber]) {
+        loadBatchSOLineItems(soNumber, rowKey);
+      } else {
+        renderBatchSOLineItems(soNumber, rowKey);
+      }
+    }
+
+    async function loadBatchSOLineItems(soNumber, rowKey) {
+      const content = document.getElementById('batch-so-detail-content-' + rowKey);
+      if (!content) return;
+      content.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading line items...';
+
+      try {
+        const response = await fetch('GET_SO.XML?so_number=' + encodeURIComponent(soNumber) + '&_=' + Date.now());
+        const xmlText = await response.text();
+        let lineData = [];
+
+        const xmlDoc = tryParseXMLSilently(xmlText);
+        if (xmlDoc) {
+          const errorMsg = getXMLValue(xmlDoc, 'error');
+          if (errorMsg) {
+            throw new Error(errorMsg);
+          }
+          lineData = Array.from(xmlDoc.getElementsByTagName('line_item')).map(lineNode => ({
+            line_item_code: getXMLValue(lineNode, 'line_item_code'),
+            part_number: getXMLValue(lineNode, 'part_number'),
+            quantity: getXMLValue(lineNode, 'quantity')
+          }));
+        } else {
+          console.warn('GET_SO.XML returned malformed XML, using raw parser fallback for SO', soNumber);
+          lineData = extractSOLinesFromRawXML(xmlText);
+        }
+
+        if (lineData.length === 0) {
+          content.innerHTML = '<span style="color:#ef4444;">No line items found for SO ' + escapeHTML(soNumber) + '</span>';
+          return;
+        }
+
+        batchSOLineDetails[soNumber] = lineData.map((line, idx) => {
+          const rawQty = line.quantity;
+          const parsedQty = parseNumericValue(rawQty);
+          const safeQty = Number.isNaN(parsedQty) ? 0 : parsedQty;
+          return {
+            line_index: idx + 1,
+            line_item_code: line.line_item_code,
+            part_number: line.part_number,
+            ordered_qty: safeQty,
+            ship_qty: safeQty
+          };
+        });
+
+        renderBatchSOLineItems(soNumber, rowKey);
+      } catch (error) {
+        content.innerHTML = '<span style="color:#ef4444;">Error loading SO ' + escapeHTML(soNumber) + ': ' + escapeHTML(error.message) + '</span>';
+      }
+    }
+
+    function renderBatchSOLineItems(soNumber, rowKey) {
+      const content = document.getElementById('batch-so-detail-content-' + rowKey);
+      const lines = batchSOLineDetails[soNumber] || [];
+      if (!content) return;
+
+      if (lines.length === 0) {
+        content.innerHTML = '<span style="color:#ef4444;">No editable lines available.</span>';
+        return;
+      }
+
+      content.innerHTML = `
+        <div style="margin-bottom:8px;font-weight:600;color:#334155;">
+          SO ${escapeHTML(soNumber)} line items (edit Ship Qty for partial shipment)
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead>
+            <tr style="border-bottom:1px solid #dbe2ea;">
+              <th style="padding:6px 4px;text-align:left;">Line</th>
+              <th style="padding:6px 4px;text-align:left;">Part</th>
+              <th style="padding:6px 4px;text-align:right;">Ordered</th>
+              <th style="padding:6px 4px;text-align:right;">Ship Qty</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${lines.map(line => `
+              <tr style="border-bottom:1px solid #eef2f7;">
+                <td style="padding:4px;">${escapeHTML(line.line_item_code || line.line_index)}</td>
+                <td style="padding:4px;">${escapeHTML(line.part_number)}</td>
+                <td style="padding:4px;text-align:right;">${line.ordered_qty}</td>
+                <td style="padding:4px;text-align:right;">
+                  <input type="number" min="0" step="0.0001" value="${line.ship_qty}" onchange="updateBatchLineQty('${soNumber}', ${line.line_index}, this.value)" style="width:110px;padding:4px 6px;border:1px solid #cbd5e1;border-radius:4px;text-align:right;">
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function updateBatchLineQty(soNumber, lineIndex, value) {
+      const lines = batchSOLineDetails[soNumber];
+      if (!lines) return;
+      const line = lines.find(l => l.line_index === lineIndex);
+      if (!line) return;
+      const parsed = parseNumericValue(String(value));
+      line.ship_qty = Number.isNaN(parsed) || parsed < 0 ? 0 : parsed;
+    }
+
+    function updateBatchCounts() {
+      // Count only currently checked SOs that are NOT already locked
+      const checked = document.querySelectorAll('.batch-so-checkbox:checked:not(:disabled)');
+      let selectedCount = 0;
+
+      checked.forEach(cb => {
+        const soNumber = cb.dataset.so;
+        // Only count if not already in locked list
+        if (!lockedSOs.find(s => s.so_number === soNumber)) {
+          selectedCount++;
+        }
+      });
+
+      const totalCount = selectedCount + lockedSOs.length;
+
+      document.getElementById('batchSelectedCount').textContent = totalCount;
+      const btn = document.getElementById('btnProcessBatch');
+      btn.disabled = totalCount === 0;
+      btn.style.opacity = totalCount === 0 ? '0.5' : '1';
+    }
+
+    async function processBatch() {
+      const shipDate = document.getElementById('batchShipDate').value;
+      if (!shipDate) {
+        showAlert('Ship Date is required', 'error');
+        return;
+      }
+
+      // Combine currently checked SOs with locked SOs
+      const checked = document.querySelectorAll('.batch-so-checkbox:checked:not(:disabled)');
+      const currentSOs = Array.from(checked).map(cb => ({
+        so_number: cb.dataset.so,
+        shipto_code: cb.dataset.shipto,
+        soData: batchSOData.find(s => s.so_number === cb.dataset.so),
+        waybill: document.querySelector(`.batch-waybill-input[data-shipto="${cb.dataset.shipto}"]`)?.value || '',
+        line_overrides: batchSOLineDetails[cb.dataset.so] || null
+      }));
+
+      // Combine with locked SOs
+      const allSOs = [...lockedSOs, ...currentSOs.filter(so => !lockedSOs.find(l => l.so_number === so.so_number))];
+
+      if (allSOs.length === 0) {
+        showAlert('No SOs selected or locked', 'error');
+        return;
+      }
+
+      // Validate waybills
+      const customerGroups = {};
+      allSOs.forEach(so => {
+        const key = so.shipto_code || 'UNKNOWN';
+        if (!customerGroups[key]) {
+          customerGroups[key] = {
+            name: so.soData?.shipto_name || so.shipto_name || 'Unknown',
+            waybill: so.waybill
+          };
+        }
+      });
+
+      for (const [shipto, info] of Object.entries(customerGroups)) {
+        if (!info.waybill || !info.waybill.trim()) {
+          showAlert('Waybill is required for customer: ' + info.name, 'error');
+          return;
+        }
+      }
+
+      const totalCount = allSOs.length;
+      const lockedMsg = lockedSOs.length > 0 ? ` (${lockedSOs.length} locked + ${currentSOs.length} selected)` : '';
+      if (!confirm(`Process ${totalCount} shipment(s) now${lockedMsg}? This will create shipments, deduct inventory, and create AR invoices.`)) {
+        return;
+      }
+
+      // Show progress
+      const progressContainer = document.getElementById('batchProgressContainer');
+      progressContainer.classList.remove('hidden');
+      const progressBar = progressContainer.querySelector('#batchProgressBar > div');
+      const progressText = document.getElementById('batchProgressText');
+      const resultsList = document.getElementById('batchResultsList');
+      resultsList.innerHTML = '';
+
+      const btn = document.getElementById('btnProcessBatch');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+      let successCount = 0;
+      let failCount = 0;
+      batchCreatedShipments.clear(); // Clear previous batch tracking
+
+      for (let i = 0; i < allSOs.length; i++) {
+        const soItem = allSOs[i];
+        const soNumber = soItem.so_number;
+        const soData = soItem.soData || soItem; // Use soData from current or locked
+        const waybill = soItem.waybill;
+
+        const progress = Math.round(((i + 1) / allSOs.length) * 100);
+        progressBar.style.width = progress + '%';
+        progressText.textContent = 'Processing ' + (i + 1) + ' of ' + allSOs.length + ': SO ' + soNumber;
+
+        try {
+          if (soData.credit_hold === 'Y') {
+            throw new Error('Customer is on Credit Hold');
+          }
+
+          // Step 1: Create shipment from SO
+          const formData = new URLSearchParams();
+          formData.append('so_number', soNumber);
+          formData.append('ship_date', shipDate);
+          formData.append('waybill', waybill);
+          formData.append('ship_via', soData.ship_via || '');
+
+          const lineOverrides = soItem.line_overrides;
+          if (lineOverrides && lineOverrides.length > 0) {
+            const idxList = [];
+            const qtyList = [];
+            lineOverrides.forEach(line => {
+              const qty = Number(line.ship_qty);
+              if (!Number.isNaN(qty) && qty > 0) {
+                idxList.push(String(line.line_index));
+                qtyList.push(String(qty));
+              }
+            });
+
+            if (idxList.length === 0) {
+              throw new Error('All selected line item quantities are 0');
+            }
+
+            formData.append('line_indexes', idxList.join('|'));
+            formData.append('ship_qtys', qtyList.join('|'));
+          }
+
+          const createResp = await fetch('CREATE_BATCH_SHIPMENT.XML', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData.toString()
+          });
+
+          const createXml = await createResp.text();
+          const createDoc = parseXMLResponse(createXml, 'CREATE_BATCH_SHIPMENT.XML');
+          const createStatus = getXMLValue(createDoc, 'status');
+          const shipmentNum = getXMLValue(createDoc, 'shipment_number');
+          const createMessage = getXMLValue(createDoc, 'message');
+
+          if (createStatus !== 'success') {
+            throw new Error(createMessage || 'Failed to create shipment');
+          }
+          if (!shipmentNum) {
+            throw new Error('Create endpoint returned empty shipment number');
+          }
+          if (batchCreatedShipments.has(shipmentNum)) {
+            throw new Error('Duplicate shipment number returned by CREATE_BATCH_SHIPMENT.XML: ' + shipmentNum);
+          }
+          batchCreatedShipments.add(shipmentNum);
+
+          // Step 2: Process shipment (inventory + AR)
+          const procResp = await fetch('PROCESS_SHIPMENT.XML?shipment_number=' + encodeURIComponent(shipmentNum) + '&_=' + Date.now());
+          const procXml = await procResp.text();
+          const procDoc = parseXMLResponse(procXml, 'PROCESS_SHIPMENT.XML');
+          const procStatus = getXMLValue(procDoc, 'status');
+          const procMessage = getXMLValue(procDoc, 'message');
+
+          if (procStatus === 'success') {
+            successCount++;
+            resultsList.innerHTML += '<div style="color:#10b981;padding:3px 0;"><i class="fas fa-check-circle"></i> SO ' + soNumber + ' → Shipment ' + shipmentNum + ' processed</div>';
+          } else {
+            failCount++;
+            resultsList.innerHTML += '<div style="color:#f59e0b;padding:3px 0;"><i class="fas fa-exclamation-triangle"></i> SO ' + soNumber + ' → Shipment ' + shipmentNum + ' created, process failed: ' + (procMessage || 'Failed') + '</div>';
+          }
+        } catch (error) {
+          failCount++;
+          resultsList.innerHTML += '<div style="color:#ef4444;padding:3px 0;"><i class="fas fa-times-circle"></i> SO ' + soNumber + ': ' + error.message + '</div>';
+        }
+        resultsList.scrollTop = resultsList.scrollHeight;
+      }
+
+      progressBar.style.width = '100%';
+      progressText.textContent = 'Complete: ' + successCount + ' processed, ' + failCount + ' failed';
+      btn.innerHTML = '<i class="fas fa-bolt"></i> Process Batch (<span id="batchSelectedCount">0</span>)';
+      updateBatchCounts();
+
+      if (successCount > 0) {
+        showAlert('Batch complete: ' + successCount + ' processed, ' + failCount + ' failed', successCount === checked.length ? 'success' : 'info');
+        setTimeout(() => {
+          clearLockedSOs(); // Clear locked SOs after successful batch
+          loadPendingSOs(true);
+        }, 1200);
+      } else {
+        showAlert('All batch items failed', 'error');
+      }
+    }
+
+    // Auto-lock selected SOs when searching for another customer (silent)
+    function autoLockCurrentSelection() {
+      const checked = document.querySelectorAll('.batch-so-checkbox:checked:not(:disabled)');
+      if (checked.length === 0) return;
+
+      let addedCount = 0;
+      checked.forEach(cb => {
+        const soNumber = cb.dataset.so;
+        const shipto = cb.dataset.shipto;
+
+        // Avoid duplicates
+        if (!lockedSOs.find(s => s.so_number === soNumber)) {
+          const soData = batchSOData.find(s => s.so_number === soNumber);
+          if (soData) {
+            lockedSOs.push({
+              so_number: soNumber,
+              shipto_code: shipto,
+              shipto_name: soData.shipto_name,
+              ship_via: soData.ship_via,
+              waybill: document.querySelector(`.batch-waybill-input[data-shipto="${shipto}"]`)?.value || '',
+              line_overrides: batchSOLineDetails[soNumber] || null,
+              credit_hold: soData.credit_hold
+            });
+            addedCount++;
+            // Uncheck the checkbox after locking
+            cb.checked = false;
+          }
+        }
+      });
+
+      // Also uncheck group checkboxes
+      document.querySelectorAll('.batch-group-checkbox:checked').forEach(gcb => {
+        gcb.checked = false;
+      });
+
+      if (addedCount > 0) {
+        updateLockedSOsDisplay();
+        updateBatchCounts();
+      }
+    }
+
+    function updateLockedSOsDisplay() {
+      const container = document.getElementById('lockedSOsContainer');
+      const list = document.getElementById('lockedSOsList');
+      const countSpan = document.getElementById('lockedCount');
+
+      countSpan.textContent = lockedSOs.length;
+
+      if (lockedSOs.length === 0) {
+        container.classList.add('hidden');
+        return;
+      }
+
+      container.classList.remove('hidden');
+
+      // Group by customer
+      const groups = {};
+      lockedSOs.forEach(so => {
+        const key = so.shipto_code || 'UNKNOWN';
+        if (!groups[key]) {
+          groups[key] = {
+            name: so.shipto_name || 'Unknown',
+            sos: []
+          };
+        }
+        groups[key].sos.push(so);
+      });
+
+      let html = '';
+      Object.keys(groups).forEach(key => {
+        const group = groups[key];
+        html += `<div style="margin-bottom:6px;">
+          <strong>${group.name}</strong> (${group.sos.length}):
+          ${group.sos.map(s => s.so_number).join(', ')}
+        </div>`;
+      });
+
+      list.innerHTML = html;
+    }
+
+    function clearLockedSOs() {
+      if (lockedSOs.length === 0) return;
+
+      if (!confirm(`Clear all ${lockedSOs.length} locked SO(s)?`)) return;
+
+      lockedSOs = [];
+      updateLockedSOsDisplay();
+      updateBatchCounts();
+      showAlert('Locked SOs cleared', 'info');
+    }
+
+    async function saveBatchWaybill(shiptoCode) {
+      const waybillInput = document.querySelector(`.batch-waybill-input[data-shipto="${shiptoCode}"]`);
+      if (!waybillInput) return;
+
+      const waybill = waybillInput.value.trim();
+      if (!waybill) {
+        showAlert('Enter a waybill number first', 'error');
+        return;
+      }
+
+      // Find all checked SOs for this customer
+      const soCheckboxes = document.querySelectorAll(`.batch-so-checkbox[data-shipto="${shiptoCode}"]:checked:not(:disabled)`);
+      if (soCheckboxes.length === 0) {
+        showAlert('No SOs selected for this customer', 'error');
+        return;
+      }
+
+      // Get SO numbers
+      const soNumbers = Array.from(soCheckboxes).map(cb => cb.dataset.so);
+
+      if (!confirm(`Save waybill "${waybill}" for ${soNumbers.length} SO(s)?\n\n${soNumbers.join(', ')}`)) {
+        return;
+      }
+
+      showAlert(`Saving waybill for ${soNumbers.length} SO(s)...`, 'info');
+
+      // Lock these SOs with the waybill
+      autoLockCurrentSelection();
+
+      showAlert(`✅ Waybill saved for ${soNumbers.length} SO(s)`, 'success');
+    }
+
   </script>
 </body>
 </html>
