@@ -15,6 +15,45 @@ This skill should be active whenever you:
 - Modernize legacy templates
 - Receive requests about "plantillas", "templates", "forms", or "páginas HTML"
 
+## ⚠️ CRITICAL DESIGN RULES
+
+### ❌ NO EMOJI ICONS
+
+**NEVER use emoji icons in the HTML/CSS design.**
+
+This includes:
+- ❌ No emojis in HTML content (📋, 🔧, 📝, ℹ️, etc.)
+- ❌ No emojis in CSS pseudo-elements (`::before`, `::after`)
+- ❌ No emojis in button labels
+- ❌ No emojis in empty states
+- ❌ No emojis in headers or footers
+
+**Use instead:**
+- ✅ Plain text labels
+- ✅ Unicode symbols (×, ☰, •, ▸, etc.)
+- ✅ CSS borders, shapes, and backgrounds
+- ✅ SVG icons if needed
+- ✅ Font Awesome or similar icon fonts (if approved)
+
+**Example:**
+
+```html
+❌ INCORRECT:
+<h1>📋 Part Description Notes</h1>
+<button>🖨️ Print</button>
+<div class="info">ℹ️ Information</div>
+
+✅ CORRECT:
+<h1>Part Description Notes</h1>
+<button>Print</button>
+<div class="info">Information</div>
+```
+
+**Reason:** Professional enterprise applications should not use emoji icons as they:
+- Appear unprofessional in business settings
+- May render inconsistently across browsers/OS
+- Are not appropriate for industrial/manufacturing context
+
 ## Template Structure
 
 All HTML templates in this project follow a hybrid structure:
@@ -67,6 +106,9 @@ All HTML templates in this project follow a hybrid structure:
   </div>
 </header>
 ```
+
+**Note:** The hamburger menu ☰ is an acceptable Unicode symbol (not an emoji).
+Acceptable Unicode: ×, ☰, •, ▸, ►, ◄, ▲, ▼, ★, ☆, □, ■
 
 #### Sidebar Menu
 ```html
@@ -344,6 +386,207 @@ if (checkbox) {
 - Este patrón DEBE incluirse en TODOS los templates con sidebar para garantizar UX correcta.
 - El `checkbox` debe estar declarado FUERA del bloque `if (overlay && checkbox)` para que esté disponible en el scope del event listener de menuLabels.
 - El overlay debe ser un `<div>` (NO un `<label>`) para que JavaScript maneje el cierre correctamente sin comportamiento de toggle.
+
+### ❌ BUG: Error [B10] "Variable has not been assigned a value; zero used"
+
+**Problema**: Al enviar formularios, aparece el error de servidor:
+```
+[B10] in program "WEB$0002XXXX", Line XX:
+Variable has not been assigned a value; zero used.
+```
+
+**Causas Comunes**:
+
+1. **Entidades HTML en código BASIC**: El código PicLan-IP/BASIC contiene `&quot;` en lugar de comillas simples.
+2. **Campos de formulario duplicados**: Existe un `<select>` o `<input>` visible y un `<input type="hidden">` con el mismo `name=""`, causando conflictos de valores.
+
+**Síntomas**:
+- Error 500 Internal Server Error
+- Variables BASIC sin valor asignado
+- Formulario no procesa correctamente
+
+**Solución 1 - Entidades HTML**:
+
+Buscar en el bloque `<PRE>` todas las líneas con `&quot;` y reemplazar con comillas simples:
+
+```basic
+❌ INCORRECTO:
+IF CANCEL NE &quot;&quot; THEN
+IF FIELD NE &quot;value&quot; THEN
+
+✅ CORRECTO:
+IF CANCEL NE '' THEN
+IF FIELD NE 'value' THEN
+```
+
+**Solución 2 - Campos Duplicados**:
+
+Eliminar el campo `<input type="hidden">` cuando ya existe un `<select>` o `<input>` visible con el mismo nombre:
+
+```html
+❌ INCORRECTO (duplicado):
+<select name="COO">...</select>
+<input type="hidden" name="COO" value="^COO^">
+
+✅ CORRECTO (sin duplicado):
+<select name="COO">...</select>
+<!-- Sin hidden input - el select ya envía el valor -->
+```
+
+**Patrón de Detección**:
+
+Cuando veas este tipo de error:
+1. Buscar `&quot;` en el código BASIC con: `grep -n "&quot;" filename.HTM`
+2. Buscar campos duplicados con: `grep -n 'name="FIELDNAME"' filename.HTM`
+3. Corregir ambos problemas si existen
+
+**Prevención**:
+- Al crear nuevos templates, usar SIEMPRE comillas simples `''` en código BASIC
+- NO duplicar campos de formulario entre elementos visibles y hidden inputs
+- Usar hidden inputs SOLO para campos que no tiene el usuario (IDs internos, estados, etc.)
+
+### ❌ BUG: Error [B10] por Tag `<pre>` en Minúsculas
+
+**Problema**: Al enviar formularios, aparece el error de servidor [B10] y las variables no se asignan correctamente.
+
+**Causa**: El tag del bloque BASIC está en minúsculas `<pre>` en vez de mayúsculas `<PRE>`.
+
+**Síntomas**:
+- Error 500 Internal Server Error
+- Error [B10] "Variable has not been assigned a value; zero used"
+- El código BASIC no se ejecuta correctamente
+
+**Explicación**: PicLan-IP/BASIC requiere que el tag sea `<PRE>` en mayúsculas para reconocer y ejecutar el bloque de código del servidor. Si se usa `<pre>` en minúsculas, el sistema no procesa el código BASIC y todas las variables quedan sin asignar.
+
+**Solución**:
+
+Siempre usar `<PRE>` en mayúsculas para el bloque de código BASIC:
+
+```html
+❌ INCORRECTO:
+<pre>
+PicLan-IP/BASIC ^ ^
+...
+</pre>
+
+✅ CORRECTO:
+<PRE>
+PicLan-IP/BASIC ^ ^
+...
+</PRE>
+```
+
+**Patrón de Detección**:
+
+```bash
+grep -n '<pre>' filename.HTM
+grep -n '</pre>' filename.HTM
+```
+
+Si encuentras resultados, cámbialos a mayúsculas.
+
+**Prevención**:
+- Al crear o modernizar templates, verificar que el tag sea siempre `<PRE>` en mayúsculas
+- Agregar este check a la revisión de código antes de commitear
+- Los linters/formatters HTML pueden cambiar a minúsculas - verificar después de formatear
+
+### ❌ BUG: Error "Exceeded maximum 32767 file opens" - Loop Infinito de Redirects
+
+**Problema**: El servidor muestra el error `[33] Exceeded the maximum number of 32767 file opens!` y el sistema se bloquea después de múltiples requests.
+
+**Causa**: Un loop infinito de redirects causado por un `RETURN` sin `PLW.PAGE` en el backend. Cuando hay un `RETURN` vacío sin redirect, PicLan-IP vuelve a cargar la misma página infinitamente, agotando los file handles del sistema.
+
+**Síntomas**:
+- Error en servidor: `Exceeded the maximum number of 32767 file opens!`
+- Sistema se congela o se vuelve muy lento
+- Logs muestran requests repetidos a la misma página
+- Puede aparecer `Frame Out of Range` después del error
+
+**Código Problemático**:
+
+```basic
+❌ INCORRECTO (causa loop infinito):
+IF COO[1,3] = 'Ple' OR COO = '' THEN
+   * User clicked Next without selecting valid country - reload page
+   RETURN  ← SIN REDIRECT = LOOP INFINITO
+END
+```
+
+También causado por inicializaciones dummy que no existen en versiones legacy y hacen que el flujo continúe con datos inválidos:
+
+```basic
+❌ INCORRECTO (no debe existir):
+* Initialize empty values if not provided (for initial page load)
+IF PARTNUM = '' THEN PARTNUM = 'N/A'
+IF QTY = '' THEN QTY = '0'
+IF DCODE = '' THEN DCODE = 'N/A'
+IF COO = '' THEN COO = 'N/A'
+IF ROHS = '' THEN ROHS = 'N'
+```
+
+**Solución**:
+
+1. **NUNCA usar `RETURN` sin un redirect previo**. Si la validación falla, simplemente no ejecutar el bloque de redirect usando lógica positiva:
+
+```basic
+✅ CORRECTO (validación positiva):
+IF COO[1,3] NE 'Ple' AND GON1 NE '' THEN
+   PL_PUTVAR PARTNUM IN 'PARTNUM' ELSE NULL
+   PL_PUTVAR QTY IN 'QTY' ELSE NULL
+   PL_PUTVAR DCODE IN 'DCODE' ELSE NULL
+   PL_PUTVAR COO IN 'COO' ELSE NULL
+   ERR = ''
+   CALL PLW.PAGE('NEXTPAGE.HTM','',ERR)
+   RETURN
+END
+* Si la validación falla, el código termina naturalmente
+* sin RETURN y la página se mantiene sin recargar
+```
+
+2. **NO agregar inicializaciones dummy**: Si las variables vienen vacías desde el frontend, déjalas vacías. El frontend debe manejar valores vacíos correctamente con template syntax (`^VAR^`).
+
+3. **Comparar con versión legacy**: Antes de agregar lógica nueva, siempre verificar que exista en la versión legacy original.
+
+**Patrón de Validación Estándar**:
+
+```basic
+❌ INCORRECTO (causa loop):
+IF FIELD = '' THEN
+   RETURN  ← Recarga la página infinitamente
+END
+
+✅ CORRECTO (lógica positiva):
+IF FIELD NE '' AND BUTTON NE '' THEN
+   * Process and redirect
+   PL_PUTVAR FIELD IN 'FIELD' ELSE NULL
+   ERR = ''
+   CALL PLW.PAGE('NEXTPAGE.HTM','',ERR)
+   RETURN
+END
+* Termina naturalmente, página se mantiene
+```
+
+**CRÍTICO**:
+- Todo `RETURN` DEBE estar precedido por `CALL PLW.PAGE` o ser parte de un redirect explícito (como el redirect de autenticación a `LOGINWH.HTM`).
+- Si necesitas que la página se quede en su lugar cuando la validación falla, simplemente NO ejecutar el bloque de redirect (usar lógica positiva en el `IF`).
+- Las variables vacías (`''`) son válidas y esperadas en carga inicial - NO inicializar con valores dummy como `'N/A'` o `'0'`.
+- El único `RETURN` aceptable sin validación previa es el del check de autenticación (`PL_GET_COOKIE`).
+
+**Patrón de Detección**:
+
+```bash
+# Buscar RETURNs peligrosos (que no son parte de un bloque PLW.PAGE)
+grep -B3 "RETURN" filename.HTM | grep -v "CALL PLW.PAGE"
+
+# Buscar inicializaciones dummy
+grep "IF.*= '' THEN.*=" filename.HTM
+```
+
+**Prevención**:
+- Al crear/modernizar templates, copiar la lógica BASIC exacta de la versión legacy
+- No agregar validaciones o lógica extra sin verificar que existen en legacy
+- Siempre usar validaciones positivas (checking NE '') en lugar de negativas (checking = '' con RETURN)
+- Las variables vacías no necesitan inicialización - déjalas vacías
 
 ## Modernization Process for Legacy Files
 

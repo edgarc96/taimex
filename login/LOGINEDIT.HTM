@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>TAIMEX - Enterprise System Access</title>
   <style>
     /* Fonts */
@@ -387,6 +390,8 @@
                  required />
         </div>
         
+        <input type="hidden" name="LOGIN" value="LOGIN" />
+        
         <button type="submit" class="btn-login">
           <span class="loading"></span>
           <span class="btn-text">Sign In</span>
@@ -400,6 +405,22 @@
   </div>
 
   <script>
+    // Check if user is already logged in (cookie INIT exists)
+    (function() {
+      var cookies = document.cookie.split(';');
+      for (var i = 0; i < cookies.length; i++) {
+        var c = cookies[i].trim();
+        if (c.indexOf('INIT=') === 0) {
+          var val = c.substring(5);
+          if (val && val !== '') {
+            console.log('Session already active, redirecting to dashboard');
+            window.location.href = '/NBMMEDIT.HTM';
+            return;
+          }
+        }
+      }
+    })();
+
     // Logo fallback function
     function showFallbackLogo(img) {
       img.style.display = 'none';
@@ -424,91 +445,7 @@
       errorMsg.classList.remove('show');
     }
 
-    // Login function via AJAX
-    function performLogin(initials, password) {
-      const button = document.querySelector('.btn-login');
-      const loading = button.querySelector('.loading');
-      const text = button.querySelector('.btn-text');
-      
-      // Show loading state
-      loading.style.display = 'inline-block';
-      text.textContent = 'Signing in...';
-      button.disabled = true;
-      
-      // Prepare form data
-      const formData = new URLSearchParams();
-      formData.append('INITIALS', initials.toUpperCase());
-      formData.append('PWD', password);
-      formData.append('LOGIN', 'LOGIN');
-      
-      // Make AJAX request
-      fetch('LOGIN.XML', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: formData.toString()
-      })
-      .then(response => response.text())
-      .then(xmlText => {
-        console.log('Login response:', xmlText);
-        
-        // Parse XML response
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-        
-        const success = xmlDoc.querySelector('success')?.textContent === 'true';
-        const message = xmlDoc.querySelector('message')?.textContent || '';
-        const redirectUrl = xmlDoc.querySelector('redirect_url')?.textContent || '';
-        const userName = xmlDoc.querySelector('user_name')?.textContent || '';
-        
-        if (success) {
-          // Store user info in BOTH sessionStorage AND cookies for reliability
-          sessionStorage.setItem('userInitials', initials.toUpperCase());
-          sessionStorage.setItem('userName', userName || initials.toUpperCase());
-          
-          // Set cookies that persist across pages
-          document.cookie = `userInitials=${initials.toUpperCase()}; path=/; max-age=86400`;
-          document.cookie = `userName=${encodeURIComponent(userName || initials.toUpperCase())}; path=/; max-age=86400`;
-          
-          console.log('✅ Login successful!');
-          console.log('✅ Stored in sessionStorage:', initials.toUpperCase());
-          console.log('✅ Stored in cookies:', document.cookie);
-          
-          text.textContent = 'Success! Redirecting...';
-          
-          // Redirect immediately
-          setTimeout(() => {
-            console.log('✅ Redirecting to SO_EDIT.HTM...');
-            window.location.href = '/SO_EDIT.HTM';
-          }, 300);
-        } else {
-          // Show error
-          showError(message || 'Login failed. Please try again.');
-          
-          // Reset button
-          loading.style.display = 'none';
-          text.textContent = 'Sign In';
-          button.disabled = false;
-          
-          // Add error styling to inputs
-          document.querySelectorAll('input').forEach(input => {
-            input.classList.add('error');
-          });
-        }
-      })
-      .catch(error => {
-        console.error('Login error:', error);
-        showError('Connection error. Please try again.');
-        
-        // Reset button
-        loading.style.display = 'none';
-        text.textContent = 'Sign In';
-        button.disabled = false;
-      });
-    }
-
-    // Form submission
+    // Form submission with AJAX
     document.getElementById('loginForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
@@ -529,8 +466,105 @@
         return false;
       }
       
-      // Perform login
-      performLogin(initials, password);
+      // Show loading state
+      const button = document.querySelector('.btn-login');
+      const loading = button.querySelector('.loading');
+      const text = button.querySelector('.btn-text');
+      
+      loading.style.display = 'inline-block';
+      text.textContent = 'Signing in...';
+      button.disabled = true;
+      
+      // Prepare form data
+      const formData = new URLSearchParams();
+      formData.append('INITIALS', initials.toUpperCase());
+      formData.append('PWD', password);
+      formData.append('LOGIN', 'LOGIN');
+      
+      // Make AJAX request
+      fetch('LOGIN.XML', {
+        method: 'POST',
+        cache: 'no-store',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        credentials: 'include',
+        body: formData.toString()
+      })
+      .then(function(response) {
+        return response.text();
+      })
+      .then(function(htmlText) {
+        console.log('Response received:', htmlText.substring(0, 200));
+        
+        // Check if response is HTML (success) or XML (error)
+        if (htmlText.indexOf('<!DOCTYPE html>') === 0 || htmlText.indexOf('<html>') >= 0) {
+          // Success - HTML response with redirect
+          console.log('Login successful - HTML response detected');
+          text.textContent = 'Success! Redirecting...';
+          
+          // ✅ CRITICAL: Save user data to sessionStorage AND localStorage for persistence
+          var userInitials = initials.toUpperCase();
+          sessionStorage.setItem('userInitials', userInitials);
+          sessionStorage.setItem('INITIALS', userInitials);
+          sessionStorage.setItem('INIT', userInitials);
+          localStorage.setItem('userInitials', userInitials);
+          localStorage.setItem('INITIALS', userInitials);
+          localStorage.setItem('INIT', userInitials);
+          
+          // Also set cookies as backup so server-side pages can still resolve auth state.
+          document.cookie = 'userInitials=' + userInitials + '; path=/; max-age=86400; SameSite=Lax';
+          document.cookie = 'INIT=' + encodeURIComponent(userInitials) + '; path=/; max-age=86400; SameSite=Lax';
+          
+          console.log('✅ Session data saved - userInitials:', userInitials);
+          
+          // Parse the redirect URL from the HTML
+          var match = htmlText.match(/window\.location\.href="([^"]+)"/);
+          console.log('Regex match:', match);
+          
+          var redirectUrl = '/NBMMEDIT.HTM'; // Default
+          if (match && match[1]) {
+            redirectUrl = match[1];
+            console.log('Extracted redirect URL:', redirectUrl);
+          }
+          
+          // Wait a bit for cookies to be set, then redirect
+          setTimeout(function() {
+            console.log('Redirecting to:', redirectUrl);
+            window.location.href = redirectUrl;
+          }, 300);
+        } else {
+          // Error - XML response
+          console.log('Login failed - XML response detected');
+          var parser = new DOMParser();
+          var xmlDoc = parser.parseFromString(htmlText, 'text/xml');
+          var message = xmlDoc.querySelector('message');
+          var errorMsg = message ? message.textContent : 'Login failed. Please try again.';
+          
+          showError(errorMsg);
+          
+          // Reset button
+          loading.style.display = 'none';
+          text.textContent = 'Sign In';
+          button.disabled = false;
+          
+          // Add error styling to inputs
+          document.querySelectorAll('input').forEach(function(input) {
+            input.classList.add('error');
+          });
+        }
+      })
+      .catch(function(error) {
+        console.error('Login error:', error);
+        showError('Connection error. Please try again.');
+        
+        // Reset button
+        loading.style.display = 'none';
+        text.textContent = 'Sign In';
+        button.disabled = false;
+      });
+      
+      return false;
     });
 
     // Auto-uppercase initials input

@@ -1,0 +1,211 @@
+<PRE>
+
+PicLan-IP/BASIC ^ ^
+
+INCLUDE PLBASIC BP.INCLUDES PLW.INCLUDES
+
+OPEN 'XMLDATA' TO XMLDATAF ELSE STOP 201,'XMLDATA'
+OPEN 'SO' TO SOF ELSE STOP 201,'SO'
+HAS.CUSTF = 1
+OPEN 'CUSTOMER' TO CUSTOMERF ELSE HAS.CUSTF = 0
+
+CRLF = CHAR(13):CHAR(10)
+XVM = CHAR(253)
+
+* GET_PENDING_SO_FAST.XML - List open SOs with pagination + search
+* Uses SSELECT WITH 15 NE to pre-filter closed SOs at D3 level
+* Supports: limit, offset, customer_search
+
+PL_ADD_HDR '"Content-Type: application/xml"'
+PL_ADD_HDR '"Cache-Control: no-cache, no-store, must-revalidate"'
+
+XML.RESPONSE = '<?xml version="1.0" encoding="UTF-8"?>' : CRLF
+XML.RESPONSE = XML.RESPONSE : '<pending_so_list>' : CRLF
+SCRIPT_VERSION = '2026-02-25-F6-PERFORMANCE-FIX'
+
+* Parse parameters
+PL_GETVAR LIMIT.PARAM FROM 'limit' ELSE LIMIT.PARAM = '50'
+IF NUM(LIMIT.PARAM) THEN MAX_RESULTS = LIMIT.PARAM ELSE MAX_RESULTS = 50
+IF MAX_RESULTS < 1 THEN MAX_RESULTS = 1
+IF MAX_RESULTS > 200 THEN MAX_RESULTS = 200
+
+PL_GETVAR OFFSET.PARAM FROM 'offset' ELSE OFFSET.PARAM = '0'
+IF NUM(OFFSET.PARAM) THEN OFFSET = OFFSET.PARAM ELSE OFFSET = 0
+IF OFFSET < 0 THEN OFFSET = 0
+
+PL_GETVAR CUSTOMER.SEARCH FROM 'customer_search' ELSE CUSTOMER.SEARCH = ''
+CUSTOMER.SEARCH = TRIM(CUSTOMER.SEARCH)
+SEARCH.NORM = ''
+IF CUSTOMER.SEARCH NE '' THEN SEARCH.NORM = OCONV(CUSTOMER.SEARCH, 'MCU')
+
+* SSELECT pre-filters closed SOs at D3 level
+SL = 'SSELECT SO WITH 15 NE "C" AND WITH 15 NE "CM"'
+EXECUTE SL
+
+CNT = 0
+MATCHED = 0
+HAS_MORE = 'N'
+TOTAL_SELECTED = 0
+STATUS_SKIP_COUNT = 0
+SEARCH_SKIP_COUNT = 0
+
+LOOP
+   READNEXT SO_ID ELSE EXIT
+   TOTAL_SELECTED = TOTAL_SELECTED + 1
+   SO_ID = TRIM(SO_ID)
+   IF SO_ID = '' THEN CONTINUE
+
+   READ SO.REC FROM SOF, SO_ID ELSE CONTINUE
+
+   * Get Ship-To code
+   SHIPTO_CODE = SO.REC<4>
+   IF SHIPTO_CODE = '' THEN SHIPTO_CODE = SO.REC<2>
+
+   * Customer search filter - ONLY read CUSTOMER when actively searching
+   SHIPTO_NAME = ''
+   CREDIT_HOLD = 'N'
+   IF SEARCH.NORM NE '' THEN
+      * Read CUSTOMER only when search is active (performance optimization)
+      IF SHIPTO_CODE NE '' AND HAS.CUSTF THEN
+         READ CUST.REC FROM CUSTOMERF, SHIPTO_CODE ELSE CUST.REC = ''
+         IF CUST.REC NE '' THEN
+            SHIPTO_NAME = CUST.REC<1>
+            CONVERT XVM TO '' IN SHIPTO_NAME
+            CONVERT CHAR(252) TO '' IN SHIPTO_NAME
+         END
+      END
+      IF SHIPTO_NAME = '' THEN SHIPTO_NAME = SHIPTO_CODE
+
+      * Apply search filter
+      SHIPTO_NAME.NORM = OCONV(SHIPTO_NAME, 'MCU')
+      SHIPTO_CODE.NORM = OCONV(SHIPTO_CODE, 'MCU')
+      SO_ID.NORM = OCONV(SO_ID, 'MCU')
+      IF INDEX(SHIPTO_NAME.NORM, SEARCH.NORM, 1) = 0 AND INDEX(SHIPTO_CODE.NORM, SEARCH.NORM, 1) = 0 AND INDEX(SO_ID.NORM, SEARCH.NORM, 1) = 0 THEN
+         SEARCH_SKIP_COUNT = SEARCH_SKIP_COUNT + 1
+         CONTINUE
+      END
+   END ELSE
+      * No search active - use shipto_code as name for speed
+      SHIPTO_NAME = SHIPTO_CODE
+   END
+
+   * Pagination offset
+   IF MATCHED < OFFSET THEN
+      MATCHED = MATCHED + 1
+      CONTINUE
+   END
+
+   MATCHED = MATCHED + 1
+
+   * Early exit: stop as soon as we have enough AFTER FILTERING
+   IF CNT >= MAX_RESULTS THEN
+      HAS_MORE = 'Y'
+      EXIT
+   END
+
+   CNT = CNT + 1
+
+   * Get SO date
+   SO_DATE_RAW = SO.REC<1>
+   IF NUM(SO_DATE_RAW) AND SO_DATE_RAW > 0 THEN
+      SO_DATE_FMT = OCONV(SO_DATE_RAW, 'D2/')
+   END ELSE
+      SO_DATE_FMT = ''
+   END
+
+   * Get Ship Via
+   SHIP_VIA = SO.REC<11>
+
+   * Count lines
+   LINE_CODES = SO.REC<31>
+   LINE_COUNT = DCOUNT(LINE_CODES, XVM)
+   IF LINE_CODES = '' THEN LINE_COUNT = 0
+
+   * Sum qty
+   QTY_LIST = SO.REC<35>
+   TOTAL_QTY = 0
+   IF QTY_LIST NE '' THEN
+      QTY_COUNT = DCOUNT(QTY_LIST, XVM)
+      FOR QI = 1 TO QTY_COUNT
+         QTY_VAL = QTY_LIST<1,QI>
+         IF NUM(QTY_VAL) THEN TOTAL_QTY = TOTAL_QTY + QTY_VAL
+      NEXT QI
+   END
+
+   * Sanitize fields for XML
+   FIELD_VALUE = SO_ID
+   GOSUB CLEAN_XML_FIELD
+   SAFE_SO_ID = FIELD_VALUE
+
+   FIELD_VALUE = SHIPTO_CODE
+   GOSUB CLEAN_XML_FIELD
+   SAFE_SHIPTO_CODE = FIELD_VALUE
+
+   FIELD_VALUE = SHIPTO_NAME
+   GOSUB CLEAN_XML_FIELD
+   SAFE_SHIPTO_NAME = FIELD_VALUE
+
+   FIELD_VALUE = SHIP_VIA
+   GOSUB CLEAN_XML_FIELD
+   SAFE_SHIP_VIA = FIELD_VALUE
+
+   FIELD_VALUE = SO_DATE_FMT
+   GOSUB CLEAN_XML_FIELD
+   SAFE_SO_DATE = FIELD_VALUE
+
+   FIELD_VALUE = CREDIT_HOLD
+   GOSUB CLEAN_XML_FIELD
+   SAFE_CREDIT_HOLD = FIELD_VALUE
+
+   * Build XML entry
+   XML.RESPONSE = XML.RESPONSE : '<so_entry>' : CRLF
+   XML.RESPONSE = XML.RESPONSE : '<so_number>' : SAFE_SO_ID : '</so_number>' : CRLF
+   XML.RESPONSE = XML.RESPONSE : '<shipto_code>' : SAFE_SHIPTO_CODE : '</shipto_code>' : CRLF
+   XML.RESPONSE = XML.RESPONSE : '<shipto_name>' : SAFE_SHIPTO_NAME : '</shipto_name>' : CRLF
+   XML.RESPONSE = XML.RESPONSE : '<shipto_city></shipto_city>' : CRLF
+   XML.RESPONSE = XML.RESPONSE : '<shipto_state></shipto_state>' : CRLF
+   XML.RESPONSE = XML.RESPONSE : '<ship_via>' : SAFE_SHIP_VIA : '</ship_via>' : CRLF
+   XML.RESPONSE = XML.RESPONSE : '<line_count>' : LINE_COUNT : '</line_count>' : CRLF
+   XML.RESPONSE = XML.RESPONSE : '<total_qty>' : TOTAL_QTY : '</total_qty>' : CRLF
+   XML.RESPONSE = XML.RESPONSE : '<so_date>' : SAFE_SO_DATE : '</so_date>' : CRLF
+   XML.RESPONSE = XML.RESPONSE : '<credit_hold>' : SAFE_CREDIT_HOLD : '</credit_hold>' : CRLF
+   XML.RESPONSE = XML.RESPONSE : '</so_entry>' : CRLF
+REPEAT
+
+XML.RESPONSE = XML.RESPONSE : '<count>' : CNT : '</count>' : CRLF
+XML.RESPONSE = XML.RESPONSE : '<offset>' : OFFSET : '</offset>' : CRLF
+XML.RESPONSE = XML.RESPONSE : '<limit>' : MAX_RESULTS : '</limit>' : CRLF
+XML.RESPONSE = XML.RESPONSE : '<has_more>' : HAS_MORE : '</has_more>' : CRLF
+XML.RESPONSE = XML.RESPONSE : '<next_offset>' : (OFFSET + CNT) : '</next_offset>' : CRLF
+XML.RESPONSE = XML.RESPONSE : '<version>' : SCRIPT_VERSION : '</version>' : CRLF
+XML.RESPONSE = XML.RESPONSE : '<debug_total_selected>' : TOTAL_SELECTED : '</debug_total_selected>' : CRLF
+XML.RESPONSE = XML.RESPONSE : '<debug_status_skip>' : STATUS_SKIP_COUNT : '</debug_status_skip>' : CRLF
+XML.RESPONSE = XML.RESPONSE : '<debug_search_skip>' : SEARCH_SKIP_COUNT : '</debug_search_skip>' : CRLF
+XML.RESPONSE = XML.RESPONSE : '</pending_so_list>' : CRLF
+
+WRITE XML.RESPONSE ON XMLDATAF, 'GET_PENDING_SO_FAST.XML'
+ERR = ''
+CALL PLW.PAGE('/XMLDATA/GET_PENDING_SO_FAST.XML', '', ERR)
+RETURN
+
+CLEAN_XML_FIELD:
+   FOR CH = 0 TO 8
+      CONVERT CHAR(CH) TO '' IN FIELD_VALUE
+   NEXT CH
+   CONVERT CHAR(11) TO '' IN FIELD_VALUE
+   CONVERT CHAR(12) TO '' IN FIELD_VALUE
+   FOR CH = 14 TO 31
+      CONVERT CHAR(CH) TO '' IN FIELD_VALUE
+   NEXT CH
+   CONVERT CHAR(252):CHAR(253):CHAR(254):CHAR(255) TO '' IN FIELD_VALUE
+   LOOP WHILE INDEX(FIELD_VALUE, '&', 1) > 0 DO
+      FIELD_VALUE = FIELD(FIELD_VALUE, '&', 1) : '&amp;' : FIELD(FIELD_VALUE, '&', 2, 9999)
+   REPEAT
+   LOOP WHILE INDEX(FIELD_VALUE, '<', 1) > 0 DO
+      FIELD_VALUE = FIELD(FIELD_VALUE, '<', 1) : '&lt;' : FIELD(FIELD_VALUE, '<', 2, 9999)
+   REPEAT
+   LOOP WHILE INDEX(FIELD_VALUE, '>', 1) > 0 DO
+      FIELD_VALUE = FIELD(FIELD_VALUE, '>', 1) : '&gt;' : FIELD(FIELD_VALUE, '>', 2, 9999)
+   REPEAT
+   RETURN
+</PRE>
